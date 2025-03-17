@@ -4,6 +4,8 @@ import { BodyHeaderPage } from './MainHeaderPage';
 import { removeSpaces } from '../src/utils/helper';
 import { WallpaperDetailPage } from './WallpaperDetailPage';
 import { ColorOptionType, PriceOptionType, SortByType, TagsOptionType, WallpaperCategoryType, CardsTypes } from '../src/types/types';
+import { existsSync } from 'fs';
+import { stat } from 'fs/promises';
 
 export class WallpapersListPage extends HeaderPage {
   readonly CardsHeader: BodyHeaderPage;
@@ -73,6 +75,21 @@ export class WallpapersListPage extends HeaderPage {
     return (await card.getAttribute('title')) || '';
   }
 
+  async verifyDownload(folder: string, title: string) {
+    const downloadPath = `downloads/${folder}/${title}.jpg`;
+    for (let attempt = 0; attempt < 10; attempt++) {
+      if (existsSync(downloadPath)) {
+        const fileStats = await stat(downloadPath);
+        if (fileStats.size > 0) {
+          console.log(`Wallpaper "${title}" downloaded successfully.`);
+          return;
+        }
+      }
+      await new Promise(res => setTimeout(res, 1000));
+    }
+    throw new Error(`Wallpaper "${title}" was not downloaded or is empty.`);
+  }
+
   async downloadFreeWallpapers(folder: string, length: number) {
     const cards = (await this.cardsFree.all()).slice(0, length);
     for (const card of cards) {
@@ -81,6 +98,7 @@ export class WallpapersListPage extends HeaderPage {
       await this.selectCard(card);
       const wallpaperPage = new WallpaperDetailPage(this.page);
       await wallpaperPage.saveFreeWallpaper(folder, titleWithoutSpaces);
+      await this.verifyDownload(folder, titleWithoutSpaces);
       await this.page.goBack();
     }
   }
