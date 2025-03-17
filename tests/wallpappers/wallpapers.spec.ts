@@ -75,7 +75,6 @@ test.describe('Wallpapers: Search, Filtering, and Free Downloading - Guest User'
 
       // TC-08: Apply multiple filters at once > reset filters --- all filters removed
       await app.wallpapersListPage.clickResetAllFilters();
-      await app.wallpapersListPage;
       const cardsList7 = await app.wallpapersListPage.getCardsHref();
       expect(cardsList7).not.toBe(cardsList6);
     });
