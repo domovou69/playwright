@@ -9,5 +9,5 @@ export const DEFAULT_FILTERS_VALUES: Record<FilterCategoriesType, string[]> = {
 };
 
 export const locals = {
-  MODAL_BUY_TITLE: `To buy this item you need {value} Zedge Credits`,
+  MODAL_BUY_TITLE: `To buy this item you need {value}`,
 };
