@@ -6,7 +6,9 @@
     "test": "playwright test",
     "test:ui": "playwright test --ui",
     "test:download": "playwright test --grep @download",
-    "trace": "bash -c 'p=\"$0\"; [[ \"$p\" == *.zip ]] || p=\"test-results/$p/trace.zip\"; playwright show-trace \"$p\"'"
+    "trace": "bash -c 'p=\"$0\"; [[ \"$p\" == *.zip ]] || p=\"test-results/$p/trace.zip\"; playwright show-trace \"$p\"'",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "keywords": [],
   "author": "Mikhail Yesipchuk",
@@ -18,8 +20,11 @@
   "devDependencies": {
     "@playwright/test": "^1.63.0",
     "@types/node": "^24.19.0",
+    "eslint": "^10.11.0",
+    "eslint-plugin-playwright": "^2.12.0",
     "prettier": "^3.5.3",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "typescript-eslint": "^8.70.1"
   },
   "dependencies": {
     "dotenv": "^16.4.7"
