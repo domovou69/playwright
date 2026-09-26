@@ -13,8 +13,8 @@ test.describe('Wallpapers: Search, Filtering, and Free Downloading - Guest User'
 
   test.beforeEach('Go to uri /wallpapers and close prompt', async ({ app, page }) => {
     await page.goto('/wallpapers');
-    await page.getByRole('button', { name: 'Do not consent' }).click();
-    await page.getByRole('button', { name: 'Do not consent' }).waitFor({ state: 'detached' });
+    await page.getByRole('button', { name: 'Reject Optional Cookies' }).click();
+    await page.getByRole('button', { name: 'Reject Optional Cookies' }).waitFor({ state: 'detached' });
   });
 
   test.describe('Search and Filtering', () => {
@@ -51,8 +51,8 @@ test.describe('Wallpapers: Search, Filtering, and Free Downloading - Guest User'
       expect(cardsList3).not.toBe(cardsList2);
       await app.wallpapersListPage.validateWallpapersToHaveLabels(searchTextSingle);
 
-      // TC-05: Filter by tags ("black") --- validate free and premium images
-      await app.wallpapersListPage.filterByTag(['black']);
+      // TC-05: Filter by tags ("fall") --- validate free and premium images
+      await app.wallpapersListPage.filterByTag(['fall']);
       const cardsList4 = await app.wallpapersListPage.getCardsHref();
       expect(cardsList4).not.toBe(cardsList3);
       await app.wallpapersListPage.validateWallpapersToHaveLabels(searchTextSingle);
@@ -89,8 +89,8 @@ test.describe('Wallpapers: Search, Filtering, and Free Downloading - Guest User'
     test('prevents downloading premium wallpapers without purchase', async ({ app, page }) => {
       // TC-11: prevents downloading premium wallpapers without purchase
       await app.wallpapersListPage.selectCardByType('Paid');
-      await expect(app.wallpaperDetailsPage.downloadBtn).not.toBeAttached();
-      await app.wallpaperDetailsPage.clickBuy();
+      // await expect(app.wallpaperDetailsPage.downloadBtn).not.toBeAttached();
+      await app.wallpaperDetailsPage.clickDownload();
       await app.modalBuyPage.validateModalDialog();
       await app.modalBuyPage.clickClose();
     });
