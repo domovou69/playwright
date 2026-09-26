@@ -36,8 +36,8 @@ export class HeaderPage {
   }
 
   async selectCategory(category: CategoriesMainType, selection: WallpaperCategoryType | RingtoneCategoryType | NotificationSoundCategoryType) {
-    const urlPattern = `/${category.toLowerCase().replace(' ', '-')}?categories=${selection.toUpperCase()}"]`;
-    const categoryOption = this.page.locator(`a[href="${urlPattern}`);
+    const urlPattern = `/${category.toLowerCase().replace(' ', '-')}?categories=${selection.toUpperCase()}`;
+    const categoryOption = this.page.locator(`a[href="${urlPattern}"]`);
     await categoryOption.scrollIntoViewIfNeeded();
     await categoryOption.click();
     expect(this.page.url()).toContain(urlPattern);
