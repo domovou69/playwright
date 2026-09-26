@@ -19,6 +19,8 @@ export default tseslint.config(
     rules: {
       '@typescript-eslint/no-floating-promises': 'error',
       'playwright/missing-playwright-await': 'error',
+      // Page-object methods carry the actual expect()/throw calls, not the test body itself.
+      'playwright/expect-expect': ['warn', { assertFunctionPatterns: ['^validate', '^download', '^search$'] }],
     },
   }
 );
