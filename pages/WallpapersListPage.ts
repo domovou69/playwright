@@ -65,6 +65,10 @@ export class WallpapersListPage extends HeaderPage {
     return (await card.innerText()).trim();
   }
 
+  async cardHasPriceBadge(card: Locator): Promise<boolean> {
+    return (await card.locator('div[class*="card-footer"] [class*="badge"]').count()) > 0;
+  }
+
   async selectCard(card: Locator) {
     await card.scrollIntoViewIfNeeded();
     await card.waitFor({ state: 'visible' });
