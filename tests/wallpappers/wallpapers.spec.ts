@@ -11,16 +11,8 @@ test.describe('Wallpapers: Search, Filtering, and Free Downloading - Guest User'
     await clearDownloadFolder();
   });
 
-  test.beforeEach('Go to uri /wallpapers and close prompt', async ({ page }) => {
-    await page.goto('/wallpapers');
-    const rejectCookiesBtn = page.locator('#didomi-notice-disagree-button');
-    try {
-      await rejectCookiesBtn.waitFor({ state: 'visible', timeout: 5000 });
-      await rejectCookiesBtn.click();
-      await rejectCookiesBtn.waitFor({ state: 'detached' });
-    } catch {
-      // No consent banner appeared for this session - nothing to dismiss.
-    }
+  test.beforeEach('Open /wallpapers', async ({ app }) => {
+    await app.wallpapersListPage.open();
   });
 
   test.describe('Search and Filtering', () => {

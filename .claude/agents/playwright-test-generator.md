@@ -63,3 +63,31 @@ application behavior.
   ```
 
    </example-generation>
+
+# Project rules (override the generic example above)
+
+**Before generating**
+
+- Read `fixtures/test.ts`, `pages/*.ts` and `tests/wallpappers/wallpapers.spec.ts` to learn the existing page
+  objects and conventions.
+
+**Test file shape**
+
+- Import from the project fixture, never from `@playwright/test`:
+  `import { test, expect } from '../../fixtures/test';`
+- Use the `app` fixture (`async ({ app }) => ...`), not raw `page`, and open the section through its page object,
+  for example `await app.wallpapersListPage.open();`. The cookie banner is handled by a fixture; do not handle it.
+- Put tests under `tests/wallpappers/`. Add the tags from the plan: `{ tag: ['@smoke'] }`.
+
+**Page objects**
+
+- When an existing page object method does what a step needs, call it instead of writing locators.
+- When no method exists, write the locator or action inline and put `// TODO(pom): <suggestedMethodName>` on the
+  line above. You cannot edit page objects; a separate pass will move these into `pages/`.
+
+**Locators and waits**
+
+- Prefer `getByRole`, `getByLabel`, `getByText`, then CSS. Avoid XPath and index-based locators (`nth`) unless
+  nothing else is unique.
+- Use web-first assertions (`await expect(locator)...`). Never use `waitForTimeout` or `networkidle`.
+- The site content is live: assert invariants from the plan, never a specific title or exact count.

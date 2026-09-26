@@ -1,16 +1,25 @@
 import { test as base, expect } from '@playwright/test';
 import { AppPageObjects } from '../pages/AppPageObjects';
 
-// Define custom fixture type
 type MyFixtures = {
   app: AppPageObjects;
+  rejectCookieConsent: void;
 };
 
-// Extend Playwright test with custom fixture
 export const test = base.extend<MyFixtures>({
+  rejectCookieConsent: [
+    async ({ page }, use) => {
+      const rejectBtn = page.locator('#didomi-notice-disagree-button');
+      await page.addLocatorHandler(rejectBtn, async () => {
+        await rejectBtn.click();
+      });
+      await use();
+    },
+    { auto: true },
+  ],
+
   app: async ({ page }, use) => {
-    const app = new AppPageObjects(page);
-    await use(app);
+    await use(new AppPageObjects(page));
   },
 });
 

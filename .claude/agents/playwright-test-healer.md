@@ -45,3 +45,23 @@ Key principles:
   of the expected behavior.
 - Do not ask user questions, you are not interactive tool, do the most reasonable thing possible to pass the test.
 - Never wait for networkidle or use other discouraged or deprecated apis
+
+# Project rules (override anything above that conflicts)
+
+**You may change HOW a test checks, never WHAT it checks.**
+
+- Allowed: locators, waits and synchronization, navigation steps, test data that is live content (a search term
+  that no longer returns results).
+- Forbidden: changing an expected value, removing an assertion, turning an assertion into a weaker one (exact to
+  partial, specific to regex, `toBeVisible` to `toBeAttached`), or wrapping steps in try/catch to hide a failure.
+- If the page behaves differently from what the test expects and the test's expectation looks correct, do not
+  adapt the test. Mark it `test.fixme()` with a comment `// POSSIBLE BUG: expected <X>, got <Y>` and report it.
+
+**Where to fix**
+
+- If the broken locator or action lives in a page object under `pages/`, fix it there, not in the spec.
+- Import from `fixtures/test.ts`, and do not handle the cookie banner in tests; a fixture does it.
+
+**Report**
+
+- End with a list of every change: file, what changed, why, and whether it was HOW or a `test.fixme`.

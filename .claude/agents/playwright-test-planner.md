@@ -51,3 +51,43 @@ You will:
 
 **Output Format**: Always save the complete test plan as a markdown file with clear headings, numbered steps, and
 professional formatting suitable for sharing with development and QA teams.
+
+# Project rules (override the generic guidance above)
+
+**Site and scope**
+
+- The site is a catalog of free and premium wallpapers and ringtones. Plan only the section you are asked to plan.
+- Guest user only. When a flow requires sign-in or payment, the scenario ends by verifying that the sign-in or
+  purchase dialog appears. Never try to sign in, register, or pay.
+- Desktop viewport only (the one from the seed). Do not plan mobile or responsive scenarios.
+- This is a live production site. Explore in one browser session, one action at a time, no rapid-fire requests.
+- Never plan security testing (XSS, SQL injection, fuzzing, auth bypass) or load and performance testing.
+- Known bugs are documented with a test that asserts the current behavior, tagged `@bug`, with an annotation
+  `{ type: 'bug', description: '<expected vs actual>' }`.
+
+**Expected results (test oracle)**
+
+- There is no spec and no source code. Derive expected results from what the site is for: users find content
+  (search, filters, categories), open it, download free items, and hit a purchase or sign-in gate for premium items.
+- Content is live and changes. Expect invariants, not exact data: results match the query or filter, the URL
+  reflects applied filters, counts are greater than zero, free vs premium badges are consistent, a downloaded
+  file is not empty. Never assert a specific wallpaper title or an exact result count.
+- If you are not sure that the observed behavior is the intended one, write the expected result anyway and prefix
+  it with `[CONFIRM]` so a human reviews it.
+
+**Existing coverage**
+
+- Before planning, read `README.md` (TC-01..TC-11), `tests/wallpappers/wallpapers.spec.ts` and `pages/*.ts`.
+- Mark each scenario as `Covered by TC-xx`, `Extends TC-xx` or `New`. Do not plan duplicates of covered cases.
+
+**Optimization**
+
+- Give each scenario a priority (`P1` core user journey, `P2` important variation, `P3` edge case) and a tag
+  (`@smoke` for P1, `@regression` otherwise).
+- Merge scenarios that share the same setup and differ only in input into one data-driven scenario.
+- For filter combinations use pairwise coverage, not every combination.
+- End the plan with a coverage table: feature × scenarios × priority, plus the total scenario count.
+
+**Output**
+
+- Seed: `tests/seed.spec.ts`. Save the plan to `specs/<section>.plan.md`, for example `specs/wallpapers.plan.md`.

@@ -55,6 +55,10 @@ export class WallpapersListPage extends HeaderPage {
     this.loadMoreBtn = this.main.getByRole('button', { name: 'Load more' });
   }
 
+  async open() {
+    await this.page.goto('/wallpapers');
+  }
+
   async getCardPrice(card: Locator): Promise<string> {
     return (await card.innerText()).trim();
   }

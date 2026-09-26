@@ -1,7 +1,7 @@
-import { test } from '@playwright/test';
+import { test } from '../fixtures/test';
 
-test.describe('Test group', () => {
-  test('seed', async () => {
-    // generate code here.
+test.describe('Wallpapers seed', () => {
+  test('seed', async ({ app }) => {
+    await app.wallpapersListPage.open();
   });
 });
