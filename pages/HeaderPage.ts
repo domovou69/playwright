@@ -69,12 +69,16 @@ export class HeaderPage {
   async clickSearchFilter() {
     const isExpanded = 'true' === (await this.searchFilterBtn.getAttribute('aria-expanded'));
     if (isExpanded) {
+      // Closing: the dropdown's own overlay sits on top of the trigger button and intercepts a plain click
+      // (same pattern as the other filter dialogs elsewhere in the POM), so force it.
       await expect(this.searchFilterDropdown).toBeVisible();
+      await this.searchFilterBtn.click({ force: true });
+      await expect(this.searchFilterDropdown).not.toBeAttached();
     } else {
       await expect(this.searchFilterDropdown).not.toBeAttached();
+      await this.searchFilterBtn.click();
+      await expect(this.searchFilterDropdown).toBeAttached();
     }
-    await this.searchFilterBtn.click();
-    await expect(this.searchFilterDropdown).toBeAttached();
   }
 
   async selectSearchFilter(option: SearchOptionType) {

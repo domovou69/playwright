@@ -20,6 +20,8 @@ export class WallpapersListPage extends HeaderPage {
 
   readonly main: Locator;
   readonly wallpaperTitle: Locator;
+  readonly noResultsHeading: Locator;
+  readonly suggestedKeywordLinks: Locator;
   readonly filterCategory: Locator;
   readonly filterTag: Locator;
   readonly filterPrice: Locator;
@@ -42,6 +44,11 @@ export class WallpapersListPage extends HeaderPage {
     this.CardsHeader = new BodyHeaderPage(page);
     this.main = this.page.locator('main');
     this.wallpaperTitle = this.main.locator('h1');
+    // "All"-filter no-results page (/find/<term>): heading + suggested-keyword links.
+    // Note: the "Wallpapers"-filter no-results page (?keyword=<term>) shows a different, plain
+    // "Couldn't find anything" heading with no suggestions - a separate empty state, not this one.
+    this.noResultsHeading = this.main.getByRole('heading', { name: /couldn.?t find it/i });
+    this.suggestedKeywordLinks = this.main.locator('a[href^="/wallpapers?keyword="]');
     this.filterCategory = this.main.locator('button', { hasText: 'Category' });
     this.filterTag = this.main.locator('button', { hasText: 'Tag' });
     this.filterPrice = this.main.locator('button', { hasText: 'Price' });
