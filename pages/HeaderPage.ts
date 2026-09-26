@@ -6,6 +6,7 @@ export class HeaderPage {
   readonly logo: Locator;
   readonly categories: Locator;
   readonly categoriesDropdown: Locator;
+  readonly categoriesDialog: Locator;
   readonly searchForm: Locator;
   readonly searchFilterBtn: Locator;
   readonly searchFilterDropdown: Locator;
@@ -22,6 +23,7 @@ export class HeaderPage {
     this.logo = this.header.locator('a').first();
     this.categories = this.header.locator('//button[span[contains(text(), "Categories")]]');
     this.categoriesDropdown = this.page.locator('[data-radix-popper-content-wrapper]');
+    this.categoriesDialog = this.page.getByRole('dialog', { name: 'Categories' });
     this.searchForm = this.header.locator('form');
     this.searchFilterBtn = this.searchForm.locator('button[arial-role="combobox"]');
     this.searchFilterDropdown = this.page.locator('[data-radix-popper-content-wrapper]');
@@ -39,7 +41,8 @@ export class HeaderPage {
     const categoryOption = this.page.locator(`a[href="${urlPattern}"]`);
     await categoryOption.scrollIntoViewIfNeeded();
     await categoryOption.click();
-    expect(this.page.url()).toContain(urlPattern);
+    // Client-side navigation: wait for the URL to update instead of asserting page.url() synchronously
+    await expect(this.page).toHaveURL(new RegExp(urlPattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
     await this.page.waitForLoadState();
   }
 

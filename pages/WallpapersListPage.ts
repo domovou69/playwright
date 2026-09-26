@@ -26,6 +26,7 @@ export class WallpapersListPage extends HeaderPage {
   readonly filterColor: Locator;
   readonly filterSortBy: Locator;
   readonly resetAllBtn: Locator;
+  readonly categoryFilterDialog: Locator;
 
   readonly cardsContainer: Locator;
   readonly cardsAll: Locator;
@@ -46,6 +47,7 @@ export class WallpapersListPage extends HeaderPage {
     this.filterColor = this.main.locator('button', { hasText: 'Color' });
     this.filterSortBy = this.main.locator('button', { hasText: 'Sort by' });
     this.resetAllBtn = this.main.locator('button', { hasText: 'Reset All' });
+    this.categoryFilterDialog = this.page.getByRole('dialog', { name: 'Category' });
 
     this.cardsContainer = this.main.locator('div[class*="CardsContainer"]').last();
     this.cardsAll = this.cardsContainer.locator(':scope > a[class*="A_link"]');
@@ -301,12 +303,11 @@ export class WallpapersListPage extends HeaderPage {
 
   async filterByCategories(categoryOptions: WallpaperCategoryType[]) {
     await this.filterCategory.click();
-    const categoryDialog = this.page.getByRole('dialog', { name: 'Category' });
-    await expect(categoryDialog).toBeVisible();
+    await expect(this.categoryFilterDialog).toBeVisible();
 
     // Select all options
     for (const categoryOption of categoryOptions) {
-      const categoryLabel = categoryDialog.getByRole('option', { name: categoryOption });
+      const categoryLabel = this.categoryFilterDialog.getByRole('option', { name: categoryOption });
       await categoryLabel.scrollIntoViewIfNeeded();
       await categoryLabel.click();
       await this.waitForFilterToBeApplied(categoryOption);
@@ -314,7 +315,21 @@ export class WallpapersListPage extends HeaderPage {
 
     // Close filter
     await this.filterCategory.click({ force: true });
-    await expect(categoryDialog).not.toBeAttached();
+    await expect(this.categoryFilterDialog).not.toBeAttached();
+  }
+
+  async isCategorySelected(category: WallpaperCategoryType): Promise<boolean> {
+    await this.filterCategory.click();
+    await expect(this.categoryFilterDialog).toBeVisible();
+    const isSelected = (await this.categoryFilterDialog.getByRole('option', { name: category }).getAttribute('aria-checked')) === 'true';
+    await this.filterCategory.click({ force: true });
+    await expect(this.categoryFilterDialog).not.toBeAttached();
+    return isSelected;
+  }
+
+  async getCardPriceBadgeText(card: Locator): Promise<string> {
+    const footerBadge = card.locator('div[class*="card-footer"] [class*="badge"]');
+    return (await footerBadge.innerText()).trim();
   }
 
   async filterByColor(colors: ColorOptionType[]) {
