@@ -5,7 +5,7 @@
 Before running the tests, ensure that you have the following installed:
 
 - [Node.js](https://nodejs.org/en/)
-- Add .env with BASE_URL=https://www.domain.net/
+- Add .env with BASE_URL=https://www.zedge.net/
 
 ## Installation
 
