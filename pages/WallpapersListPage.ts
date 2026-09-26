@@ -26,7 +26,7 @@ export class WallpapersListPage extends HeaderPage {
   readonly cardsFree: Locator;
   readonly loadMoreBtn: Locator;
 
-  constructor(readonly page: Page) {
+  constructor(page: Page) {
     super(page);
     // this.Header = new HeaderPage(page);
     this.CardsHeader = new BodyHeaderPage(page);
