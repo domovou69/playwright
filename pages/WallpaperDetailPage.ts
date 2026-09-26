@@ -22,7 +22,7 @@ export class WallpaperDetailPage {
   }
 
   async saveFreeWallpaper(folder: string, name: string) {
-    const downloadPromise = this.page.waitForEvent('download');
+    const downloadPromise = this.page.waitForEvent('download', { timeout: 30000 });
     await this.clickDownload();
     const download = await downloadPromise;
     const downloadPath = `downloads/${folder}/${name}.jpg`;
