@@ -42,25 +42,25 @@ test.describe('Wallpapers: Search, Filtering, and Free Downloading - Guest User'
       const cardsList1 = await app.wallpapersListPage.getCardsHref();
       await app.wallpapersListPage.filterByCategories(['Nature']);
       const cardsList2 = await app.wallpapersListPage.getCardsHref();
-      expect(cardsList2).not.toBe(cardsList1);
+      expect(cardsList2).not.toEqual(cardsList1);
       await app.wallpapersListPage.validateWallpapersToHaveLabels(searchTextSingle);
 
       // TC-04: Filtering by color ("pink") --- validate free and premium images
       await app.wallpapersListPage.filterByColor(['Pink']);
       const cardsList3 = await app.wallpapersListPage.getCardsHref();
-      expect(cardsList3).not.toBe(cardsList2);
+      expect(cardsList3).not.toEqual(cardsList2);
       await app.wallpapersListPage.validateWallpapersToHaveLabels(searchTextSingle);
 
       // TC-05: Filter by tags ("fall") --- validate free and premium images
       await app.wallpapersListPage.filterByTag(['fall']);
       const cardsList4 = await app.wallpapersListPage.getCardsHref();
-      expect(cardsList4).not.toBe(cardsList3);
+      expect(cardsList4).not.toEqual(cardsList3);
       await app.wallpapersListPage.validateWallpapersToHaveLabels(searchTextSingle);
 
       // TC-06: Filter by price (free vs premium) --- only relevant images are displayed
       await app.wallpapersListPage.filterByPrice(['Free']);
       const cardsList5 = await app.wallpapersListPage.getCardsHref();
-      expect(cardsList5).not.toBe(cardsList4);
+      expect(cardsList5).not.toEqual(cardsList4);
       await app.wallpapersListPage.validateWallpapersToHaveLabels(searchTextSingle);
       await app.wallpapersListPage.validateCardExistance('Free', true);
       await app.wallpapersListPage.validateCardExistance('Paid', false);
@@ -68,7 +68,7 @@ test.describe('Wallpapers: Search, Filtering, and Free Downloading - Guest User'
       // TC-07: Filter by sort by --- only relevant images are displayed
       await app.wallpapersListPage.filterBySortBy('Most popular');
       const cardsList6 = await app.wallpapersListPage.getCardsHref();
-      expect(cardsList6).not.toBe(cardsList5);
+      expect(cardsList6).not.toEqual(cardsList5);
       await app.wallpapersListPage.validateWallpapersToHaveLabels(searchTextSingle);
       await app.wallpapersListPage.validateCardExistance('Free', true);
       await app.wallpapersListPage.validateCardExistance('Paid', false);
@@ -76,7 +76,7 @@ test.describe('Wallpapers: Search, Filtering, and Free Downloading - Guest User'
       // TC-08: Apply multiple filters at once > reset filters --- all filters removed
       await app.wallpapersListPage.clickResetAllFilters();
       const cardsList7 = await app.wallpapersListPage.getCardsHref();
-      expect(cardsList7).not.toBe(cardsList6);
+      expect(cardsList7).not.toEqual(cardsList6);
     });
   });
 
