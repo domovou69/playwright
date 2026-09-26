@@ -8,7 +8,7 @@ export enum FiltersType {
 }
 export type CardsTypes = 'all' | 'premium' | 'free';
 export type ColorOptionType = 'Black' | 'Pink' | 'Red' | 'Blue' | 'White';
-export type TagsOptionType = 'black' | 'cat' | 'bmw' | 'meme' | 'iphone';
+export type TagsOptionType = 'fall' | 'fall season' | 'fall wall paper' | 'halloween' | 'halloween wall papper';
 export type PriceOptionType = 'Free' | 'Paid';
 export type SortByType = 'Relevance' | 'Newest first' | 'Most popular';
 
