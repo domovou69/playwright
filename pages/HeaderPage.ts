@@ -1,6 +1,5 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { CategoriesMainType, WallpaperCategoryType, RingtoneCategoryType, SearchOptionType } from '../src/types/types';
-import { WallpapersListPage } from './WallpapersListPage';
 
 export class HeaderPage {
   readonly header: Locator;
@@ -111,9 +110,6 @@ export class HeaderPage {
   }
 
   async search(value: string, filter: SearchOptionType = 'All') {
-    const wallpapersListPage = new WallpapersListPage(this.page);
-    const cardsListBefore = await wallpapersListPage.cardsAll.all();
-
     await this.searchInput.clear();
     await this.searchCancelBtn.waitFor({ state: 'detached' });
     await this.searchInput.fill(value);
@@ -134,8 +130,6 @@ export class HeaderPage {
     );
     await expect(this.searchInput).toHaveAttribute('value', value);
     await expect(this.searchCancelBtn).toBeEnabled();
-
-    await wallpapersListPage.waitForCardsToUpdate(cardsListBefore);
   }
 
   async clickCancelSearch() {

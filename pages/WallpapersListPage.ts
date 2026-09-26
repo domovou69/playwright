@@ -3,7 +3,15 @@ import { HeaderPage } from './HeaderPage';
 import { BodyHeaderPage } from './MainHeaderPage';
 import { removeSpaces } from '../src/utils/helper';
 import { WallpaperDetailPage } from './WallpaperDetailPage';
-import { ColorOptionType, PriceOptionType, SortByType, TagsOptionType, WallpaperCategoryType, CardsTypes } from '../src/types/types';
+import {
+  ColorOptionType,
+  PriceOptionType,
+  SearchOptionType,
+  SortByType,
+  TagsOptionType,
+  WallpaperCategoryType,
+  CardsTypes,
+} from '../src/types/types';
 import { existsSync } from 'fs';
 import { stat } from 'fs/promises';
 
@@ -222,30 +230,14 @@ export class WallpapersListPage extends HeaderPage {
     }
   }
 
-  async waitForCardsToUpdate(cardsListBefore: Locator[]) {
-    let cardsListAfter: Locator[];
-    let retries = 0;
-    const MAX_RETRIES = 5;
-    const RETRY_DELAY = 500;
+  async waitForCardsToUpdate(hrefsBefore: string[]) {
+    await expect.poll(() => this.getCardsHref(), { timeout: 5000, intervals: [500] }).not.toEqual(hrefsBefore);
+  }
 
-    do {
-      // Wait for a brief moment to allow for UI updates
-      await this.page.waitForTimeout(RETRY_DELAY);
-
-      // Get the updated list of cards
-      cardsListAfter = await this.cardsAll.all();
-
-      // Compare each element in the previous and updated list
-      const hasChanged = cardsListBefore.some((cardBefore, index) => {
-        return cardBefore !== cardsListAfter[index];
-      });
-
-      if (hasChanged) return;
-
-      retries++;
-    } while (retries < MAX_RETRIES);
-
-    throw new Error('Cards list did not update after waiting');
+  async searchAndWaitForUpdate(value: string, filter: SearchOptionType = 'All') {
+    const hrefsBefore = await this.getCardsHref();
+    await this.search(value, filter);
+    await this.waitForCardsToUpdate(hrefsBefore);
   }
 
   async scrollDownGradually(step = 200, delay = 300, extraTicksAtBottom = 1) {
@@ -376,6 +368,7 @@ export class WallpapersListPage extends HeaderPage {
   }
 
   async filterBySortBy(option: SortByType) {
+    const hrefsBefore = await this.getCardsHref();
     await this.filterSortBy.click();
     const sortByDialog = this.page.getByRole('dialog', { name: 'Sort by' });
     await expect(sortByDialog).toBeVisible();
@@ -383,7 +376,7 @@ export class WallpapersListPage extends HeaderPage {
     await sortByLabel.scrollIntoViewIfNeeded();
     await sortByLabel.click();
     await expect(sortByDialog).not.toBeAttached();
-    await this.page.waitForTimeout(1000);
+    await this.waitForCardsToUpdate(hrefsBefore);
   }
 
   async clickResetAllFilters() {

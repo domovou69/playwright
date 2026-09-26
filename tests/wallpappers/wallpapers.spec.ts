@@ -28,13 +28,13 @@ test.describe('Wallpapers: Search, Filtering, and Free Downloading - Guest User'
       // TC-01: Single and multiple words search (e.g. “sun” "mountains river") --- relevant results are displayed.
       // Single word search
       for (const text of searchTextSingleArr) {
-        await app.wallpapersListPage.search(text, 'Wallpapers');
+        await app.wallpapersListPage.searchAndWaitForUpdate(text, 'Wallpapers');
         await app.wallpapersListPage.validateWallpapersToHaveLabels(text);
       }
 
       // Multiple word search
       for (const textMultiple of searchTextMultipleArr) {
-        await app.wallpapersListPage.search(textMultiple, 'Wallpapers');
+        await app.wallpapersListPage.searchAndWaitForUpdate(textMultiple, 'Wallpapers');
         await app.wallpapersListPage.validateWallpapersToHaveLabels(textMultiple);
       }
 
@@ -44,7 +44,7 @@ test.describe('Wallpapers: Search, Filtering, and Free Downloading - Guest User'
 
     test('allows filtering wallpapers by category, color, tags, price and sort by', async ({ app }) => {
       // TC-03: Apply filter by category ("nature") --- validate free and premium images
-      await app.wallpapersListPage.search(searchTextSingle, 'Wallpapers');
+      await app.wallpapersListPage.searchAndWaitForUpdate(searchTextSingle, 'Wallpapers');
       const cardsList1 = await app.wallpapersListPage.getCardsHref();
       await app.wallpapersListPage.filterByCategories(['Nature']);
       const cardsList2 = await app.wallpapersListPage.getCardsHref();
