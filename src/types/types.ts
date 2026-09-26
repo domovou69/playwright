@@ -10,7 +10,7 @@ export type CardsTypes = 'all' | 'premium' | 'free';
 export type ColorOptionType = 'Black' | 'Pink' | 'Red' | 'Blue' | 'White';
 export type TagsOptionType = 'fall' | 'fall season' | 'fall wall paper' | 'halloween' | 'halloween wall papper';
 export type PriceOptionType = 'Free' | 'Paid';
-export type SortByType = 'Relevance' | 'Newest first' | 'Most popular';
+export type SortByType = 'Relevance' | 'Newest first' | 'Price: Low to High' | 'Price: High to Low' | 'Most popular';
 
 export type SearchOptionType = 'All' | 'Wallpapers' | 'Ringtones' | 'Artists' | 'Notification sounds';
 export type CategoriesMainType = 'Wallpapers' | 'Ringtones' | 'Notification sounds';
@@ -36,7 +36,9 @@ export type WallpaperCategoryType =
   | 'Sayings'
   | 'Spiritual'
   | 'Space'
-  | 'Comics';
+  | 'Comics'
+  | 'Holidays'
+  | 'Designs';
 
 export type RingtoneCategoryType =
   | 'Entertainment'
@@ -94,6 +96,8 @@ export const CATEGORY_SELECTION: Record<CategoriesMainType, WallpaperCategoryTyp
     'Spiritual',
     'Space',
     'Comics',
+    'Holidays',
+    'Designs',
   ],
   Ringtones: [
     'Entertainment',

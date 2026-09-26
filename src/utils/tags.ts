@@ -1,7 +1,8 @@
 export const tags = {
   WALLPAPERS: '@wallpapers',
   SMOKE: '@smoke',
-  REGRESSION: '@regresion',
+  REGRESSION: '@regression',
   GUEST: '@guest',
   DOWNLOAD: '@download',
+  BUG: '@bug',
 };
