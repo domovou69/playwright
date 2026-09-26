@@ -1,14 +1,10 @@
 import { defineConfig, devices } from '@playwright/test';
-require('dotenv').config();
+import 'dotenv/config';
 
 /**
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
  */
-// import dotenv from 'dotenv';
-// import path from 'path';
-// dotenv.config({ path: path.resolve(__dirname, '.env') });
-
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
@@ -16,7 +12,7 @@ export default defineConfig({
   timeout: 120000,
   testDir: './tests',
   /* Run tests in files in parallel */
-  fullyParallel: true,
+  fullyParallel: false,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
@@ -27,11 +23,17 @@ export default defineConfig({
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
+    /* Run browser in headed mode (visible browser window). */
+    headless: false,
+    /* Timeout for actions like click, fill, etc. */
+    actionTimeout: 7000,
+    /* Timeout for page navigations like goto, waitForNavigation, etc. */
+    navigationTimeout: 30000,
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: process.env.BASE_URL,
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'on-first-retry',
+    trace: 'off',
   },
 
   /* Configure projects for major browsers */
