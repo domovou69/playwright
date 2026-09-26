@@ -11,14 +11,14 @@ test.describe('Wallpapers: Search, Filtering, and Free Downloading - Guest User'
     await clearDownloadFolder();
   });
 
-  test.beforeEach('Go to uri /wallpapers and close prompt', async ({ app, page }) => {
+  test.beforeEach('Go to uri /wallpapers and close prompt', async ({ page }) => {
     await page.goto('/wallpapers');
     await page.getByRole('button', { name: 'Reject Optional Cookies' }).click();
     await page.getByRole('button', { name: 'Reject Optional Cookies' }).waitFor({ state: 'detached' });
   });
 
   test.describe('Search and Filtering', () => {
-    test('allows users to search wallpapers by keywords', async ({ app, page }) => {
+    test('allows users to search wallpapers by keywords', async ({ app }) => {
       // TC-01: Single and multiple words search (e.g. “sun” "mountains river") --- relevant results are displayed.
       // Single word search
       for (const text of searchTextSingleArr) {
@@ -36,7 +36,7 @@ test.describe('Wallpapers: Search, Filtering, and Free Downloading - Guest User'
       await app.wallpapersListPage.validateAutoLoadImagesOnScrollDown();
     });
 
-    test('allows filtering wallpapers by category, color, tags, price and sort by', async ({ app, page }) => {
+    test('allows filtering wallpapers by category, color, tags, price and sort by', async ({ app }) => {
       // TC-03: Apply filter by category ("nature") --- validate free and premium images
       await app.wallpapersListPage.search(searchTextSingle, 'Wallpapers');
       const cardsList1 = await app.wallpapersListPage.getCardsHref();
@@ -80,13 +80,13 @@ test.describe('Wallpapers: Search, Filtering, and Free Downloading - Guest User'
     });
   });
 
-  test.describe('Downloading and Purchase - Guest User', { tag: [tags.WALLPAPERS, tags.GUEST] }, async () => {
-    test('allows users to download free wallpapers after ad', { tag: [tags.DOWNLOAD] }, async ({ app, page }) => {
+  test.describe('Downloading and Purchase - Guest User', { tag: [tags.WALLPAPERS, tags.GUEST] }, () => {
+    test('allows users to download free wallpapers after ad', { tag: [tags.DOWNLOAD] }, async ({ app }) => {
       // TC-10: Attempting to download a free image should show AD for 15 sec, then start downloading --- check image downloaded and not corrupted
       await app.wallpapersListPage.downloadFreeWallpapers('free', 1);
     });
 
-    test('prevents downloading premium wallpapers without purchase', async ({ app, page }) => {
+    test('prevents downloading premium wallpapers without purchase', async ({ app }) => {
       // TC-11: prevents downloading premium wallpapers without purchase
       await app.wallpapersListPage.selectCardByType('Paid');
       // await expect(app.wallpaperDetailsPage.downloadBtn).not.toBeAttached();

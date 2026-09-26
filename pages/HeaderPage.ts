@@ -1,5 +1,5 @@
 import { expect, Locator, Page } from '@playwright/test';
-import { CategoriesMainType, WallpaperCategoryType, RingtoneCategoryType, NotificationSoundCategoryType, SearchOptionType } from '../src/types/types';
+import { CategoriesMainType, WallpaperCategoryType, RingtoneCategoryType, SearchOptionType } from '../src/types/types';
 import { WallpapersListPage } from './WallpapersListPage';
 
 export class HeaderPage {
@@ -35,7 +35,7 @@ export class HeaderPage {
     this.signInBtn = this.header.locator('button', { hasText: 'Sign in' });
   }
 
-  async selectCategory(category: CategoriesMainType, selection: WallpaperCategoryType | RingtoneCategoryType | NotificationSoundCategoryType) {
+  async selectCategory(category: CategoriesMainType, selection: WallpaperCategoryType | RingtoneCategoryType) {
     const urlPattern = `/${category.toLowerCase().replace(' ', '-')}?categories=${selection.toUpperCase()}`;
     const categoryOption = this.page.locator(`a[href="${urlPattern}"]`);
     await categoryOption.scrollIntoViewIfNeeded();
@@ -52,7 +52,11 @@ export class HeaderPage {
     await expect(this.searchFilterBtn).toBeVisible();
     await expect(this.searchInput).toBeVisible();
     const inputText = await this.searchInput.innerText();
-    inputText === '' ? await expect(this.searchCancelBtn).not.toBeAttached() : await expect(this.searchCancelBtn).toBeVisible();
+    if (inputText === '') {
+      await expect(this.searchCancelBtn).not.toBeAttached();
+    } else {
+      await expect(this.searchCancelBtn).toBeVisible();
+    }
     await expect(this.searchSubmitBtn).toBeEnabled();
     await expect(this.myCreditsBtn).toBeEnabled();
     await expect(this.signInBtn).toBeEnabled();
@@ -61,8 +65,12 @@ export class HeaderPage {
   }
 
   async clickSearchFilter() {
-    const isExpanded = 'true' === (await this.searchFilterBtn.getAttribute('aria-expanded')) ? true : false;
-    isExpanded ? await expect(this.searchFilterDropdown).toBeVisible() : await expect(this.searchFilterDropdown).not.toBeAttached();
+    const isExpanded = 'true' === (await this.searchFilterBtn.getAttribute('aria-expanded'));
+    if (isExpanded) {
+      await expect(this.searchFilterDropdown).toBeVisible();
+    } else {
+      await expect(this.searchFilterDropdown).not.toBeAttached();
+    }
     await this.searchFilterBtn.click();
     await expect(this.searchFilterDropdown).toBeAttached();
   }
@@ -114,8 +122,7 @@ export class HeaderPage {
     if (selectedFilter !== filter) {
       await this.selectSearchFilter(filter);
     }
-    const inputValue = await this.searchInput.getAttribute('value');
-    expect(inputValue).toBe(value);
+    await expect(this.searchInput).toHaveAttribute('value', value);
     await this.searchSubmitBtn.click();
     await this.page.waitForURL(
       url => {
@@ -125,7 +132,7 @@ export class HeaderPage {
       },
       { timeout: 10000 }
     );
-    expect(inputValue).toBe(value);
+    await expect(this.searchInput).toHaveAttribute('value', value);
     await expect(this.searchCancelBtn).toBeEnabled();
 
     await wallpapersListPage.waitForCardsToUpdate(cardsListBefore);

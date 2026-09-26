@@ -104,15 +104,16 @@ export class WallpapersListPage extends HeaderPage {
   }
 
   async validateCommonWallpaper(card: Locator) {
-    expect(card).toHaveAttribute('href');
-    expect(card).toHaveAttribute('aria-label');
-    expect(card).toHaveAttribute('title');
+    await expect(card).toHaveAttribute('href');
+    await expect(card).toHaveAttribute('aria-label');
+    await expect(card).toHaveAttribute('title');
 
     const titleAttribute = await card.getAttribute('title');
     const ariaLabelAttribute = await card.getAttribute('aria-label');
+    // eslint-disable-next-line playwright/prefer-web-first-assertions -- comparing two dynamic attributes to each other has no single toHaveAttribute equivalent
     expect(titleAttribute).toBe(ariaLabelAttribute);
-    expect(titleAttribute).not.toBe('');
-    expect(ariaLabelAttribute).not.toBe('');
+    await expect(card).not.toHaveAttribute('title', '');
+    await expect(card).not.toHaveAttribute('aria-label', '');
 
     const hrefValue = (await card.getAttribute('href')) || '';
     const regex = /^\/wallpapers\/[a-f0-9\-]{36}$/; // check GUID (Globally Unique Identifier)
@@ -161,9 +162,12 @@ export class WallpapersListPage extends HeaderPage {
   }
 
   async validateCardExistance(cards: PriceOptionType, exist: boolean) {
-    let cardsList: Locator[];
-    cards === 'Free' ? (cardsList = await this.cardsFree.all()) : (cardsList = await this.cardsPremiumWithPrice.all());
-    exist ? expect(cardsList.length).toBeGreaterThan(0) : expect(cardsList.length).toBe(0);
+    const cardsList = cards === 'Free' ? await this.cardsFree.all() : await this.cardsPremiumWithPrice.all();
+    if (exist) {
+      expect(cardsList.length).toBeGreaterThan(0);
+    } else {
+      expect(cardsList).toHaveLength(0);
+    }
   }
 
   async validateWallpapersToHaveLabels(label: string | string[]) {
@@ -192,7 +196,7 @@ export class WallpapersListPage extends HeaderPage {
 
     // Find which labels are missing
     const missingLabels = EXPECTED_LABELS_ARR.filter(l => !foundLabels.has(l));
-    if (missingLabels.length > 0) throw new Error(`Missing labels in cards: ${missingLabels.join(',')} from ${EXPECTED_LABELS_ARR}`);
+    if (missingLabels.length > 0) throw new Error(`Missing labels in cards: ${missingLabels.join(',')} from ${EXPECTED_LABELS_ARR.join(',')}`);
   }
 
   async getCardHref(card: Locator): Promise<string> {
@@ -207,10 +211,10 @@ export class WallpapersListPage extends HeaderPage {
     for (const card of cards) {
       hrefs.push(await this.getCardHref(card));
     }
-    return hrefs.filter(Boolean) as string[];
+    return hrefs.filter(Boolean);
   }
 
-  async compareCardsHrefArrays(currentHrefArr: string[], previousHrefArr: string[]) {
+  compareCardsHrefArrays(currentHrefArr: string[], previousHrefArr: string[]) {
     if (currentHrefArr.length < previousHrefArr.length) throw new Error('Current href array is shorter than previous one');
 
     for (let i = 0; i < previousHrefArr.length; i++) {
@@ -277,10 +281,9 @@ export class WallpapersListPage extends HeaderPage {
       await expect.poll(() => this.cardsAll.count(), { timeout: 10000, intervals: [500] }).toBeGreaterThan(cardsCount);
 
       // Check new cards are loaded and previous cards are preserved
-      let cardsCountNew = await this.cardsAll.count();
-      cardsCount = cardsCountNew;
-      let cardsHrefNew = await this.getCardsHref();
-      await this.compareCardsHrefArrays(cardsHrefNew, cardsHrefArr);
+      cardsCount = await this.cardsAll.count();
+      const cardsHrefNew = await this.getCardsHref();
+      this.compareCardsHrefArrays(cardsHrefNew, cardsHrefArr);
       cardsHrefArr = cardsHrefNew;
 
       // Check if 'Load More' button is visible and enabled

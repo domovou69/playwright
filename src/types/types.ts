@@ -70,7 +70,7 @@ export type RingtoneCategoryType =
 
 export type NotificationSoundCategoryType = RingtoneCategoryType;
 
-export const CATEGORY_SELECTION: Record<CategoriesMainType, WallpaperCategoryType[] | RingtoneCategoryType[] | NotificationSoundCategoryType[]> = {
+export const CATEGORY_SELECTION: Record<CategoriesMainType, WallpaperCategoryType[] | RingtoneCategoryType[]> = {
   Wallpapers: [
     'Funny',
     'Technology',
