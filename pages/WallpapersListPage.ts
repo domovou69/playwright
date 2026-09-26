@@ -244,6 +244,23 @@ export class WallpapersListPage extends HeaderPage {
     throw new Error('Cards list did not update after waiting');
   }
 
+  async scrollDownGradually(step = 200, delay = 300, extraTicksAtBottom = 3) {
+    const viewport = this.page.viewportSize();
+    if (viewport) await this.page.mouse.move(viewport.width / 2, viewport.height / 2);
+
+    let previousScrollY = -1;
+    let ticksAtBottom = 0;
+    // Keep nudging a few extra ticks after reaching the bottom - some lazy-load triggers
+    // need lingering scroll/wheel events near the bottom, not just the final position.
+    while (ticksAtBottom <= extraTicksAtBottom) {
+      const currentScrollY = await this.page.evaluate(() => window.scrollY);
+      ticksAtBottom = currentScrollY === previousScrollY ? ticksAtBottom + 1 : 0;
+      previousScrollY = currentScrollY;
+      await this.page.mouse.wheel(0, step);
+      await this.page.waitForTimeout(delay);
+    }
+  }
+
   async validateAutoLoadImagesOnScrollDown(checkLabel?: string[]) {
     const loadBtn = this.loadMoreBtn;
     await expect(loadBtn).toBeAttached({ attached: false });
@@ -253,15 +270,14 @@ export class WallpapersListPage extends HeaderPage {
     const maxAttempts = 6;
     let attempts = 0;
     while (!(await loadBtn.isVisible()) && attempts < maxAttempts) {
-      // Scrol to the footer wait for image to load
-      await this.page.evaluate(() => {
-        window.scrollTo(0, document.body.scrollHeight);
-      });
-      await this.page.waitForTimeout(1000);
+      // Scroll down gradually, like a real user, so scroll/intersection listeners fire correctly
+      await this.scrollDownGradually();
+
+      // New cards first render as skeletons, then swap in a few seconds later - poll instead of a fixed wait
+      await expect.poll(() => this.cardsAll.count(), { timeout: 10000, intervals: [500] }).toBeGreaterThan(cardsCount);
 
       // Check new cards are loaded and previous cards are preserved
       let cardsCountNew = await this.cardsAll.count();
-      expect(cardsCountNew).toBeGreaterThan(cardsCount);
       cardsCount = cardsCountNew;
       let cardsHrefNew = await this.getCardsHref();
       await this.compareCardsHrefArrays(cardsHrefNew, cardsHrefArr);
@@ -327,7 +343,7 @@ export class WallpapersListPage extends HeaderPage {
 
     // Select all options
     for (const tag of tags) {
-      const tagLabel = tagDialog.getByRole('option', { name: tag });
+      const tagLabel = tagDialog.getByRole('option', { name: tag, exact: true });
       await tagLabel.scrollIntoViewIfNeeded();
       await tagLabel.click();
       await this.waitForFilterToBeApplied(tag);
