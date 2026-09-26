@@ -113,9 +113,11 @@
   },
   "include": [
     "playwright.config.ts",
-    "tests-e2e/**/*.ts",
+    "eslint.config.js",
+    "tests/**/*.ts",
     "pages/**/*.ts",
     "src/utils/*.ts",
+    "src/types/*.ts",
     "fixtures/**/*.ts"
   ],
   "exclude": ["node_modules", "dist"]
