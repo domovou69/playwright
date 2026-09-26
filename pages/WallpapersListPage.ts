@@ -32,6 +32,7 @@ export class WallpapersListPage extends HeaderPage {
   readonly cardsAll: Locator;
   readonly cardsPremium: Locator;
   readonly cardsPremiumWithPrice: Locator;
+  readonly cardsAiGenerated: Locator;
   readonly cardsFree: Locator;
   readonly loadMoreBtn: Locator;
 
@@ -53,6 +54,7 @@ export class WallpapersListPage extends HeaderPage {
     this.cardsAll = this.cardsContainer.locator(':scope > a[class*="A_link"]');
     this.cardsPremium = this.cardsAll.filter({ has: this.page.locator('div[class*="card-header"]') });
     this.cardsPremiumWithPrice = this.cardsPremium.filter({ has: this.page.locator('div[class*="card-footer"]') });
+    this.cardsAiGenerated = this.cardsAll.filter({ has: this.page.locator('div[class*="card-header"] svg[aria-label="AI generated"]') });
     this.cardsFree = this.cardsAll.filter({ hasNot: this.page.locator('div[class*="card-footer"]') });
     this.loadMoreBtn = this.main.getByRole('button', { name: 'Load more' });
   }
