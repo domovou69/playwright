@@ -20,6 +20,7 @@ npm install
 - **`npm test`**: Runs all tests in headless mode.
 - **`npm run test:ui`**: Runs the tests with the Playwright UI to observe them running.
 - **`npm run test:download`**: Runs tests related to download tag.
+- **`npm run trace <folder-or-path>`**: Opens the trace viewer for a test run in `test-results/`. Pass either the run's folder name or the full path to its `trace.zip`.
 
 # Suite: 'Wallpapers: Search, Filtering, and Free Downloading - Guest User'
 
@@ -45,4 +46,3 @@ TC-08: Apply multiple filters at once > reset filters --- all filters removed
 
 TC-10: allows users to download free wallpapers after ad
 TC-11: prevents downloading premium wallpapers without purchase
-TC-12: allows guest users to purchase and download premium wallpapers using Z coins
