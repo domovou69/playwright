@@ -8,7 +8,10 @@
     "test:download": "playwright test --grep @download",
     "trace": "bash -c 'p=\"$0\"; [[ \"$p\" == *.zip ]] || p=\"test-results/$p/trace.zip\"; playwright show-trace \"$p\"'",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "husky"
   },
   "keywords": [],
   "author": "Mikhail Yesipchuk",
@@ -22,11 +25,22 @@
     "@types/node": "^24.19.0",
     "eslint": "^10.11.0",
     "eslint-plugin-playwright": "^2.12.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.6.0",
     "prettier": "^3.5.3",
     "typescript": "^5.8.2",
     "typescript-eslint": "^8.70.1"
   },
   "dependencies": {
     "dotenv": "^16.4.7"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
   }
 }

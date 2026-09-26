@@ -111,14 +111,6 @@
     // "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
     "skipLibCheck": true /* Skip type checking all .d.ts files. */
   },
-  "include": [
-    "playwright.config.ts",
-    "eslint.config.js",
-    "tests/**/*.ts",
-    "pages/**/*.ts",
-    "src/utils/*.ts",
-    "src/types/*.ts",
-    "fixtures/**/*.ts"
-  ],
+  "include": ["playwright.config.ts", "eslint.config.js", "tests/**/*.ts", "pages/**/*.ts", "src/utils/*.ts", "src/types/*.ts", "fixtures/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }
