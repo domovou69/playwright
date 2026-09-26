@@ -248,7 +248,7 @@ export class WallpapersListPage extends HeaderPage {
     throw new Error('Cards list did not update after waiting');
   }
 
-  async scrollDownGradually(step = 200, delay = 300, extraTicksAtBottom = 3) {
+  async scrollDownGradually(step = 200, delay = 300, extraTicksAtBottom = 1) {
     const viewport = this.page.viewportSize();
     if (viewport) await this.page.mouse.move(viewport.width / 2, viewport.height / 2);
 
