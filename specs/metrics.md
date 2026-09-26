@@ -8,32 +8,26 @@
 
 ## Conventions
 
-- **Stability check: single run, not `--repeat-each=5`.** A generated test runs once. If it fails, that's a bug -
-  either in the site (document it, see `@bug` in the plan) or in the test/POM (fix it) - not something to average
-  away with repeats. Re-run once after a fix to confirm; don't repeat "just in case". (Superseded: earlier entries
-  below still show a `--repeat-each=5` run from before this convention was adopted.)
-- Commit granularity: test file(s) + the POM changes they needed + the matching `metrics.md` log line go in the
-  same commit, not metrics-after. Commits are proposed as ready-to-paste blocks per `CLAUDE.md`; never run without
-  being asked.
-- **Generate in logical groups (2-3 scenarios per `playwright-test-generator` call), not one at a time.** Group
-  scenarios that already share a target file (e.g. everything that belongs in `wallpapers-filters.spec.ts`), then
-  do one POM pass and one run for the whole group. Cuts the per-call overhead of re-reading fixtures/POM/examples.
-  Still exactly one generator agent at a time - the MCP browser tools (`browser_navigate`, `generator_setup_page`,
-  etc.) drive a single shared browser session with no per-call session/tab isolation, so two concurrent generator
-  agents would fight over the same page rather than run independently; this is a tooling constraint, not just the
-  live-site "one action at a time" courtesy rule. (Tried once, 2026-09-27: running the _test suite_ - not
-  generation - with `--workers=2` passed 16/17, one download test failed with a closed-context error under the
-  extra concurrent load; config default stays `workers: 1` per the plan's own constraint on the live production
-  site, not changed.)
-- **Data-driven test cases hold only data, never behavior.** A `cases`/`pairwiseCases` array entry is plain data
-  (strings, enums, regexes, small nested data objects) - no function fields (no `apply`, `run`, `verifyExtra`
-  callbacks). All step execution, POM calls and branching on the case's fields live in the `test(...)` body (or a
-  named helper the test body calls explicitly, like `applyFilter(app, filter, option)`), not hidden inside the case
-  array. Rationale: a case that carries its own `run` function is indistinguishable from a full test smuggled into
-  a data table - if you can't tell what a case does without also reading a closure defined next to it, it isn't
-  data-driven, it's just an obscured loop of separate tests. (Human review caught this in the WP-19/WP-21 cases
-  2026-09-27; refactored `wallpapers-filters.spec.ts` to a `FilterName` union + an explicit `applyFilter` dispatch
-  function + `extraInvariant` tags instead of embedded closures - see pipeline log 01:28.)
+Rules only - evidence and history for each lives in the dated `Pipeline log` entries below.
+
+- **Single run, not repeats.** A generated test runs once. A failure is a bug: fix the site plan (`@bug`) or the
+  test/POM, don't average it away with `--repeat-each`. Re-run once after a fix to confirm, no more.
+- **Commit granularity for this pipeline:** test file(s) + the POM changes they needed + the matching
+  `metrics.md` log line go in one commit, not metrics-after. (The commit workflow itself - never unasked,
+  ready-to-paste blocks - is `CLAUDE.md`'s rule; not repeated here.)
+- **Batch by file, not by a fixed count.** One `playwright-test-generator` call per target file, covering every
+  scenario that belongs there - not a capped "2-3". Still exactly one generator agent at a time: its MCP browser
+  tools share a single session with no per-call isolation, so concurrent agents would fight over the same page.
+- **Skip the generator for pure recombination.** A scenario that's ~90%+ existing POM methods with nothing new
+  to discover on the site: write it directly, run once. Reserve the agent for genuinely new locators/behavior.
+- **Overlap verification and generation.** The test runner (`npx playwright test`) and the generator's MCP
+  browser are separate sessions and don't collide - run a finished batch's verification in the background while
+  generating the next one.
+- **Don't debug a green run.** Only write exploratory live-verification scripts once something has actually
+  failed.
+- **Data-driven cases hold only data, never behavior.** No function fields (`apply`, `run`, `verifyExtra`) in a
+  case array - all step logic and POM dispatch live in the `test(...)` body or a named helper it calls
+  explicitly (e.g. `applyFilter(app, filter, option)`).
 
 ## Pipeline log
 
@@ -55,8 +49,10 @@
 | 2026-09-27 00:00 | Roadmap #2: removed the chained filter test (TC-03..08, replaced by WP-19/WP-18) and TC-11 (replaced by WP-30) from `tests/wallpappers/wallpapers.spec.ts`; kept TC-01/TC-02 and TC-10 (WP-02, WP-07, WP-28 - covered as-is per the plan)                                                                                                                   | Claude Code (main)                             | 10 min   | tests/wallpappers/wallpapers.spec.ts trimmed to 2 tests                              | 2/2 passing single run                                                                                                        |
 | 2026-09-27 00:09 | Generate WP-03/WP-05/WP-06 (Search), POM pass (`emptyStateHeading`), fixed `HeaderPage.clickSearchFilter` (close path), single run                                                                                                                                                                                                                          | playwright-test-generator + Claude Code (main) | 25 min   | tests/wallpappers/wallpapers-search.spec.ts                                          | 3/3 passing; 1 plan mismatch flagged below (needs a plan-v3 decision), 1 pre-existing POM bug fixed                           |
 | 2026-09-27 00:49 | Generate WP-08 (Load more), simplified after 2 failed attempts to make step 3 reliable, single run                                                                                                                                                                                                                                                          | playwright-test-generator + Claude Code (main) | 25 min   | tests/wallpappers/wallpapers-scroll.spec.ts                                          | 1/1 passing, 22s; scope cut, see below                                                                                        |
+| 2026-09-27 00:57 | One-off experiment: full wallpapers regression suite with `--workers=2` (execution, not generation)                                                                                                                                                                                                                                                         | Claude Code (main)                             | 3 min    | 16/17 passed                                                                         | 1 download test failed (closed context) under the extra concurrent load; config default stays `workers: 1`, not changed       |
 | 2026-09-27 01:11 | Generate WP-20/WP-21/WP-34 (group, first batched call), appended to `wallpapers-filters.spec.ts`, POM pass, 2 fixed timing bugs, single run                                                                                                                                                                                                                 | playwright-test-generator + Claude Code (main) | 30 min   | tests/wallpappers/wallpapers-filters.spec.ts (12 tests total now)                    | 12/12 passing; 2 real races found and fixed, see below                                                                        |
 | 2026-09-27 01:28 | Human review: rejected embedded-behavior data cases (`apply`/`run` functions in WP-19/WP-21); refactored to plain-data cases + explicit `applyFilter` dispatch in the test body, single run                                                                                                                                                                 | Human + Claude Code (main)                     | 15 min   | tests/wallpappers/wallpapers-filters.spec.ts (same 12 tests, no behavior change)     | 12/12 passing; new convention added above                                                                                     |
+| 2026-09-27 01:40 | Human asked directly why generation was slow; adopted 4 speed rules (batch-by-file, skip agent for pure recombination, overlap verification/generation, don't debug a green run) as mandatory going forward, not followed before this point                                                                                                                 | Human + Claude Code (main)                     | 10 min   | specs/metrics.md Conventions updated                                                 | none were in effect for WP-01..WP-34 above                                                                                    |
 
 **Bugs found by the new tests (pre-existing in `pages/`, not introduced by this pass):**
 
