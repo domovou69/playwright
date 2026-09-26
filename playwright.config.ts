@@ -24,7 +24,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Run browser in headed mode (visible browser window). */
-    headless: false,
+    headless: process.env.CI ? true : false,
     /* Timeout for actions like click, fill, etc. */
     actionTimeout: 7000,
     /* Timeout for page navigations like goto, waitForNavigation, etc. */
