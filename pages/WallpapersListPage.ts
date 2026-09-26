@@ -29,6 +29,8 @@ export class WallpapersListPage extends HeaderPage {
   readonly filterSortBy: Locator;
   readonly resetAllBtn: Locator;
   readonly categoryFilterDialog: Locator;
+  readonly colorFilterDialog: Locator;
+  readonly priceFilterDialog: Locator;
 
   readonly cardsContainer: Locator;
   readonly cardsAll: Locator;
@@ -56,6 +58,8 @@ export class WallpapersListPage extends HeaderPage {
     this.filterSortBy = this.main.locator('button', { hasText: 'Sort by' });
     this.resetAllBtn = this.main.locator('button', { hasText: 'Reset All' });
     this.categoryFilterDialog = this.page.getByRole('dialog', { name: 'Category' });
+    this.colorFilterDialog = this.page.getByRole('dialog', { name: 'Color' });
+    this.priceFilterDialog = this.page.getByRole('dialog', { name: 'Price' });
 
     this.cardsContainer = this.main.locator('div[class*="CardsContainer"]').last();
     this.cardsAll = this.cardsContainer.locator(':scope > a[class*="A_link"]');
@@ -346,14 +350,17 @@ export class WallpapersListPage extends HeaderPage {
     return (await footerBadge.innerText()).trim();
   }
 
+  async getCardPriceBadgeTextAsNumber(card: Locator): Promise<number> {
+    return parseInt(await this.getCardPriceBadgeText(card), 10);
+  }
+
   async filterByColor(colors: ColorOptionType[]) {
     await this.filterColor.click();
-    const colorDialog = this.page.getByRole('dialog', { name: 'Color' });
-    await expect(colorDialog).toBeVisible();
+    await expect(this.colorFilterDialog).toBeVisible();
 
     // Select all options
     for (const color of colors) {
-      const colorLabel = colorDialog.getByRole('option', { name: color });
+      const colorLabel = this.colorFilterDialog.getByRole('option', { name: color });
       await colorLabel.scrollIntoViewIfNeeded();
       await colorLabel.click();
       await this.waitForFilterToBeApplied(color);
@@ -361,7 +368,16 @@ export class WallpapersListPage extends HeaderPage {
 
     // Close filter
     await this.filterColor.click({ force: true });
-    await expect(colorDialog).not.toBeAttached();
+    await expect(this.colorFilterDialog).not.toBeAttached();
+  }
+
+  async isColorSelected(color: ColorOptionType): Promise<boolean> {
+    await this.filterColor.click();
+    await expect(this.colorFilterDialog).toBeVisible();
+    const isSelected = (await this.colorFilterDialog.getByRole('option', { name: color }).getAttribute('aria-checked')) === 'true';
+    await this.filterColor.click({ force: true });
+    await expect(this.colorFilterDialog).not.toBeAttached();
+    return isSelected;
   }
 
   async filterByTag(tags: TagsOptionType[]) {
@@ -384,12 +400,11 @@ export class WallpapersListPage extends HeaderPage {
 
   async filterByPrice(prices: PriceOptionType[]) {
     await this.filterPrice.click();
-    const priceDialog = this.page.getByRole('dialog', { name: 'Price' });
-    await expect(priceDialog).toBeVisible();
+    await expect(this.priceFilterDialog).toBeVisible();
 
     // Select all options
     for (const price of prices) {
-      const priceLabel = priceDialog.getByRole('option', { name: price });
+      const priceLabel = this.priceFilterDialog.getByRole('option', { name: price });
       await priceLabel.scrollIntoViewIfNeeded();
       await priceLabel.click();
       await this.waitForFilterToBeApplied(price);
@@ -397,7 +412,28 @@ export class WallpapersListPage extends HeaderPage {
 
     // Close filter
     await this.filterPrice.click({ force: true });
-    await expect(priceDialog).not.toBeAttached();
+    await expect(this.priceFilterDialog).not.toBeAttached();
+  }
+
+  async setPriceRange(from: number, to: number) {
+    await this.filterPrice.click();
+    await expect(this.priceFilterDialog).toBeVisible();
+
+    // From/To are numeric inputs, not the Free/Paid checkbox options filterByPrice handles above;
+    // each value only commits to the URL once the field is blurred, and blurring both in a row
+    // races the two commits (seen live as `minPrice=NaN`) - wait for each to land before the next.
+    const fromInput = this.priceFilterDialog.getByRole('menuitem', { name: 'From' });
+    const toInput = this.priceFilterDialog.getByRole('menuitem', { name: 'To' });
+    await fromInput.fill(String(from));
+    await fromInput.press('Tab');
+    await expect(this.page).toHaveURL(new RegExp(`minPrice=${from}`));
+    await toInput.fill(String(to));
+    await toInput.press('Tab');
+    await expect(this.page).toHaveURL(new RegExp(`maxPrice=${to}`));
+
+    // Close filter
+    await this.filterPrice.click({ force: true });
+    await expect(this.priceFilterDialog).not.toBeAttached();
   }
 
   async filterBySortBy(option: SortByType) {

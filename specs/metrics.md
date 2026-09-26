@@ -15,6 +15,25 @@
 - Commit granularity: test file(s) + the POM changes they needed + the matching `metrics.md` log line go in the
   same commit, not metrics-after. Commits are proposed as ready-to-paste blocks per `CLAUDE.md`; never run without
   being asked.
+- **Generate in logical groups (2-3 scenarios per `playwright-test-generator` call), not one at a time.** Group
+  scenarios that already share a target file (e.g. everything that belongs in `wallpapers-filters.spec.ts`), then
+  do one POM pass and one run for the whole group. Cuts the per-call overhead of re-reading fixtures/POM/examples.
+  Still exactly one generator agent at a time - the MCP browser tools (`browser_navigate`, `generator_setup_page`,
+  etc.) drive a single shared browser session with no per-call session/tab isolation, so two concurrent generator
+  agents would fight over the same page rather than run independently; this is a tooling constraint, not just the
+  live-site "one action at a time" courtesy rule. (Tried once, 2026-09-27: running the _test suite_ - not
+  generation - with `--workers=2` passed 16/17, one download test failed with a closed-context error under the
+  extra concurrent load; config default stays `workers: 1` per the plan's own constraint on the live production
+  site, not changed.)
+- **Data-driven test cases hold only data, never behavior.** A `cases`/`pairwiseCases` array entry is plain data
+  (strings, enums, regexes, small nested data objects) - no function fields (no `apply`, `run`, `verifyExtra`
+  callbacks). All step execution, POM calls and branching on the case's fields live in the `test(...)` body (or a
+  named helper the test body calls explicitly, like `applyFilter(app, filter, option)`), not hidden inside the case
+  array. Rationale: a case that carries its own `run` function is indistinguishable from a full test smuggled into
+  a data table - if you can't tell what a case does without also reading a closure defined next to it, it isn't
+  data-driven, it's just an obscured loop of separate tests. (Human review caught this in the WP-19/WP-21 cases
+  2026-09-27; refactored `wallpapers-filters.spec.ts` to a `FilterName` union + an explicit `applyFilter` dispatch
+  function + `extraInvariant` tags instead of embedded closures - see pipeline log 01:28.)
 
 ## Pipeline log
 
@@ -36,6 +55,8 @@
 | 2026-09-27 00:00 | Roadmap #2: removed the chained filter test (TC-03..08, replaced by WP-19/WP-18) and TC-11 (replaced by WP-30) from `tests/wallpappers/wallpapers.spec.ts`; kept TC-01/TC-02 and TC-10 (WP-02, WP-07, WP-28 - covered as-is per the plan)                                                                                                                   | Claude Code (main)                             | 10 min   | tests/wallpappers/wallpapers.spec.ts trimmed to 2 tests                              | 2/2 passing single run                                                                                                        |
 | 2026-09-27 00:09 | Generate WP-03/WP-05/WP-06 (Search), POM pass (`emptyStateHeading`), fixed `HeaderPage.clickSearchFilter` (close path), single run                                                                                                                                                                                                                          | playwright-test-generator + Claude Code (main) | 25 min   | tests/wallpappers/wallpapers-search.spec.ts                                          | 3/3 passing; 1 plan mismatch flagged below (needs a plan-v3 decision), 1 pre-existing POM bug fixed                           |
 | 2026-09-27 00:49 | Generate WP-08 (Load more), simplified after 2 failed attempts to make step 3 reliable, single run                                                                                                                                                                                                                                                          | playwright-test-generator + Claude Code (main) | 25 min   | tests/wallpappers/wallpapers-scroll.spec.ts                                          | 1/1 passing, 22s; scope cut, see below                                                                                        |
+| 2026-09-27 01:11 | Generate WP-20/WP-21/WP-34 (group, first batched call), appended to `wallpapers-filters.spec.ts`, POM pass, 2 fixed timing bugs, single run                                                                                                                                                                                                                 | playwright-test-generator + Claude Code (main) | 30 min   | tests/wallpappers/wallpapers-filters.spec.ts (12 tests total now)                    | 12/12 passing; 2 real races found and fixed, see below                                                                        |
+| 2026-09-27 01:28 | Human review: rejected embedded-behavior data cases (`apply`/`run` functions in WP-19/WP-21); refactored to plain-data cases + explicit `applyFilter` dispatch in the test body, single run                                                                                                                                                                 | Human + Claude Code (main)                     | 15 min   | tests/wallpappers/wallpapers-filters.spec.ts (same 12 tests, no behavior change)     | 12/12 passing; new convention added above                                                                                     |
 
 **Bugs found by the new tests (pre-existing in `pages/`, not introduced by this pass):**
 
@@ -63,11 +84,16 @@
 
 8. As generated, WP-08 step 3 ("scroll down twice more, each scroll adds cards") polled for growth after each individual scroll tick - flaky by the live site's own pacing (infinite-scroll batches don't land on a fixed schedule), and pushed the whole test past the default 60s timeout. First fix attempt (one poll after both scrolls instead of per-tick, plus a longer per-test timeout) was rejected: since loading is infinite past "Load more" by design, there is no principled stopping point for "how many more scrolls is enough", so any version of step 3 is chasing a moving target for no real assurance beyond what step 2 already gives. Cut step 3 entirely - WP-08 now only clicks "Load more" once and asserts growth + href integrity, matching "click it, wait for it to actually grow, done". Retitled the test (dropped "...and re-enables auto-loading", not tested). 1/1 passing, 22s.
 
+**WP-20/WP-34 real timing races, found running the batch (2026-09-27 01:11-01:20):**
+
+9. `setPriceRange` (new POM method for WP-34): filling From and To back-to-back and only blurring each once raced the two commits - seen live as `minPrice=NaN&maxPrice=500` (the From value's URL sync hadn't landed before To's fill/blur ran). Fixed: added `await expect(page).toHaveURL(...)` after each field's blur, confirming that field's own commit before touching the next.
+10. WP-20 (multi-select color): `aria-checked` on the Color dialog options updates **before** the URL sync catches up by roughly a second - confirmed live (`aria-checked=true` on both options while the URL still only showed `colors=black`, then `colors=black%2Cwhite` a moment later). Reading the URL immediately after the aria-checked assertions passed was a false negative. Fixed: added `await expect(page).toHaveURL(/white/)` (and `.not.toHaveURL(/black/)` for the uncheck step) before reading `URLSearchParams`, so the URL read only happens once it's actually settled. Also reverted an over-refactor: initially routed the click actions themselves through repeated `filterByColor()`/`isColorSelected()` calls (each opens+closes the dialog), which occasionally dropped a toggle; reverted to one continuously-open dialog session for the actions (matching what the generator verified live), keeping only the new `colorFilterDialog`/`priceFilterDialog` locators and `getCardPriceBadgeTextAsNumber`/`setPriceRange` methods from the POM pass.
+
 ## Result per section
 
-| Section    | Scenarios planned | Tests generated                                                                                        | Accepted after review | Stability (single run) | Total time  |
-| ---------- | ----------------- | ------------------------------------------------------------------------------------------------------ | --------------------- | ---------------------- | ----------- |
-| Wallpapers | 23                | 9 scenarios (WP-01, WP-03, WP-05, WP-06, WP-08, WP-10, WP-19x6, WP-18, WP-30x2 = 14 test cases so far) |                       | 14/14 passing          | in progress |
+| Section    | Scenarios planned | Tests generated                                                                                                                | Accepted after review | Stability (single run) | Total time  |
+| ---------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------ | --------------------- | ---------------------- | ----------- |
+| Wallpapers | 23                | 12 scenarios (WP-01, WP-03, WP-05, WP-06, WP-08, WP-10, WP-18, WP-19x6, WP-20, WP-21x3, WP-30x2, WP-34 = 18 test cases so far) |                       | 18/18 passing          | in progress |
 
 ## Roadmap
 
