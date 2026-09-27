@@ -11,7 +11,8 @@ Constraints:
 
 - Guest user only. Every purchase or sign-in flow stops once the dialog is verified.
 - Desktop viewport only (Desktop Chrome project).
-- Live production site: `workers: 1`, one action at a time.
+- Live production site: `workers: 2` (raised from 1 on 2026-09-27 to speed up runs - see `metrics.md` for the
+  known risk this reintroduces, a concurrency-unsafe download test).
 - No security testing (XSS, SQL injection, fuzzing) and no load or performance testing.
 - Content is live: assert invariants (URL params, badges, prices, counts > 0, href changes), never a specific title
   or exact count. Wallpapers are identified by their `href` (`/wallpapers/<GUID>`); images are not compared.

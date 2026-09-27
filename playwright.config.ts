@@ -9,10 +9,10 @@ export default defineConfig({
   expect: {
     timeout: isCI ? 10_000 : 7_000,
   },
-  fullyParallel: false,
+  fullyParallel: true,
   forbidOnly: isCI,
   retries: 0,
-  workers: 1,
+  workers: 2,
   reporter: isCI ? [['html', { open: 'never' }], ['github']] : [['html', { open: 'on-failure' }]],
   use: {
     headless: isCI,
