@@ -12,10 +12,10 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: isCI,
   retries: 0,
-  workers: 2,
+  workers: 3,
   reporter: isCI ? [['html', { open: 'never' }], ['github']] : [['html', { open: 'on-failure' }]],
   use: {
-    headless: isCI,
+    headless: true,
     actionTimeout: isCI ? 10_000 : 7_000,
     navigationTimeout: isCI ? 45_000 : 30_000,
     baseURL: process.env.BASE_URL,
