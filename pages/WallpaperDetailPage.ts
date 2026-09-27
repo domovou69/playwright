@@ -5,12 +5,23 @@ export class WallpaperDetailPage {
   readonly buyBtn: Locator;
   readonly downloadBtn: Locator;
   readonly premiumBadge: Locator;
+  readonly artistLink: Locator;
+  readonly tagChips: Locator;
+  readonly relatedHeading: Locator;
+  // Reuses the same CardsContainer/A_link markup as WallpapersListPage.cardsContainer/cardsAll.
+  readonly relatedCards: Locator;
 
   constructor(readonly page: Page) {
-    this.downloads = this.page.locator('p', { hasText: 'Downloads' });
+    // A page-wide "500M+ Downloads" marketing stat also matches a plain `p:has-text("Downloads")` -
+    // this wallpaper's own count is the paragraph directly after the H1.
+    this.downloads = this.page.locator('h1 + p');
     this.buyBtn = this.page.locator('button', { hasText: 'Buy for Ƶ' }).nth(1);
     this.downloadBtn = this.page.getByRole('button', { name: 'Download' });
     this.premiumBadge = this.page.getByText('Premium', { exact: true });
+    this.artistLink = this.page.locator('a[href^="/profiles/"]');
+    this.tagChips = this.page.locator('a[href^="/wallpapers?keyword="]');
+    this.relatedHeading = this.page.getByRole('heading', { name: 'Related' });
+    this.relatedCards = this.page.locator('div[class*="CardsContainer"]').last().locator(':scope > a[class*="A_link"]');
   }
 
   priceText(price: string): Locator {
