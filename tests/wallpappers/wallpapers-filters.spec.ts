@@ -206,14 +206,7 @@ test.describe('Filtering', { tag: [tags.WALLPAPERS, tags.GUEST, tags.SMOKE] }, (
         await app.wallpapersListPage.validateCardExistance('Paid', false);
       } else if (current.extraInvariant === 'pricesNonIncreasing') {
         // prices of the first 10 cards are non-increasing
-        const cards = (await app.wallpapersListPage.cardsAll.all()).slice(0, 10);
-        const prices: number[] = [];
-        for (const card of cards) {
-          prices.push(await app.wallpapersListPage.getCardPriceBadgeTextAsNumber(card));
-        }
-        for (let i = 1; i < prices.length; i++) {
-          expect(prices[i]!).toBeLessThanOrEqual(prices[i - 1]!);
-        }
+        await app.wallpapersListPage.expectCardPricesNonIncreasing();
       }
     });
   }
@@ -233,5 +226,31 @@ test.describe('Filtering', { tag: [tags.WALLPAPERS, tags.GUEST, tags.SMOKE] }, (
       expect(price).toBeGreaterThanOrEqual(50);
       expect(price).toBeLessThanOrEqual(500);
     }
+  });
+
+  test('WP-23 Filters are restored from a deep link', { tag: [tags.WALLPAPERS, tags.GUEST, tags.REGRESSION] }, async ({ app, page }) => {
+    // 1. Navigate to `/wallpapers?categories=NATURE&sort=PRICE_DESC&minPrice=1`
+    await page.goto('/wallpapers?categories=NATURE&sort=PRICE_DESC&minPrice=1');
+
+    // expect: Category shows "Nature" as selected
+    expect(await app.wallpapersListPage.isCategorySelected('Nature')).toBe(true);
+
+    // expect: Sort by shows "Price: High to Low"
+    expect(await app.wallpapersListPage.isSortBySelected('Price: High to Low')).toBe(true);
+
+    // expect: Price shows Paid - a deep-linked minPrice is reflected in the Price dialog's "From" input,
+    // not the Free/Paid checkbox options (those stay unchecked for a plain minPrice deep link); From=1
+    // is what makes the results paid-only here, so that's the value asserted below.
+    expect(await app.wallpapersListPage.getPriceFromValue()).toBe('1');
+
+    // expect: every card has a price badge
+    const cards = await app.wallpapersListPage.cardsAll.all();
+    expect(cards.length).toBeGreaterThan(0);
+    for (const card of cards) {
+      expect(await app.wallpapersListPage.cardHasPriceBadge(card)).toBe(true);
+    }
+
+    // expect: prices of the first 10 cards are non-increasing
+    await app.wallpapersListPage.expectCardPricesNonIncreasing();
   });
 });

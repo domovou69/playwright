@@ -28,4 +28,45 @@ test.describe('Category Navigation', () => {
       expect(await app.wallpapersListPage.isCategorySelected('Nature')).toBe(true);
     }
   );
+
+  type CategoryExploreCase = {
+    category: 'Nature' | 'Space';
+    slug: string;
+  };
+
+  const categoryExploreCases: CategoryExploreCase[] = [
+    { category: 'Nature', slug: 'nature' },
+    { category: 'Space', slug: 'space' },
+  ];
+
+  for (const current of categoryExploreCases) {
+    test(
+      `WP-11 ${current.category}: "Explore different wallpaper categories" opens a category page with sub-filters`,
+      { tag: [tags.WALLPAPERS, tags.GUEST, tags.REGRESSION] },
+      async ({ app, page }) => {
+        await app.wallpapersListPage.open();
+
+        // 1. On /wallpapers scroll to "Explore different wallpaper categories" and click the category link
+        await app.wallpapersListPage.exploreCategoriesHeading.scrollIntoViewIfNeeded();
+        await app.wallpapersListPage.exploreCategoryLink(current.category).click();
+
+        await expect(page).toHaveURL(new RegExp(`/category/wallpapers/${current.slug}$`));
+        await expect(app.wallpapersListPage.wallpaperTitle).toBeVisible();
+        await expect(app.wallpapersListPage.cardsAll.first()).toBeVisible();
+        expect(await app.wallpapersListPage.cardsAll.count()).toBeGreaterThan(0);
+
+        // 2. Record H1 and card hrefs, then select a different sub-filter on the page
+        const h1Before = await app.wallpapersListPage.wallpaperTitle.innerText();
+        const hrefsBefore = await app.wallpapersListPage.getCardsHref();
+
+        await app.wallpapersListPage.selectDifferentSubFilter();
+
+        await app.wallpapersListPage.waitForCardsToUpdate(hrefsBefore);
+        const h1After = app.wallpapersListPage.wallpaperTitle;
+        const hrefsAfter = await app.wallpapersListPage.getCardsHref();
+        await expect(h1After).not.toHaveText(h1Before);
+        expect(hrefsAfter).not.toEqual(hrefsBefore);
+      }
+    );
+  }
 });

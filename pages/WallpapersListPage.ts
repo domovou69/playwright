@@ -31,6 +31,9 @@ export class WallpapersListPage extends HeaderPage {
   readonly categoryFilterDialog: Locator;
   readonly colorFilterDialog: Locator;
   readonly priceFilterDialog: Locator;
+  readonly sortByFilterDialog: Locator;
+  readonly exploreCategoriesHeading: Locator;
+  readonly subFilterLinks: Locator;
 
   readonly cardsContainer: Locator;
   readonly cardsAll: Locator;
@@ -51,15 +54,24 @@ export class WallpapersListPage extends HeaderPage {
     // "Couldn't find anything" heading with no suggestions - a separate empty state, not this one.
     this.noResultsHeading = this.main.getByRole('heading', { name: /couldn.?t find it/i });
     this.suggestedKeywordLinks = this.main.locator('a[href^="/wallpapers?keyword="]');
-    this.filterCategory = this.main.locator('button', { hasText: 'Category' });
-    this.filterTag = this.main.locator('button', { hasText: 'Tag' });
-    this.filterPrice = this.main.locator('button', { hasText: 'Price' });
-    this.filterColor = this.main.locator('button', { hasText: 'Color' });
-    this.filterSortBy = this.main.locator('button', { hasText: 'Sort by' });
+    // Exact-match regexes: once a filter is active, its applied-value chip (e.g. "Price: High to Low"
+    // from Sort by) sits in the same `main button` pool and a substring hasText match picks up both.
+    this.filterCategory = this.main.locator('button', { hasText: /^Category$/ });
+    this.filterTag = this.main.locator('button', { hasText: /^Tag$/ });
+    this.filterPrice = this.main.locator('button', { hasText: /^Price$/ });
+    this.filterColor = this.main.locator('button', { hasText: /^Color$/ });
+    this.filterSortBy = this.main.locator('button', { hasText: /^Sort by$/ });
     this.resetAllBtn = this.main.locator('button', { hasText: 'Reset All' });
     this.categoryFilterDialog = this.page.getByRole('dialog', { name: 'Category' });
     this.colorFilterDialog = this.page.getByRole('dialog', { name: 'Color' });
     this.priceFilterDialog = this.page.getByRole('dialog', { name: 'Price' });
+    this.sortByFilterDialog = this.page.getByRole('dialog', { name: 'Sort by' });
+    // "Explore different wallpaper categories" section at the bottom of /wallpapers renders outside
+    // <main> (a separate page section), so this is scoped to the page, not `this.main`. The row of
+    // sub-filter chip links rendered right after the H1 on the /category/wallpapers/<slug> pages it
+    // links to does live inside main - see subFilterLinks below.
+    this.exploreCategoriesHeading = this.page.getByRole('heading', { name: 'Explore different wallpaper categories' });
+    this.subFilterLinks = this.main.locator('h1 + div a');
 
     this.cardsContainer = this.main.locator('div[class*="CardsContainer"]').last();
     this.cardsAll = this.cardsContainer.locator(':scope > a[class*="A_link"]');
@@ -354,6 +366,17 @@ export class WallpapersListPage extends HeaderPage {
     return parseInt(await this.getCardPriceBadgeText(card), 10);
   }
 
+  async expectCardPricesNonIncreasing(limit = 10) {
+    const cards = (await this.cardsAll.all()).slice(0, limit);
+    const prices: number[] = [];
+    for (const card of cards) {
+      prices.push(await this.getCardPriceBadgeTextAsNumber(card));
+    }
+    for (let i = 1; i < prices.length; i++) {
+      expect(prices[i]!).toBeLessThanOrEqual(prices[i - 1]!);
+    }
+  }
+
   async filterByColor(colors: ColorOptionType[]) {
     await this.filterColor.click();
     await expect(this.colorFilterDialog).toBeVisible();
@@ -439,13 +462,43 @@ export class WallpapersListPage extends HeaderPage {
   async filterBySortBy(option: SortByType) {
     const hrefsBefore = await this.getCardsHref();
     await this.filterSortBy.click();
-    const sortByDialog = this.page.getByRole('dialog', { name: 'Sort by' });
-    await expect(sortByDialog).toBeVisible();
-    const sortByLabel = sortByDialog.getByRole('menuitemradio', { name: option });
+    await expect(this.sortByFilterDialog).toBeVisible();
+    const sortByLabel = this.sortByFilterDialog.getByRole('menuitemradio', { name: option });
     await sortByLabel.scrollIntoViewIfNeeded();
     await sortByLabel.click();
-    await expect(sortByDialog).not.toBeAttached();
+    await expect(this.sortByFilterDialog).not.toBeAttached();
     await this.waitForCardsToUpdate(hrefsBefore);
+  }
+
+  async isSortBySelected(option: SortByType): Promise<boolean> {
+    await this.filterSortBy.click();
+    await expect(this.sortByFilterDialog).toBeVisible();
+    const isSelected = (await this.sortByFilterDialog.getByRole('menuitemradio', { name: option }).getAttribute('aria-checked')) === 'true';
+    await this.filterSortBy.click({ force: true });
+    await expect(this.sortByFilterDialog).not.toBeAttached();
+    return isSelected;
+  }
+
+  async getPriceFromValue(): Promise<string> {
+    await this.filterPrice.click();
+    await expect(this.priceFilterDialog).toBeVisible();
+    const value = await this.priceFilterDialog.getByRole('menuitem', { name: 'From' }).inputValue();
+    await this.filterPrice.click({ force: true });
+    await expect(this.priceFilterDialog).not.toBeAttached();
+    return value;
+  }
+
+  exploreCategoryLink(category: string): Locator {
+    return this.exploreCategoriesHeading.locator('..').getByRole('link', { name: category, exact: true });
+  }
+
+  // Picks a sub-filter chip link on a /category/wallpapers/<slug> page that isn't a link back to the
+  // current page - the current category's own chip can appear anywhere in that row.
+  async selectDifferentSubFilter() {
+    const currentPath = new URL(this.page.url()).pathname;
+    const firstHref = await this.subFilterLinks.first().getAttribute('href');
+    const link = firstHref === currentPath ? this.subFilterLinks.nth(1) : this.subFilterLinks.first();
+    await link.click();
   }
 
   async clickResetAllFilters() {
