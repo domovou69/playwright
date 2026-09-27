@@ -1,7 +1,7 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { HeaderPage } from './HeaderPage';
 import { BodyHeaderPage } from './MainHeaderPage';
-import { removeSpaces } from '../src/utils/helper';
+import { removeSpaces, dismissCookieBanner } from '../src/utils/helper';
 import { WallpaperDetailPage } from './WallpaperDetailPage';
 import {
   ColorOptionType,
@@ -84,6 +84,7 @@ export class WallpapersListPage extends HeaderPage {
 
   async open() {
     await this.page.goto('/wallpapers');
+    await dismissCookieBanner(this.page);
   }
 
   async getCardPrice(card: Locator): Promise<string> {
