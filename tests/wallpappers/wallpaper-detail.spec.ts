@@ -23,8 +23,9 @@ test.describe('Wallpaper Detail Page', () => {
     await expect(app.wallpaperDetailsPage.downloads).toBeVisible();
     await expect(app.wallpaperDetailsPage.tagChips.first()).toBeVisible();
 
-    // 4. Assert: no Premium badge and no price text is shown; download button is visible/enabled, buy button is not attached
-    await expect(app.wallpaperDetailsPage.premiumBadge).toBeHidden();
+    // 4. Assert: no purchase gate - a Premium/crown badge can still appear on a free wallpaper (it
+    // marks the artist, not a price gate - see specs/metrics.md finding 4), so only the price/button
+    // shape is asserted here, not the badge's presence.
     await expect(app.wallpaperDetailsPage.buyBtn).not.toBeAttached();
     await expect(app.wallpaperDetailsPage.downloadBtn).toBeVisible();
     await expect(app.wallpaperDetailsPage.downloadBtn).toBeEnabled();

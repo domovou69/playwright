@@ -13,8 +13,10 @@ export class WallpaperDetailPage {
 
   constructor(readonly page: Page) {
     // A page-wide "500M+ Downloads" marketing stat also matches a plain `p:has-text("Downloads")` -
-    // this wallpaper's own count is the paragraph directly after the H1.
-    this.downloads = this.page.locator('h1 + p');
+    // scope to the H1's own info container to get just this wallpaper's count. Not `h1 + p`: a
+    // "Premium" badge div sometimes sits directly after the H1 (a free wallpaper can still carry that
+    // badge), pushing the downloads paragraph further down within the same container.
+    this.downloads = this.page.locator('h1').locator('..').locator('p', { hasText: 'Downloads' });
     this.buyBtn = this.page.locator('button', { hasText: 'Buy for Ƶ' }).nth(1);
     this.downloadBtn = this.page.getByRole('button', { name: 'Download' });
     this.premiumBadge = this.page.getByText('Premium', { exact: true });
