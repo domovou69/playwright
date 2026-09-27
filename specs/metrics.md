@@ -11,7 +11,11 @@
 Rules only - evidence and history for each lives in the dated `Pipeline log` entries below.
 
 - **Single run, not repeats.** A generated test runs once. A failure is a bug: fix the site plan (`@bug`) or the
-  test/POM, don't average it away with `--repeat-each`. Re-run once after a fix to confirm, no more.
+  test/POM, don't average it away with `--repeat-each`. Re-run once after a fix to confirm, no more. This is about
+  _diagnosis_ (never blindly re-run everything to see if a failure goes away) - it doesn't conflict with
+  `retries: 1` in the config, which only re-runs a test that actually failed, once, as a live-site-concurrency
+  safety net (see `workers: 3` below). A failure that still fails on its retry is still a bug, investigated the
+  same way.
 - **Commit granularity for this pipeline:** test file(s) + the POM changes they needed + the matching
   `metrics.md` log line go in one commit, not metrics-after. (The commit workflow itself - never unasked,
   ready-to-paste blocks - is `CLAUDE.md`'s rule; not repeated here.)
@@ -63,6 +67,7 @@ Rules only - evidence and history for each lives in the dated `Pipeline log` ent
 | 2026-09-27 02:35 | Human-reported "5-7s pause after cookie accept"; root-caused a `dismissCookieBanner` stall (see below); human decided to also raise `workers: 1` → `2` now (plan's documented live-site constraint, known download-test risk from the 00:57 experiment), applied immediately per human choice                                                               | Human + Claude Code (main)                     | 20 min   | src/utils/helper.ts, playwright.config.ts, specs/wallpapers.plan.md                             | full `tests/wallpappers` suite: 25/25 passing, 1.4 min (down from ~4 min); per-test time roughly halved; no download-test regression this run |
 | 2026-09-27 03:05 | Human raised workers again (2→3, later also set `fullyParallel: true`) and flipped `headless` to always-on locally (was `isCI`-only) - watch a run with `--headed` instead                                                                                                                                                                                  | Human + Claude Code (main)                     | 5 min    | playwright.config.ts                                                                            | launch-option changes only, no behavior/timing-sensitive logic touched, no run needed to verify                                               |
 | 2026-09-27 03:10 | Final P2/P3 batch: generated WP-24/WP-26/WP-27 (new file, genuinely new locators - artist link, tag chips, Related section) via the agent; wrote WP-29/WP-32/WP-33 directly (near-total recombination of existing WP-28/WP-30 POM methods, confirmed live first), POM pass, single runs                                                                     | playwright-test-generator + Claude Code (main) | 55 min   | tests/wallpappers/wallpaper-detail.spec.ts (new), tests/wallpappers/wallpapers-purchase.spec.ts | 1 pre-existing POM bug found (dead-code `downloads` locator, see below); full `tests/wallpappers` suite: 31/31 passing, 1.3 min               |
+| 2026-09-27 04:10 | Human hit 2 real failures at `workers: 3` (timeouts in `wallpapers-purchase.spec.ts`); investigated, could not reproduce (file alone at workers 1 and 3, full suite at workers 3 - all clean); concluded live-site concurrency flakiness, not a code bug; human chose `retries: 1` as the mitigation                                                        | Human + Claude Code (main)                     | 20 min   | playwright.config.ts, specs/metrics.md                                                          | no code changes to tests/POM - nothing there was actually wrong; see Conventions for how this relates to "single run, not repeats"            |
 
 **`dismissCookieBanner` 10s stall on every test, found from a direct human report (2026-09-27 02:35):**
 
