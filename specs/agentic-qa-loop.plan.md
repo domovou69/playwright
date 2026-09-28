@@ -39,11 +39,16 @@ If the free tier's limits (test runs/month) prove too restrictive, fallback is s
 
 ### Stage 1 — Currents.dev free tier, baseline analytics (current focus)
 
-- [ ] Sign up for Currents.dev free tier, get project ID + record key
-- [ ] Add `@currents/playwright` reporter to `playwright.config.ts`
-- [ ] Run existing suite (`tests/wallpappers/*`) against it, confirm results land in the Currents dashboard
+- [x] Sign up for Currents.dev free tier, get project ID + record key (project `OOKVTP`)
+- [x] Add `@currents/playwright` reporter to `playwright.config.ts` + `currents.config.ts`
+- [x] Run existing suite (`tests/wallpappers/wallpapers-filters.spec.ts`) against it, confirm results land in
+      the Currents dashboard — 13/13 passed, run visible at `https://app.currents.dev/run/d01bec858c163f66`
+- [ ] Run the full suite (not just one spec file) to get a real baseline
 - [ ] Evaluate against free-tier limits: how many runs/month we actually burn through CI + local runs
 - [ ] Decision gate: is free tier sufficient, or do we hit limits fast enough to need ReportPortal/paid tier
+
+Deviated from Currents' own doc in one place: kept `screenshot: 'only-on-failure'` instead of their recommended
+`screenshot: 'on'` — no value in a free tier in screenshotting every passing test.
 
 **Output of this stage:** a working, populated Currents.dev dashboard we can actually look at — real data, not
 a hypothetical.
@@ -143,15 +148,14 @@ place to see the state of it all.
 
 Consolidated here rather than scattered per stage, so setup is a single checklist:
 
-| Variable              | Used in            | Notes                                                                                                                                                                                                                                           | Status      |
-| --------------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| `CURRENTS_PROJECT_ID` | Stage 1            | From Currents.dev project settings                                                                                                                                                                                                              | not set yet |
-| `CURRENTS_RECORD_KEY` | Stage 1            | From Currents.dev project settings                                                                                                                                                                                                              | not set yet |
-| `JIRA_BASE_URL`       | Stage 2+           | `https://domovou69.atlassian.net`                                                                                                                                                                                                               | done        |
-| `JIRA_PROJECT`        | Stage 2+           | `ZED`                                                                                                                                                                                                                                           | done        |
-| `JIRA_API_TOKEN`      | Stage 2+           | Personal account token, not a dedicated service account — see note below                                                                                                                                                                        | done        |
-| `JIRA_EMAIL`          | Stage 2+           | Atlassian account email the token belongs to (Jira Cloud auth is email+token, not token alone)                                                                                                                                                  | done        |
-| `BASE_URL`            | Stage 3 + existing | `https://www.zedge.net/`, hardcoded as the default in `playwright.config.ts` (env override still possible, but no longer required in CI — removed from `.github/workflows/ci.yml`). Doubles as the Stage 3 repro target since no staging exists | done        |
+| Variable              | Used in            | Notes                                                                                                                                                                                                                                           | Status |
+| --------------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| `CURRENTS_RECORD_KEY` | Stage 1            | Secret — kept only in `.env`, never in `currents.config.ts` (project ID `OOKVTP` is hardcoded there instead, per Currents' own convention, since it isn't sensitive)                                                                            | done   |
+| `JIRA_BASE_URL`       | Stage 2+           | `https://domovou69.atlassian.net`                                                                                                                                                                                                               | done   |
+| `JIRA_PROJECT`        | Stage 2+           | `ZED`                                                                                                                                                                                                                                           | done   |
+| `JIRA_API_TOKEN`      | Stage 2+           | Personal account token, not a dedicated service account — see note below                                                                                                                                                                        | done   |
+| `JIRA_EMAIL`          | Stage 2+           | Atlassian account email the token belongs to (Jira Cloud auth is email+token, not token alone)                                                                                                                                                  | done   |
+| `BASE_URL`            | Stage 3 + existing | `https://www.zedge.net/`, hardcoded as the default in `playwright.config.ts` (env override still possible, but no longer required in CI — removed from `.github/workflows/ci.yml`). Doubles as the Stage 3 repro target since no staging exists | done   |
 
 No staging environment exists for Zedge — resolved by using production directly for repro (see Stage 3), under
 the same guest-only/no-destructive-action constraints the test suite already follows elsewhere in this repo.

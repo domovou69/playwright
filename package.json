@@ -21,6 +21,7 @@
     "npm": ">=12"
   },
   "devDependencies": {
+    "@currents/playwright": "^2.5.1",
     "@playwright/test": "^1.63.0",
     "@types/node": "^24.19.0",
     "eslint": "^10.11.0",

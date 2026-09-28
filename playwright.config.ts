@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
+import { currentsReporter } from '@currents/playwright';
 import 'dotenv/config';
 import { TIMEOUTS } from './src/config/timeouts';
 
@@ -14,13 +15,14 @@ export default defineConfig({
   forbidOnly: isCI,
   retries: 1,
   workers: 3,
-  reporter: isCI ? [['html', { open: 'never' }], ['github']] : [['html', { open: 'on-failure' }]],
+  reporter: isCI ? [['html', { open: 'never' }], ['github'], currentsReporter()] : [['html', { open: 'on-failure' }], currentsReporter()],
   use: {
     headless: true,
     actionTimeout: TIMEOUTS.action,
     navigationTimeout: TIMEOUTS.navigation,
     baseURL: process.env.BASE_URL ?? 'https://www.zedge.net/',
-    trace: isCI ? 'retain-on-failure' : 'off',
+    trace: 'retain-on-failure-and-retries',
+    video: 'retain-on-failure',
     screenshot: 'only-on-failure',
     launchOptions: {
       args: ['--disable-dev-shm-usage'],
