@@ -19,7 +19,7 @@ export default defineConfig({
     headless: true,
     actionTimeout: TIMEOUTS.action,
     navigationTimeout: TIMEOUTS.navigation,
-    baseURL: process.env.BASE_URL,
+    baseURL: process.env.BASE_URL ?? 'https://www.zedge.net/',
     trace: isCI ? 'retain-on-failure' : 'off',
     screenshot: 'only-on-failure',
     launchOptions: {
