@@ -159,6 +159,17 @@ running.
       instantly distinguishable from a manual comment even though it posts under the personal account (see
       personal-token note below)
 
+**Scope boundary, decided 2026-09-28: `Task`/`Story`/`Epic` tickets are explicitly out of scope for this
+pipeline, not an oversight.** This pipeline's whole shape (duplicate check → repro → regression test) only maps
+onto bugs, which have a well-defined lifecycle. A `Task` ("refactor the framework", "plan a feature") has no
+equivalent universal automatable path — it needs human prioritization or product context this project
+deliberately doesn't have (it's a pure test-automation black box, not connected to product planning). If
+task-type automation is ever wanted, it should be a **separate pipeline** with its own logic (e.g. complexity
+estimate, epic linking, readiness checklist), not an extension bolted onto `triageOne()` — mixing the two would
+blur a clean bug-shaped function into a vague general-purpose one. `scripts/jira-triage.mjs`'s `issuetype = Bug`
+JQL filter enforces this boundary already; an explicitly-named `issueKey` input bypasses the type filter on
+purpose (a human asking for a specific ticket by name is a deliberate override, not scope creep).
+
 **Output of this stage:** new bug tickets arrive pre-triaged (possible duplicate flagged, version-support
 checked) before a human looks at them, and re-triage happens sensibly on meaningful status changes instead of
 either "once ever" or "on every single status bounce."
