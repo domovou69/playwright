@@ -34,6 +34,9 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Run tests
+        env:
+          CURRENTS_PROJECT_ID: OOKVTP
+          CURRENTS_RECORD_KEY: ${{ secrets.CURRENTS_RECORD_KEY }}
         run: npm test
 
       - name: Upload Playwright report
