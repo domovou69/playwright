@@ -160,16 +160,19 @@ running.
       `scripts/jira-triage.mjs`) — instantly distinguishable from a manual comment even though it posts under
       the personal account (see personal-token note below)
 
-**Not yet done — the two real gaps left in Stage 2:**
+**Both remaining gaps closed 2026-09-29, verified end-to-end on real data:**
 
-- [ ] **Never actually run as a real GitHub Actions job.** Everything above was verified by invoking
-      `node scripts/jira-triage.mjs` directly on a local machine with `.env` — the `workflow_dispatch` path
-      itself (secrets/vars resolving correctly inside an actual Actions runner, `fetch-depth: 0` checkout
-      working there) has not been triggered even once
-- [ ] **The write path (posting a comment + adding a label) has never actually executed against a real ticket
-      with content.** Every local test so far used `ZED-1`, which is empty, so it only ever hit the "skip -
-      no description yet" branch. The duplicate-check, fix-commit search, `addLabel`, and `postComment` code
-      paths are unexercised against live data
+- [x] Ran for real as a GitHub Actions job via `workflow_dispatch` (not just local `node
+scripts/jira-triage.mjs`) — secrets/vars resolved correctly, `fetch-depth: 0` checkout worked, run
+      finished green
+- [x] Write path exercised against a real ticket: created `ZED-2` (Bug, real description: "Ad interstitial
+      blocks wallpaper download button on mobile") via the Jira API, ran the workflow against it. Result:
+      labeled `needs-repro`, posted the marked comment, found 5 keyword-matching commits via the git-log search
+      (correctly surfaced as unverified, not auto-resolved) — duplicate-check, fix-commit search, `addLabel`,
+      and `postComment` all confirmed working, and confirmed via a direct Jira API read (label present, status
+      untouched at `To Do`), not just trusting the CI log
+- [x] Idempotency guard verified too: re-ran against `ZED-2` a second time — correctly skipped
+      ("already triaged, no changes since") instead of re-labeling/re-commenting
 
 **Scope boundary, decided 2026-09-28: `Task`/`Story`/`Epic` tickets are explicitly out of scope for this
 pipeline, not an oversight.** This pipeline's whole shape (duplicate check → repro → regression test) only maps
@@ -193,6 +196,11 @@ against production, under the same constraints already established for this proj
 `specs/wallpapers.plan.md` / the Explorbot experiment's isolation rules): guest-accessible flows only, no
 destructive actions, no completed purchases, no login/account mutation. This removes the `STAGING_BASE_URL`
 open question entirely — there's nothing to configure beyond the existing `BASE_URL`.
+
+**Known gap, not addressed here:** this suite only covers desktop browser layout. Real mobile-web bugs (Android/
+iOS browser, different layout entirely) are out of scope — a mobile-reported bug reaching Stage 3 cannot
+actually be reproduced by this pipeline yet. Noted so it isn't rediscovered by surprise later; not solved as
+part of this plan.
 
 - [ ] From a ticket's (possibly incomplete) description, reconstruct candidate repro steps
 - [ ] Run candidate steps via Playwright MCP against production (`BASE_URL`), respecting the no-destructive-
@@ -273,8 +281,10 @@ comments were you and which were the agent, without needing a separate service a
 
 ## Status
 
-- [ ] Stage 1: Currents.dev free tier wired into `playwright.config.ts`
-- [ ] Stage 2: Jira MCP + triage vocabulary
-- [ ] Stage 3: staging repro flow
+- [x] Stage 1: Currents.dev wired in and verified end-to-end (local + CI); only the free-tier billing/limits
+      check in the Currents dashboard itself remains open (needs manual login, can't be checked via API/MCP)
+- [x] Stage 2: Jira triage script built and verified end-to-end on real data (real CI run, real ticket, real
+      write path, idempotency confirmed)
+- [ ] Stage 3: reproduction flow (production, no staging)
 - [ ] Stage 4: test/fix generation via existing skills
 - [ ] Stage 5: review/feedback loop + dashboard
