@@ -1,0 +1,30 @@
+name: Jira Triage
+
+on:
+  workflow_dispatch:
+    inputs:
+      issueKey:
+        description: 'Specific Jira issue key to triage (leave blank to scan all candidates)'
+        required: false
+        type: string
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    env:
+      JIRA_BASE_URL: ${{ vars.JIRA_BASE_URL }}
+      JIRA_PROJECT: ${{ vars.JIRA_PROJECT }}
+      JIRA_EMAIL: ${{ vars.JIRA_EMAIL }}
+      JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+    steps:
+      - name: Log run parameters
+        run: |
+          echo "Target issue key: ${{ inputs.issueKey || '(none - scanning all candidates)' }}"
+
+      # TODO: replace this placeholder with the real triage flow (specs/agentic-qa-loop.plan.md, Stage 2):
+      # - if inputs.issueKey is set, fetch that one issue live via the Jira REST API
+      # - otherwise run a JQL query (e.g. `project = ZED AND status = "To Do"`) to find candidates
+      # - for each candidate, read LIVE summary/description -- skip quietly if still empty (tickets are
+      #   legitimately created empty and filled in later, see ZED-1)
+      # - skip if an agent comment already exists posted after the issue's last relevant update (idempotency)
+      # - otherwise run the duplicate/already-fixed check and post a labeled, human-reviewable comment
