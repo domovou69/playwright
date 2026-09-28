@@ -35,6 +35,40 @@ skill/POM reuse) — not stats storage. Currents.dev chosen for stage 1 because:
 If the free tier's limits (test runs/month) prove too restrictive, fallback is self-hosted ReportPortal
 (more powerful, more ops overhead) — documented as a fallback, not pursued unless stage 1 hits a wall.
 
+## Currents-native features that reshape this plan
+
+Docs checked 2026-09-28. These weren't known when Stages 2/4/5 were first written and change what needs to be
+hand-built vs. reused:
+
+**1. `@currents/mcp` — official MCP server.** Exposes projects/runs/test results/flakiness/duration/error-rate
+data as tools an AI agent can query directly (`npm install @currents/mcp`, needs `CURRENTS_API_KEY` — a
+**different** key from `CURRENTS_RECORD_KEY`, with Read Only vs. Read & Write permission levels). Can also
+cancel/reset runs. **Action: install this for the agent session** doing Stage 4/5 work, instead of hand-rolling
+an API client to pull flakiness data — this is the actual integration point that was left as an open "API"
+bullet before.
+
+**2. Native Jira integration** (Currents → "Currents for Jira" Atlassian Marketplace app). Does two things:
+creates a new Jira issue from a test failure (with error, stack trace, metadata, test history attached
+automatically), or links a failure to an _existing_ ticket with a context comment. Requires enabling in Currents
+project settings + installing the Atlassian Marketplace app + a Read & Write `CURRENTS_API_KEY` for write
+operations. **Explicitly does not sync ticket status back to quarantine** — one-directional, Currents → Jira
+only.
+
+This is the mirror direction of what Stages 2–4 planned (Jira ticket → repro → test), and meaningfully
+overlaps with Stage 4/5's "tag failing test with ticket ID for traceability" and "attach evidence" work — worth
+using this native path for **regression-test-failure → Jira** instead of hand-building that comment/link logic,
+reserving the custom Jira MCP work in Stage 2 for the **Jira ticket → repro → new test** direction only, which
+has no native Currents equivalent.
+
+**3. Currents Actions — rule-based automation.** Triggers on flakiness/duration/failure-rate/tag/age
+conditions; can skip tests, quarantine tests, add tags, or send alerts. **Open question, not yet confirmed**:
+whether "quarantine" only affects dashboard reporting or actually skips the test's real execution — this
+matters a lot given this plan's non-negotiable rule that no test/bug decision is ever made without a human
+(`## Validation gates`). If quarantine silently skips real execution, it cannot be used as an autonomous action
+here — at most as a proposal a human approves, same as everything else in this plan. **Needs to be verified
+empirically (configure one rule, observe actual behavior) before relying on it for Stage 5**, not assumed safe
+from the doc summary alone.
+
 ## Stages
 
 ### Stage 1 — Currents.dev free tier, baseline analytics (current focus)
@@ -43,9 +77,21 @@ If the free tier's limits (test runs/month) prove too restrictive, fallback is s
 - [x] Add `@currents/playwright` reporter to `playwright.config.ts` + `currents.config.ts`
 - [x] Run existing suite (`tests/wallpappers/wallpapers-filters.spec.ts`) against it, confirm results land in
       the Currents dashboard — 13/13 passed, run visible at `https://app.currents.dev/run/d01bec858c163f66`
-- [ ] Run the full suite (not just one spec file) to get a real baseline
-- [ ] Evaluate against free-tier limits: how many runs/month we actually burn through CI + local runs
+- [x] Run the full suite (not just one spec file) to get a real baseline — all 9 spec files, 32/32 passed,
+      1m26s, run visible at `https://app.currents.dev/run/6a691674937bb140`
+- [ ] Evaluate against free-tier limits: how many runs/month we actually burn through CI + local runs.
+      **Flag:** Currents' public pricing page (checked 2026-09-28) no longer lists a free plan — only Scale
+      ($49/mo), Business ($99/mo), Enterprise. Whatever tier the signup landed on (trial vs. a real free plan,
+      and its exact limits/expiry) needs to be checked directly in the Currents dashboard's
+      Settings → Billing, not assumed from the earlier onboarding email
 - [ ] Decision gate: is free tier sufficient, or do we hit limits fast enough to need ReportPortal/paid tier
+- [x] Research Currents' AI/automation features (docs checked 2026-09-28) — **significant findings, see
+      `## Currents-native features that reshape this plan` below**: an official MCP server, a native Jira
+      integration, and rule-based "Currents Actions" all exist and overlap with what Stage 2/4/5 planned to
+      hand-build
+- [ ] Check Currents' **Insights & Analytics** (flake rate, failure history, performance trends) once enough
+      runs have accumulated — this may already satisfy Stage 1/5's "flaky duration" and "what's broken" goals
+      without extra tooling
 
 Deviated from Currents' own doc in one place: kept `screenshot: 'only-on-failure'` instead of their recommended
 `screenshot: 'on'` — no value in a free tier in screenshotting every passing test.
@@ -148,14 +194,15 @@ place to see the state of it all.
 
 Consolidated here rather than scattered per stage, so setup is a single checklist:
 
-| Variable              | Used in            | Notes                                                                                                                                                                                                                                           | Status                                                                 |
-| --------------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| `CURRENTS_RECORD_KEY` | Stage 1            | Secret — kept only in `.env` locally and as a **GitHub Actions secret** for CI; never in `currents.config.ts` (project ID `OOKVTP` is hardcoded there instead, per Currents' own convention, since it isn't sensitive)                          | local: done, CI secret: **needs manual setup in GitHub repo settings** |
-| `JIRA_BASE_URL`       | Stage 2+           | `https://domovou69.atlassian.net`                                                                                                                                                                                                               | done                                                                   |
-| `JIRA_PROJECT`        | Stage 2+           | `ZED`                                                                                                                                                                                                                                           | done                                                                   |
-| `JIRA_API_TOKEN`      | Stage 2+           | Personal account token, not a dedicated service account — see note below                                                                                                                                                                        | done                                                                   |
-| `JIRA_EMAIL`          | Stage 2+           | Atlassian account email the token belongs to (Jira Cloud auth is email+token, not token alone)                                                                                                                                                  | done                                                                   |
-| `BASE_URL`            | Stage 3 + existing | `https://www.zedge.net/`, hardcoded as the default in `playwright.config.ts` (env override still possible, but no longer required in CI — removed from `.github/workflows/ci.yml`). Doubles as the Stage 3 repro target since no staging exists | done                                                                   |
+| Variable              | Used in            | Notes                                                                                                                                                                                                                                                                 | Status                                                                 |
+| --------------------- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `CURRENTS_RECORD_KEY` | Stage 1            | Secret — kept only in `.env` locally and as a **GitHub Actions secret** for CI; never in `currents.config.ts` (project ID `OOKVTP` is hardcoded there instead, per Currents' own convention, since it isn't sensitive)                                                | local: done, CI secret: **needs manual setup in GitHub repo settings** |
+| `CURRENTS_API_KEY`    | Stage 4+           | **Different key from `CURRENTS_RECORD_KEY`** — used by `@currents/mcp` (agent tool access) and the native Jira integration. Needs Read & Write permission for Jira write operations (creating/linking issues); Read Only suffices for querying flakiness/failure data | not set yet                                                            |
+| `JIRA_BASE_URL`       | Stage 2+           | `https://domovou69.atlassian.net`                                                                                                                                                                                                                                     | done                                                                   |
+| `JIRA_PROJECT`        | Stage 2+           | `ZED`                                                                                                                                                                                                                                                                 | done                                                                   |
+| `JIRA_API_TOKEN`      | Stage 2+           | Personal account token, not a dedicated service account — see note below                                                                                                                                                                                              | done                                                                   |
+| `JIRA_EMAIL`          | Stage 2+           | Atlassian account email the token belongs to (Jira Cloud auth is email+token, not token alone)                                                                                                                                                                        | done                                                                   |
+| `BASE_URL`            | Stage 3 + existing | `https://www.zedge.net/`, hardcoded as the default in `playwright.config.ts` (env override still possible, but no longer required in CI — removed from `.github/workflows/ci.yml`). Doubles as the Stage 3 repro target since no staging exists                       | done                                                                   |
 
 No staging environment exists for Zedge — resolved by using production directly for repro (see Stage 3), under
 the same guest-only/no-destructive-action constraints the test suite already follows elsewhere in this repo.
