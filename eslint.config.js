@@ -4,7 +4,7 @@ import playwright from 'eslint-plugin-playwright';
 
 export default tseslint.config(
   {
-    ignores: ['node_modules', 'test-results', 'playwright-report', 'downloads', 'dist'],
+    ignores: ['node_modules', 'test-results', 'playwright-report', 'downloads', 'dist', 'scripts'],
   },
   playwright.configs['flat/recommended'],
   {

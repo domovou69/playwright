@@ -150,7 +150,7 @@ running.
 - [ ] Define machine-readable status/label vocabulary tickets move through, e.g.:
       `needs-triage → duplicate-suspected / needs-repro / repro-confirmed / auto-fix-proposed / needs-human-review`
 - [x] Build duplicate/already-fixed check: search existing tickets (Jira `text ~` title search) + `git log
-  --all --grep` keyword search across commit messages for the reported symptom (`scripts/jira-triage.mjs`,
+--all --grep` keyword search across commit messages for the reported symptom (`scripts/jira-triage.mjs`,
       `findPossibleDuplicates` + `findPossibleFixCommits`) — **risk, not a solved step**: both are best-effort
       keyword matches (Jira search misses paraphrased duplicates, git log rarely echoes a bug title verbatim),
       always surfaced as an unverified hint in the comment, never treated as authoritative or used to
