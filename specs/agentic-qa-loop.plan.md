@@ -116,23 +116,19 @@ needed anymore, since nothing outside GitHub initiates a run.
 
 **What this changes concretely:**
 
-- [ ] `.github/workflows/jira-triage.yml` becomes `on: workflow_dispatch` (optionally with an `issueKey` input
-      to target one ticket, left blank to scan all candidates) — the `repository_dispatch` trigger and the
-      three Jira Automation rules from the earlier design are removed, not built
-- [ ] **The GitHub PAT is no longer needed for this purpose** — nothing calls _into_ GitHub from Jira anymore.
-      The credential need flips direction: the workflow now needs to call _out_ to Jira, so
-      `JIRA_API_TOKEN`/`JIRA_EMAIL`/`JIRA_BASE_URL`/`JIRA_PROJECT` (already in local `.env`) need to be added as
-      **GitHub Actions secrets/vars** — the same kind of step already done for `CURRENTS_RECORD_KEY`
-- [ ] Since there's no event telling the job "this specific ticket changed," it decides for itself what needs
-      triage via a **JQL query** on each run (e.g. `project = ZED AND status = "To Do"`), rather than acting on
-      a single `issueKey` from a payload
-- [ ] The empty-ticket problem (tickets legitimately created empty and filled in later, e.g. `ZED-1`) is now a
-      non-issue by construction: the job always reads live Jira state at the moment it runs, so it naturally
-      only picks up tickets that currently have real content — no separate "wait for the edit event" design
-      needed
-- [ ] Idempotency guard carries over unchanged: skip a candidate ticket if an agent comment already exists
-      posted after its last relevant update — still needed so a manual/scheduled re-run doesn't re-triage
-      tickets it already handled
+- [x] `.github/workflows/jira-triage.yml` is `on: workflow_dispatch` with an `issueKey` input (comma-separated,
+      whitespace-tolerant list, or blank to scan all candidates) — implemented, tested locally against real
+      Jira data. **Not yet tested as an actual GitHub Actions run** (only via direct `node scripts/jira-triage.mjs`
+      invocation locally with `.env`) — see next steps below
+- [x] GitHub Actions secrets/vars added (`JIRA_API_TOKEN` as secret, `JIRA_BASE_URL`/`JIRA_PROJECT`/`JIRA_EMAIL`
+      as vars) — confirmed done by user
+- [x] JQL query decides candidates each run (`scripts/jira-triage.mjs`, `findCandidates`) — implemented, see the
+      scope/scale notes below for how it's actually split into two bounded queries
+- [x] Empty-ticket non-issue by construction — implemented (`triageOne` checks live `description` content,
+      skips quietly if empty)
+- [x] Idempotency guard implemented (`alreadyHandledSinceLastUpdate`) — skips re-processing when an agent
+      comment already exists posted after the issue's last update, with a cheap short-circuit (no API call) for
+      tickets that never got a pipeline label in the first place
 
 Everything else in this stage (duplicate/already-fixed check, label vocabulary, comment marker, human
 confirmation gates) is unaffected by this change — only _how the job starts_ changed, not what it does once
@@ -142,13 +138,15 @@ running.
       2026-09-28): `GET /rest/api/3/project/ZED` returns project id `10034`. Issue types: Subtask, Epic, Story,
       Bug, Task. Statuses match this stage's assumptions exactly: To Do, In Progress, Done, Blocked. One
       pre-existing unrelated ticket found (`ZED-1`, no labels) — not part of this experiment.
-- [ ] No separate "Jira MCP" server needed for the **automated** path — the `repository_dispatch` workflow
-      calls the Jira REST API directly (curl/script, already proven working above), which is simpler for a
-      headless CI job than standing up an MCP server. An interactive Jira MCP (for me to browse/query tickets
+- [x] No separate "Jira MCP" server needed for the **automated** path — the `workflow_dispatch` workflow calls
+      the Jira REST API directly (`scripts/jira-triage.mjs`, plain `fetch`), which is simpler for a headless CI
+      job than standing up an MCP server. An interactive Jira MCP (for me to browse/query tickets
       conversationally with the user, distinct from the automated pipeline) remains a separate, optional,
       not-yet-done addition — same local-vs-automated split already noted for `CURRENTS_API_KEY`
-- [ ] Define machine-readable status/label vocabulary tickets move through, e.g.:
-      `needs-triage → duplicate-suspected / needs-repro / repro-confirmed / auto-fix-proposed / needs-human-review`
+- [x] Label vocabulary defined and implemented as `PIPELINE_LABELS` in `scripts/jira-triage.mjs`:
+      `duplicate-suspected`, `needs-repro`, `repro-confirmed`, `auto-fix-proposed`, `needs-human-review`. A
+      ticket with none of these is implicitly "needs-triage" (no separate label needed for that state — absence
+      of a pipeline label already means it hasn't been through this pipeline)
 - [x] Build duplicate/already-fixed check: search existing tickets (Jira `text ~` title search) + `git log
 --all --grep` keyword search across commit messages for the reported symptom (`scripts/jira-triage.mjs`,
       `findPossibleDuplicates` + `findPossibleFixCommits`) — **risk, not a solved step**: both are best-effort
@@ -156,11 +154,22 @@ running.
       always surfaced as an unverified hint in the comment, never treated as authoritative or used to
       auto-resolve anything. Requires `actions/checkout` with `fetch-depth: 0` in CI (shallow clone would only
       see the latest commit) — already set in `jira-triage.yml`
-- [ ] Every triage action is a **comment + label change**, never an auto-close — human confirms duplicates/
-      won't-fix decisions
-- [ ] Every automated comment is prefixed with a visible marker, e.g. `[agent - Claude Sonnet 5]`, so it's
-      instantly distinguishable from a manual comment even though it posts under the personal account (see
-      personal-token note below)
+- [x] Every triage action is a **comment + label change**, never an auto-close — implemented (`addLabel` +
+      `postComment` only; the script never touches `status` or transitions/resolves anything)
+- [x] Every automated comment is prefixed with `[agent - Claude Sonnet 5]` (`AGENT_MARKER` in
+      `scripts/jira-triage.mjs`) — instantly distinguishable from a manual comment even though it posts under
+      the personal account (see personal-token note below)
+
+**Not yet done — the two real gaps left in Stage 2:**
+
+- [ ] **Never actually run as a real GitHub Actions job.** Everything above was verified by invoking
+      `node scripts/jira-triage.mjs` directly on a local machine with `.env` — the `workflow_dispatch` path
+      itself (secrets/vars resolving correctly inside an actual Actions runner, `fetch-depth: 0` checkout
+      working there) has not been triggered even once
+- [ ] **The write path (posting a comment + adding a label) has never actually executed against a real ticket
+      with content.** Every local test so far used `ZED-1`, which is empty, so it only ever hit the "skip -
+      no description yet" branch. The duplicate-check, fix-commit search, `addLabel`, and `postComment` code
+      paths are unexercised against live data
 
 **Scope boundary, decided 2026-09-28: `Task`/`Story`/`Epic` tickets are explicitly out of scope for this
 pipeline, not an oversight.** This pipeline's whole shape (duplicate check → repro → regression test) only maps
