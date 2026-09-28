@@ -2,7 +2,6 @@
 // seed: tests/seed.spec.ts
 
 import { test, expect } from '../../fixtures/test';
-import { tags } from '../../src/utils/tags';
 import type { AppPageObjects } from '../../pages/AppPageObjects';
 import type { WallpaperCategoryType, TagsOptionType, ColorOptionType, PriceOptionType, SortByType } from '../../src/types/types';
 
@@ -80,7 +79,7 @@ const pairwiseFilterCases: PairwiseFilterCase[] = [
   },
 ];
 
-test.describe('Filtering', { tag: [tags.WALLPAPERS, tags.GUEST, tags.SMOKE] }, () => {
+test.describe('Filtering', { tag: ['@wallpapers', '@guest', '@smoke'] }, () => {
   test.beforeEach('Open unfiltered /wallpapers', async ({ app }) => {
     await app.wallpapersListPage.open();
   });
@@ -132,7 +131,7 @@ test.describe('Filtering', { tag: [tags.WALLPAPERS, tags.GUEST, tags.SMOKE] }, (
     expect(hrefsAfterReset).not.toEqual(hrefsBeforeReset);
   });
 
-  test('WP-20 Multiple options in one filter', { tag: [tags.WALLPAPERS, tags.GUEST, tags.REGRESSION] }, async ({ app, page }) => {
+  test('WP-20 Multiple options in one filter', { tag: ['@wallpapers', '@guest', '@regression'] }, async ({ app, page }) => {
     // 1. Select Color = Black, record hrefs, then also select White
     // Keep the dialog open across both selections and the uncheck below - closing and reopening it
     // between clicks (via the isColorSelected/filterByColor helpers, which each open+close on their
@@ -184,7 +183,7 @@ test.describe('Filtering', { tag: [tags.WALLPAPERS, tags.GUEST, tags.SMOKE] }, (
   });
 
   for (const current of pairwiseFilterCases) {
-    test(`WP-21 Pairwise filter combinations: ${current.name}`, { tag: [tags.WALLPAPERS, tags.GUEST, tags.REGRESSION] }, async ({ app, page }) => {
+    test(`WP-21 Pairwise filter combinations: ${current.name}`, { tag: ['@wallpapers', '@guest', '@regression'] }, async ({ app, page }) => {
       // Apply both filters in sequence; check the URL after each, and hrefs after each when that's
       // this case's invariant.
       let previousHrefs = await app.wallpapersListPage.getCardsHref();
@@ -211,7 +210,7 @@ test.describe('Filtering', { tag: [tags.WALLPAPERS, tags.GUEST, tags.SMOKE] }, (
     });
   }
 
-  test('WP-34 Price range From/To limits card prices', { tag: [tags.WALLPAPERS, tags.GUEST, tags.REGRESSION] }, async ({ app, page }) => {
+  test('WP-34 Price range From/To limits card prices', { tag: ['@wallpapers', '@guest', '@regression'] }, async ({ app, page }) => {
     // 1. Open the Price filter, set From = 50, To = 500
     await app.wallpapersListPage.setPriceRange(50, 500);
 
@@ -228,7 +227,7 @@ test.describe('Filtering', { tag: [tags.WALLPAPERS, tags.GUEST, tags.SMOKE] }, (
     }
   });
 
-  test('WP-23 Filters are restored from a deep link', { tag: [tags.WALLPAPERS, tags.GUEST, tags.REGRESSION] }, async ({ app, page }) => {
+  test('WP-23 Filters are restored from a deep link', { tag: ['@wallpapers', '@guest', '@regression'] }, async ({ app, page }) => {
     // 1. Navigate to `/wallpapers?categories=NATURE&sort=PRICE_DESC&minPrice=1`
     await page.goto('/wallpapers?categories=NATURE&sort=PRICE_DESC&minPrice=1');
 

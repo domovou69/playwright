@@ -2,14 +2,13 @@
 // seed: tests/seed.spec.ts
 
 import { test, expect } from '../../fixtures/test';
-import { tags } from '../../src/utils/tags';
 
 test.describe('Search', () => {
   test.beforeEach('Open unfiltered /wallpapers', async ({ app }) => {
     await app.wallpapersListPage.open();
   });
 
-  test('WP-03 Search with no matches shows the empty state', { tag: [tags.WALLPAPERS, tags.GUEST, tags.REGRESSION] }, async ({ app, page }) => {
+  test('WP-03 Search with no matches shows the empty state', { tag: ['@wallpapers', '@guest', '@regression'] }, async ({ app, page }) => {
     // 1. Search (All filter) for a nonsense term, e.g. zzzxxxqqqnonexistent123456
     // Note: the plan's "Wallpapers filter" wording matches this page (/find/<term>, filter "All"),
     // which is the one that actually shows "Oops, couldn't find it" with suggested keywords - the
@@ -32,7 +31,7 @@ test.describe('Search', () => {
     expect(await app.wallpapersListPage.cardsAll.count()).toBeGreaterThan(0);
   });
 
-  test('WP-05 Cancel clears the search input', { tag: [tags.WALLPAPERS, tags.GUEST, tags.REGRESSION] }, async ({ app }) => {
+  test('WP-05 Cancel clears the search input', { tag: ['@wallpapers', '@guest', '@regression'] }, async ({ app }) => {
     // 1. Search for mountains (Wallpapers filter)
     await app.wallpapersListPage.search('mountains', 'Wallpapers');
     await expect(app.wallpapersListPage.searchCancelBtn).toBeVisible();
@@ -45,7 +44,7 @@ test.describe('Search', () => {
 
   test(
     'WP-06 Search filter dropdown defaults to "All" and reflects the selection',
-    { tag: [tags.WALLPAPERS, tags.GUEST, tags.REGRESSION] },
+    { tag: ['@wallpapers', '@guest', '@regression'] },
     async ({ app }) => {
       // 1. Open the search filter dropdown
       await app.wallpapersListPage.clickSearchFilter();

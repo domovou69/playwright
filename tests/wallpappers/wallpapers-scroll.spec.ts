@@ -3,14 +3,13 @@
 
 import { test, expect } from '../../fixtures/test';
 import { hasUniqueValues } from '../../src/utils/helper';
-import { tags } from '../../src/utils/tags';
 
 test.describe('Infinite Scroll and Load More', () => {
   test.beforeEach('Open unfiltered /wallpapers', async ({ app }) => {
     await app.wallpapersListPage.open();
   });
 
-  test('WP-08 "Load more" loads more cards', { tag: [tags.WALLPAPERS, tags.GUEST, tags.REGRESSION] }, async ({ app }) => {
+  test('WP-08 "Load more" loads more cards', { tag: ['@wallpapers', '@guest', '@regression'] }, async ({ app }) => {
     const { wallpapersListPage } = app;
 
     // 1. Scroll until "Load more" is visible and enabled

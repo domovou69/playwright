@@ -1,8 +1,7 @@
 import { test } from '../../fixtures/test';
 import { clearDownloadFolder } from '../../src/utils/helper';
-import { tags } from '../../src/utils/tags';
 
-test.describe('Wallpapers: Search, Filtering, and Free Downloading - Guest User', { tag: [tags.WALLPAPERS, tags.GUEST] }, () => {
+test.describe('Wallpapers: Search, Filtering, and Free Downloading - Guest User', { tag: ['@wallpapers', '@guest'] }, () => {
   const searchTextSingleArr = ['sun', 'anime', 'space', 'messi', 'car', 'wall-e'];
   const searchTextMultipleArr = ['stone river', 'city tower car', 'space sun light'];
 
@@ -34,8 +33,8 @@ test.describe('Wallpapers: Search, Filtering, and Free Downloading - Guest User'
     });
   });
 
-  test.describe('Downloading and Purchase - Guest User', { tag: [tags.WALLPAPERS, tags.GUEST] }, () => {
-    test('allows users to download free wallpapers after ad', { tag: [tags.DOWNLOAD] }, async ({ app }) => {
+  test.describe('Downloading and Purchase - Guest User', { tag: ['@wallpapers', '@guest'] }, () => {
+    test('allows users to download free wallpapers after ad', { tag: ['@download'] }, async ({ app }) => {
       // TC-10: Attempting to download a free image should show AD for 15 sec, then start downloading --- check image downloaded and not corrupted
       await app.wallpapersListPage.downloadFreeWallpapers('free', 1);
     });

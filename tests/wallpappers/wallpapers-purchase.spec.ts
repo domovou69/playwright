@@ -2,7 +2,6 @@
 // seed: tests/seed.spec.ts
 
 import { test, expect } from '../../fixtures/test';
-import { tags } from '../../src/utils/tags';
 import type { AppPageObjects } from '../../pages/AppPageObjects';
 import type { Locator } from '@playwright/test';
 import type { SortByType } from '../../src/types/types';
@@ -43,7 +42,7 @@ async function pickPaidCardSkippingTen(app: AppPageObjects): Promise<{ card: Loc
   throw new Error('No paid card with a price other than 10 was found');
 }
 
-test.describe('Download and Purchase (Guest)', { tag: [tags.WALLPAPERS, tags.GUEST, tags.SMOKE] }, () => {
+test.describe('Download and Purchase (Guest)', { tag: ['@wallpapers', '@guest', '@smoke'] }, () => {
   for (const variant of variants) {
     test(`WP-30 ${variant.name} premium wallpaper shows its price and the purchase gate`, async ({ app, page }) => {
       await app.wallpapersListPage.open();
@@ -87,7 +86,7 @@ test.describe('Download and Purchase (Guest)', { tag: [tags.WALLPAPERS, tags.GUE
   test(
     'WP-29 Premium wallpapers priced exactly 10 show "Download" instead of "Buy"',
     {
-      tag: [tags.WALLPAPERS, tags.GUEST, tags.BUG, tags.REGRESSION],
+      tag: ['@wallpapers', '@guest', '@bug', '@regression'],
       annotation: {
         type: 'bug',
         description:
@@ -130,32 +129,28 @@ test.describe('Download and Purchase (Guest)', { tag: [tags.WALLPAPERS, tags.GUE
     }
   );
 
-  test(
-    'WP-32 Opening a premium wallpaper by direct URL keeps the gate',
-    { tag: [tags.WALLPAPERS, tags.GUEST, tags.REGRESSION] },
-    async ({ app, page }) => {
-      await app.wallpapersListPage.open();
-      await app.wallpapersListPage.filterByPrice(['Paid']);
-      await app.wallpapersListPage.filterBySortBy('Price: High to Low');
+  test('WP-32 Opening a premium wallpaper by direct URL keeps the gate', { tag: ['@wallpapers', '@guest', '@regression'] }, async ({ app, page }) => {
+    await app.wallpapersListPage.open();
+    await app.wallpapersListPage.filterByPrice(['Paid']);
+    await app.wallpapersListPage.filterBySortBy('Price: High to Low');
 
-      // 1. Take the href of the first card from Price=Paid, Sort by=Price: High to Low; open a new page and go to that href
-      const card = (await app.wallpapersListPage.cardsPremiumWithPrice.all())[0]!;
-      const price = await app.wallpapersListPage.getCardPriceBadgeText(card);
-      const cardHref = await app.wallpapersListPage.getCardHref(card);
+    // 1. Take the href of the first card from Price=Paid, Sort by=Price: High to Low; open a new page and go to that href
+    const card = (await app.wallpapersListPage.cardsPremiumWithPrice.all())[0]!;
+    const price = await app.wallpapersListPage.getCardPriceBadgeText(card);
+    const cardHref = await app.wallpapersListPage.getCardHref(card);
 
-      await page.goto(cardHref);
+    await page.goto(cardHref);
 
-      // expect: Premium badge, price and "Buy for Ƶ<price>" are shown, same as when opened from the list
-      await expect(app.wallpaperDetailsPage.premiumBadge).toBeVisible();
-      await expect(app.wallpaperDetailsPage.priceText(price)).toBeVisible();
-      await expect(app.wallpaperDetailsPage.buyBtn).toHaveText(`Buy for Ƶ${price}`);
-    }
-  );
+    // expect: Premium badge, price and "Buy for Ƶ<price>" are shown, same as when opened from the list
+    await expect(app.wallpaperDetailsPage.premiumBadge).toBeVisible();
+    await expect(app.wallpaperDetailsPage.priceText(price)).toBeVisible();
+    await expect(app.wallpaperDetailsPage.buyBtn).toHaveText(`Buy for Ƶ${price}`);
+  });
 
   test(
     'WP-33 Purchase modal logs an accessibility console error',
     {
-      tag: [tags.WALLPAPERS, tags.GUEST, tags.BUG, tags.REGRESSION],
+      tag: ['@wallpapers', '@guest', '@bug', '@regression'],
       annotation: {
         type: 'bug',
         // The plan's original wording ("DialogContent requires a DialogTitle") no longer reproduces live -
