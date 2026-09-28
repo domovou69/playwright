@@ -149,10 +149,13 @@ running.
       not-yet-done addition — same local-vs-automated split already noted for `CURRENTS_API_KEY`
 - [ ] Define machine-readable status/label vocabulary tickets move through, e.g.:
       `needs-triage → duplicate-suspected / needs-repro / repro-confirmed / auto-fix-proposed / needs-human-review`
-- [ ] Build duplicate/already-fixed check: search existing tickets + git log/CHANGELOG for the reported symptom
-      before anything else happens — **risk, not a solved step**: Jira full-text search misses paraphrased/
-      differently-worded duplicates, so this is a best-effort assist for the human, never treated as
-      authoritative
+- [x] Build duplicate/already-fixed check: search existing tickets (Jira `text ~` title search) + `git log
+  --all --grep` keyword search across commit messages for the reported symptom (`scripts/jira-triage.mjs`,
+      `findPossibleDuplicates` + `findPossibleFixCommits`) — **risk, not a solved step**: both are best-effort
+      keyword matches (Jira search misses paraphrased duplicates, git log rarely echoes a bug title verbatim),
+      always surfaced as an unverified hint in the comment, never treated as authoritative or used to
+      auto-resolve anything. Requires `actions/checkout` with `fetch-depth: 0` in CI (shallow clone would only
+      see the latest commit) — already set in `jira-triage.yml`
 - [ ] Every triage action is a **comment + label change**, never an auto-close — human confirms duplicates/
       won't-fix decisions
 - [ ] Every automated comment is prefixed with a visible marker, e.g. `[agent - Claude Sonnet 5]`, so it's
