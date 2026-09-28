@@ -1,13 +1,14 @@
 import { defineConfig, devices } from '@playwright/test';
 import 'dotenv/config';
+import { TIMEOUTS } from './src/config/timeouts';
 
 const isCI = !!process.env.CI;
 
 export default defineConfig({
   testDir: './tests',
-  timeout: isCI ? 90_000 : 60_000,
+  timeout: TIMEOUTS.test,
   expect: {
-    timeout: isCI ? 10_000 : 7_000,
+    timeout: TIMEOUTS.expect,
   },
   fullyParallel: true,
   forbidOnly: isCI,
@@ -16,8 +17,8 @@ export default defineConfig({
   reporter: isCI ? [['html', { open: 'never' }], ['github']] : [['html', { open: 'on-failure' }]],
   use: {
     headless: true,
-    actionTimeout: isCI ? 10_000 : 7_000,
-    navigationTimeout: isCI ? 45_000 : 30_000,
+    actionTimeout: TIMEOUTS.action,
+    navigationTimeout: TIMEOUTS.navigation,
     baseURL: process.env.BASE_URL,
     trace: isCI ? 'retain-on-failure' : 'off',
     screenshot: 'only-on-failure',

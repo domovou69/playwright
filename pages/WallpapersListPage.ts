@@ -2,6 +2,7 @@ import { expect, Locator, Page } from '@playwright/test';
 import { HeaderPage } from './HeaderPage';
 import { BodyHeaderPage } from './MainHeaderPage';
 import { removeSpaces, dismissCookieBanner } from '../src/utils/helper';
+import { TIMEOUTS } from '../src/config/timeouts';
 import { WallpaperDetailPage } from './WallpaperDetailPage';
 import {
   ColorOptionType,
@@ -83,8 +84,26 @@ export class WallpapersListPage extends HeaderPage {
   }
 
   async open() {
-    await this.page.goto('/wallpapers');
+    await this.gotoWallpapersWithRetry();
     await dismissCookieBanner(this.page);
+  }
+
+  /**
+   * Navigates to /wallpapers, retrying if it crashes into Next.js's error-boundary screen.
+   * One-shot `.isVisible()` polling only - `.waitFor()`/`.click()` here fights the
+   * rejectCookieConsent addLocatorHandler (fixtures/test.ts) and hangs (confirmed live).
+   */
+  private async gotoWallpapersWithRetry(retries = 2) {
+    const appWallpaperLoadError = this.page.getByText('a client-side exception has occurred', { exact: false });
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      await this.page.goto('/wallpapers');
+      const deadline = Date.now() + TIMEOUTS.action;
+      while (!(await this.wallpaperTitle.isVisible()) && !(await appWallpaperLoadError.isVisible()) && Date.now() < deadline) {
+        await this.page.waitForTimeout(100);
+      }
+      if (await this.wallpaperTitle.isVisible()) return;
+      if (attempt === retries) throw new Error(`/wallpapers failed to render after ${retries + 1} attempts`);
+    }
   }
 
   async getCardPrice(card: Locator): Promise<string> {
