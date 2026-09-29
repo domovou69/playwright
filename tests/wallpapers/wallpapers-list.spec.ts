@@ -3,8 +3,8 @@
 
 import { test, expect } from '../../fixtures/test';
 
-test.describe('List Page', () => {
-  test('WP-01 List page loads with header, filter bar and valid cards', { tag: ['@wallpapers', '@guest', '@regression'] }, async ({ app, page }) => {
+test.describe('List Page', { tag: ['@wallpapers', '@guest'] }, () => {
+  test('WP-01 List page loads with header, filter bar and valid cards', { tag: ['@regression'] }, async ({ app, page }) => {
     // 1. Open /wallpapers
     await app.wallpapersListPage.open();
     await expect(app.wallpapersListPage.wallpaperTitle).toBeVisible();

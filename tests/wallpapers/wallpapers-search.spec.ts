@@ -3,12 +3,12 @@
 
 import { test, expect } from '../../fixtures/test';
 
-test.describe('Search', () => {
+test.describe('Search', { tag: ['@wallpapers', '@guest'] }, () => {
   test.beforeEach('Open unfiltered /wallpapers', async ({ app }) => {
     await app.wallpapersListPage.open();
   });
 
-  test('WP-02 Search by single and multi-word keywords', { tag: ['@wallpapers', '@guest', '@smoke'] }, async ({ app }) => {
+  test('WP-02 Search by single and multi-word keywords', { tag: ['@smoke'] }, async ({ app }) => {
     const searchTextSingleArr = ['sun', 'anime', 'space', 'messi', 'car', 'wall-e'];
     const searchTextMultipleArr = ['stone river', 'city tower car', 'space sun light'];
 
@@ -23,7 +23,7 @@ test.describe('Search', () => {
     }
   });
 
-  test('WP-03 Search with no matches shows the empty state', { tag: ['@wallpapers', '@guest', '@regression'] }, async ({ app, page }) => {
+  test('WP-03 Search with no matches shows the empty state', { tag: ['@regression'] }, async ({ app, page }) => {
     // 1. Search (All filter) for a nonsense term, e.g. zzzxxxqqqnonexistent123456
     // Note: the plan's "Wallpapers filter" wording matches this page (/find/<term>, filter "All"),
     // which is the one that actually shows "Oops, couldn't find it" with suggested keywords - the
@@ -46,7 +46,7 @@ test.describe('Search', () => {
     expect(await app.wallpapersListPage.cardsAll.count()).toBeGreaterThan(0);
   });
 
-  test('WP-05 Cancel clears the search input', { tag: ['@wallpapers', '@guest', '@regression'] }, async ({ app }) => {
+  test('WP-05 Cancel clears the search input', { tag: ['@regression'] }, async ({ app }) => {
     // 1. Search for mountains (Wallpapers filter)
     await app.wallpapersListPage.search('mountains', 'Wallpapers');
     await expect(app.wallpapersListPage.searchCancelBtn).toBeVisible();
@@ -57,19 +57,15 @@ test.describe('Search', () => {
     await expect(app.wallpapersListPage.searchCancelBtn).not.toBeAttached();
   });
 
-  test(
-    'WP-06 Search filter dropdown defaults to "All" and reflects the selection',
-    { tag: ['@wallpapers', '@guest', '@regression'] },
-    async ({ app }) => {
-      // 1. Open the search filter dropdown
-      await app.wallpapersListPage.clickSearchFilter();
-      await app.wallpapersListPage.validateSearchDropdownSelection('All');
-      await app.wallpapersListPage.clickSearchFilter();
+  test('WP-06 Search filter dropdown defaults to "All" and reflects the selection', { tag: ['@regression'] }, async ({ app }) => {
+    // 1. Open the search filter dropdown
+    await app.wallpapersListPage.clickSearchFilter();
+    await app.wallpapersListPage.validateSearchDropdownSelection('All');
+    await app.wallpapersListPage.clickSearchFilter();
 
-      // 2. Select "Wallpapers"
-      await app.wallpapersListPage.selectSearchFilter('Wallpapers');
-      await app.wallpapersListPage.clickSearchFilter();
-      await app.wallpapersListPage.validateSearchDropdownSelection('Wallpapers');
-    }
-  );
+    // 2. Select "Wallpapers"
+    await app.wallpapersListPage.selectSearchFilter('Wallpapers');
+    await app.wallpapersListPage.clickSearchFilter();
+    await app.wallpapersListPage.validateSearchDropdownSelection('Wallpapers');
+  });
 });

@@ -43,6 +43,9 @@ Before writing or editing a test, invoke the `playwright-best-practices` skill. 
 - No `waitForTimeout`, no new `force: true`, no conditionals in a test body. Data-driven variants carry plain data only,
   never functions or branches.
 - A test ID and title (`WP-XX ...`) is never renamed; only tags are added or changed.
+- Tags (`src/utils/tags.ts`): `@wallpapers` and `@guest` go on the `describe`, never on a test. `@smoke` marks a P1 scenario
+  from `specs/wallpapers.plan.md` (runs on every PR), `@regression` the rest; push to main runs everything. `@download` and
+  `@BUG:<KEY>` are added on top. ESLint (`require-tags`, `valid-test-tags`) enforces that a test has tags and only known ones.
 - Bug tests assert the current (buggy) behavior and stay green: tag `@BUG:<JIRA-KEY>` plus an annotation
   `{ type: 'bug', description }`. When the site is fixed the test fails and is reviewed.
 - Do not create per-ticket plan files. New scenarios go into `specs/wallpapers.plan.md`.

@@ -43,18 +43,18 @@ async function pickPaidCardSkippingTen(app: AppPageObjects): Promise<{ card: Loc
   throw new Error('No paid card with a price other than 10 was found');
 }
 
-test.describe('Download and Purchase (Guest)', { tag: ['@wallpapers', '@guest', '@smoke'] }, () => {
+test.describe('Download and Purchase (Guest)', { tag: ['@wallpapers', '@guest'] }, () => {
   test.beforeAll('Clear downloads folder', async () => {
     await clearDownloadFolder();
   });
 
-  test('WP-28 Free wallpaper downloads after the ad', { tag: ['@download'] }, async ({ app }) => {
+  test('WP-28 Free wallpaper downloads after the ad', { tag: ['@download', '@smoke'] }, async ({ app }) => {
     await app.wallpapersListPage.open();
     await app.wallpapersListPage.downloadFreeWallpapers('free', 1);
   });
 
   for (const variant of variants) {
-    test(`WP-30 ${variant.name} premium wallpaper shows its price and the purchase gate`, async ({ app, page }) => {
+    test(`WP-30 ${variant.name} premium wallpaper shows its price and the purchase gate`, { tag: ['@smoke'] }, async ({ app, page }) => {
       await app.wallpapersListPage.open();
       await app.wallpapersListPage.filterByPrice(['Paid']);
       await app.wallpapersListPage.filterBySortBy(variant.sortBy);
@@ -96,7 +96,7 @@ test.describe('Download and Purchase (Guest)', { tag: ['@wallpapers', '@guest', 
   test(
     'WP-29 Premium wallpapers priced 10 credits show inconsistent primary action buttons (Download vs Buy)',
     {
-      tag: ['@wallpapers', '@guest', '@BUG:ZED-3', '@regression'],
+      tag: ['@BUG:ZED-3', '@regression'],
       annotation: {
         type: 'bug',
         description:
@@ -138,7 +138,7 @@ test.describe('Download and Purchase (Guest)', { tag: ['@wallpapers', '@guest', 
     }
   );
 
-  test('WP-32 Opening a premium wallpaper by direct URL keeps the gate', { tag: ['@wallpapers', '@guest', '@regression'] }, async ({ app, page }) => {
+  test('WP-32 Opening a premium wallpaper by direct URL keeps the gate', { tag: ['@regression'] }, async ({ app, page }) => {
     await app.wallpapersListPage.open();
     await app.wallpapersListPage.filterByPrice(['Paid']);
     await app.wallpapersListPage.filterBySortBy('Price: High to Low');
@@ -159,7 +159,7 @@ test.describe('Download and Purchase (Guest)', { tag: ['@wallpapers', '@guest', 
   test(
     'WP-33 Purchase modal logs an accessibility console error',
     {
-      tag: ['@wallpapers', '@guest', '@BUG:ZED-4', '@regression'],
+      tag: ['@BUG:ZED-4', '@regression'],
       annotation: {
         type: 'bug',
         // The plan's original wording ("DialogContent requires a DialogTitle") no longer reproduces live -

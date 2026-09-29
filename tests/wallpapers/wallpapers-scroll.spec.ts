@@ -4,16 +4,16 @@
 import { test, expect } from '../../fixtures/test';
 import { hasUniqueValues } from '../../src/utils/helper';
 
-test.describe('Infinite Scroll and Load More', () => {
+test.describe('Infinite Scroll and Load More', { tag: ['@wallpapers', '@guest'] }, () => {
   test.beforeEach('Open unfiltered /wallpapers', async ({ app }) => {
     await app.wallpapersListPage.open();
   });
 
-  test('WP-07 Auto-load on scroll preserves previous results', { tag: ['@wallpapers', '@guest', '@smoke'] }, async ({ app }) => {
+  test('WP-07 Auto-load on scroll preserves previous results', { tag: ['@smoke'] }, async ({ app }) => {
     await app.wallpapersListPage.validateAutoLoadImagesOnScrollDown();
   });
 
-  test('WP-08 "Load more" loads more cards', { tag: ['@wallpapers', '@guest', '@regression'] }, async ({ app }) => {
+  test('WP-08 "Load more" loads more cards', { tag: ['@regression'] }, async ({ app }) => {
     const { wallpapersListPage } = app;
 
     // 1. Scroll until "Load more" is visible and enabled

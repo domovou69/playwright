@@ -40,7 +40,15 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      - name: Run tests
+      - name: Run smoke tests (pull request)
+        if: github.event_name == 'pull_request'
+        env:
+          CURRENTS_PROJECT_ID: OOKVTP
+          CURRENTS_RECORD_KEY: ${{ secrets.CURRENTS_RECORD_KEY }}
+        run: npx playwright test --grep @smoke
+
+      - name: Run all tests (push to main)
+        if: github.event_name != 'pull_request'
         env:
           CURRENTS_PROJECT_ID: OOKVTP
           CURRENTS_RECORD_KEY: ${{ secrets.CURRENTS_RECORD_KEY }}

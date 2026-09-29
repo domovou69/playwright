@@ -10,8 +10,7 @@ or the POM also a full headless run (`npm test`) and `npm run verify -- --files=
 ## Decisions (already made)
 
 - `retries: 0`. Flakes are caught by `npm run verify`, not hidden by retries.
-- Tags: `@wallpapers` / `@guest` only on `describe`; every test carries exactly one level, `@smoke` (5-7 critical flows)
-  or `@regression`; `@BUG:KEY` and `@download` stay. CI: pull request runs `@smoke`, push to main runs everything.
+- Tags: `@wallpapers` / `@guest` only on `describe`; tests carry `@smoke` (critical flows) or `@regression` (both is allowed); `@BUG:KEY` and `@download` stay. CI: pull request runs `@smoke`, push to main runs everything.
 - Jira triage is a plain script (no LLM). It keeps duplicate search, but on title + description keywords instead of the
   whole title, and says honestly that it is keyword overlap. The semantic verdict stays with the agent session.
 - `explorbot-experiment/` is deleted; `specs/explorbot-experiment.plan.md` stays as the case study.
@@ -71,11 +70,12 @@ or the POM also a full headless run (`npm test`) and `npm run verify -- --files=
 
 ### 6. Tags and CI split
 
-- [ ] Propose the `@smoke` list (list page, search, download, purchase gate, filter reset, ...) and get approval
-- [ ] Retag all specs per the taxonomy above (describe: area + audience; test: one level); update `src/utils/tags.ts`
-      and the eslint config; check "exactly one level per test" is enforceable with a simple rule, otherwise document it
-- [ ] `ci.yml`: pull request runs `--grep @smoke`, push to main runs everything
-- [ ] Document the taxonomy in `CLAUDE.md` and `specs/wallpapers.plan.md` conventions
+- [x] Propose the `@smoke` list (list page, search, download, purchase gate, filter reset, ...) and get approval
+- [x] Retag all specs per the taxonomy above (describe: area + audience; test: one level); update `src/utils/tags.ts`
+      and the eslint config; ESLint (`require-tags`, `valid-test-tags`) is the only enforcement: a
+      test has tags and only known ones, "exactly one level" is not required (owner's call)
+- [x] `ci.yml`: pull request runs `--grep @smoke`, push to main runs everything
+- [x] Document the taxonomy in `CLAUDE.md` and `specs/wallpapers.plan.md` conventions
 
 ### 7. Cookie banner experiment (time-boxed)
 
@@ -130,3 +130,9 @@ or the POM also a full headless run (`npm test`) and `npm run verify -- --files=
 - 2026-09-29: step 5 revised after review: keyword overlap gives false positives, so triage no longer sets `duplicate-suspected`; it sets
   `needs-repro` and lists up to 5 "possibly related" tickets. The label now comes only from `jira-repro --outcome=duplicate-suspected`
   after an agent judged by meaning. A model call inside triage (a cheap model, at most 5 pairs) is postponed until triage runs unattended.
+- 2026-09-29: step 6 done. `@smoke` = the plan's P1 scenarios as approved: WP-02, 07, 10, 18, 19 (x6), 28, 30 (x2) = 13 of 34 tests; the rest
+  `@regression` (the seed test too). Before, almost every test inherited `@smoke` from its describe and often also carried `@regression`.
+  Describes carry `@wallpapers @guest`, tests only their level (+ `@download`, `@BUG:KEY`). A test may carry both levels; ESLint
+  (`require-tags`, `valid-test-tags`) is the only enforcement. A custom `check-tags` script that required exactly one level was
+  added and then removed at the owner's request.
+  `ci.yml`: PR runs `--grep @smoke`, push to main runs everything; `test:smoke` npm script added. Test titles unchanged.

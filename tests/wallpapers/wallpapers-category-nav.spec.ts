@@ -3,8 +3,8 @@
 
 import { test, expect } from '../../fixtures/test';
 
-test.describe('Category Navigation', () => {
-  test('WP-10 Header "Categories" menu opens a category in the list page', { tag: ['@wallpapers', '@guest', '@smoke'] }, async ({ app, page }) => {
+test.describe('Category Navigation', { tag: ['@wallpapers', '@guest'] }, () => {
+  test('WP-10 Header "Categories" menu opens a category in the list page', { tag: ['@smoke'] }, async ({ app, page }) => {
     await app.wallpapersListPage.open();
 
     // 1. Click the header "Categories" button
@@ -37,7 +37,7 @@ test.describe('Category Navigation', () => {
   for (const current of categoryExploreCases) {
     test(
       `WP-11 ${current.category}: "Explore different wallpaper categories" opens a category page with sub-filters`,
-      { tag: ['@wallpapers', '@guest', '@regression'] },
+      { tag: ['@regression'] },
       async ({ app, page }) => {
         await app.wallpapersListPage.open();
 

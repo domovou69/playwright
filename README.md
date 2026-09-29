@@ -20,6 +20,7 @@ Create `.env` (see [Environment](#environment)). Only the tests themselves need 
 | ------------------------------------- | ------------------------------------------------------------------------------- |
 | `npm test`                            | All tests, headless                                                             |
 | `npm run test:ui`                     | Playwright UI mode                                                              |
+| `npm run test:smoke`                  | Tests tagged `@smoke` (what a pull request runs)                                |
 | `npm run test:download`               | Tests tagged `@download`                                                        |
 | `npm run verify`                      | Repeats every new or changed spec (default x3), prints stable / flaky / failing |
 | `npm run trace <folder or trace.zip>` | Opens a trace from `test-results/`                                              |
@@ -40,7 +41,8 @@ Create `.env` (see [Environment](#environment)). Only the tests themselves need 
 | `.claude/agents/`, `.claude/skills/`, `.mcp.json` | Playwright agents, vendored best-practices skill, MCP servers        |
 | `CLAUDE.md`                                       | Conventions for Claude (git flow, how tests are written and run)     |
 
-Known bugs are kept as green tests that assert the current behavior, tagged `@BUG:<JIRA-KEY>`; a fix makes them fail and
+`@smoke` marks the critical P1 scenarios (the only ones a pull request runs); the rest are `@regression`. Push to main runs
+everything. Known bugs are kept as green tests that assert the current behavior, tagged `@BUG:<JIRA-KEY>`; a fix makes them fail and
 they get reviewed.
 
 ## The loop

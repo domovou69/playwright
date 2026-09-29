@@ -79,13 +79,13 @@ const pairwiseFilterCases: PairwiseFilterCase[] = [
   },
 ];
 
-test.describe('Filtering', { tag: ['@wallpapers', '@guest', '@smoke'] }, () => {
+test.describe('Filtering', { tag: ['@wallpapers', '@guest'] }, () => {
   test.beforeEach('Open unfiltered /wallpapers', async ({ app }) => {
     await app.wallpapersListPage.open();
   });
 
   for (const current of singleFilterCases) {
-    test(`WP-19 ${current.filter}: ${current.option} filter applied alone updates results and URL`, async ({ app, page }) => {
+    test(`WP-19 ${current.filter}: ${current.option} filter applied alone updates results and URL`, { tag: ['@smoke'] }, async ({ app, page }) => {
       // 1. Record baseline card hrefs, apply the filter option
       const hrefsBefore = await app.wallpapersListPage.getCardsHref();
       await applyFilter(app, current.filter, current.option);
@@ -110,7 +110,7 @@ test.describe('Filtering', { tag: ['@wallpapers', '@guest', '@smoke'] }, () => {
     });
   }
 
-  test('WP-18 Reset All clears every active filter', async ({ app, page }) => {
+  test('WP-18 Reset All clears every active filter', { tag: ['@smoke'] }, async ({ app, page }) => {
     // 1. On unfiltered /wallpapers
     await expect(app.wallpapersListPage.resetAllBtn).toBeHidden();
 
@@ -131,7 +131,7 @@ test.describe('Filtering', { tag: ['@wallpapers', '@guest', '@smoke'] }, () => {
     expect(hrefsAfterReset).not.toEqual(hrefsBeforeReset);
   });
 
-  test('WP-20 Multiple options in one filter', { tag: ['@wallpapers', '@guest', '@regression'] }, async ({ app, page }) => {
+  test('WP-20 Multiple options in one filter', { tag: ['@regression'] }, async ({ app, page }) => {
     // 1. Select Color = Black, record hrefs, then also select White
     // Keep the dialog open across both selections and the uncheck below - closing and reopening it
     // between clicks (via the isColorSelected/filterByColor helpers, which each open+close on their
@@ -183,7 +183,7 @@ test.describe('Filtering', { tag: ['@wallpapers', '@guest', '@smoke'] }, () => {
   });
 
   for (const current of pairwiseFilterCases) {
-    test(`WP-21 Pairwise filter combinations: ${current.name}`, { tag: ['@wallpapers', '@guest', '@regression'] }, async ({ app, page }) => {
+    test(`WP-21 Pairwise filter combinations: ${current.name}`, { tag: ['@regression'] }, async ({ app, page }) => {
       // Apply both filters in sequence; check the URL after each, and hrefs after each when that's
       // this case's invariant.
       let previousHrefs = await app.wallpapersListPage.getCardsHref();
@@ -210,7 +210,7 @@ test.describe('Filtering', { tag: ['@wallpapers', '@guest', '@smoke'] }, () => {
     });
   }
 
-  test('WP-34 Price range From/To limits card prices', { tag: ['@wallpapers', '@guest', '@regression'] }, async ({ app, page }) => {
+  test('WP-34 Price range From/To limits card prices', { tag: ['@regression'] }, async ({ app, page }) => {
     // 1. Open the Price filter, set From = 50, To = 500
     await app.wallpapersListPage.setPriceRange(50, 500);
 
@@ -227,7 +227,7 @@ test.describe('Filtering', { tag: ['@wallpapers', '@guest', '@smoke'] }, () => {
     }
   });
 
-  test('WP-23 Filters are restored from a deep link', { tag: ['@wallpapers', '@guest', '@regression'] }, async ({ app }) => {
+  test('WP-23 Filters are restored from a deep link', { tag: ['@regression'] }, async ({ app }) => {
     // 1. Navigate to `/wallpapers?categories=NATURE&sort=PRICE_DESC&minPrice=1`
     await app.wallpapersListPage.open('/wallpapers?categories=NATURE&sort=PRICE_DESC&minPrice=1');
 

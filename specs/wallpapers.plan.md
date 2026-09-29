@@ -48,10 +48,12 @@ Constraints:
 
 ## Conventions
 
-- Tags: `@smoke` for P1, `@regression` for the rest, `@download` for real downloads, `@bug` for known bugs.
-- **Bug tests** assert the **current** (buggy) behavior so the suite stays green, carry the `@bug` tag and an
+- Tags: `@wallpapers` and `@guest` on the `describe`; `@smoke` marks P1, `@regression` the rest
+  (ESLint requires a known tag on every test); `@download` for real downloads; `@BUG:<JIRA-KEY>` for
+  known bugs.
+- **Bug tests** assert the **current** (buggy) behavior so the suite stays green, carry the `@BUG:<JIRA-KEY>` tag and an
   annotation `{ type: 'bug', description: '<problem, expected vs actual>' }`. When the site changes, the test fails
-  and is reviewed: either the bug was fixed (flip the assertion, drop `@bug`) or the behavior changed again.
+  and is reviewed: either the bug was fixed (flip the assertion, drop `@BUG`) or the behavior changed again.
 - Seed: `tests/seed.spec.ts` for every section.
 
 ## Coverage Summary
@@ -61,7 +63,7 @@ Constraints:
 | Covered as-is (TC-01, TC-02, TC-10)          | 3      |
 | Replaces an existing test (TC-03..08, TC-11) | 3      |
 | New                                          | 16     |
-| Bug documentation (`@bug`)                   | 2      |
+| Bug documentation (`@BUG`)                   | 2      |
 | **Total scenarios**                          | **24** |
 
 | Priority | Count |
