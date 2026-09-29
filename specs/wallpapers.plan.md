@@ -405,41 +405,34 @@ Annotation: `{ type: 'bug', description: 'Opening the "Buy for Ƶ" modal logs a 
 
 **Seed:** `tests/seed.spec.ts`
 
-#### 8.1. WP-35 [P2][New][@regression] At reduced width, the Filters panel shows filter controls and Price=Free updates results the same way the inline bar does
+#### 8.1. WP-35 [P2][New][@regression] At reduced width, the Filters panel applies, keeps and clears every filter
 
 **File:** `tests/wallpappers/wallpapers-filters-narrow.spec.ts`
 
-Verified live at viewport 900x800 in the existing Desktop Chrome project (window resized smaller, not a
-mobile device/project - this only covers the behavior that appears at reduced width). One representative
-filter (Price = Free, the simplest case in WP-19), checked against the same URL/result invariants WP-19
-already asserts for the inline bar.
+Verified live at viewport 900x800 in the existing Desktop Chrome project (window resized smaller, not a mobile
+device/project). One end-to-end flow rather than a test per tab. The panel applies every change live (URL and
+cards update behind the open dialog), so after each action the flow checks the URL, that the cards changed
+(`waitForCardsToUpdate`), that the panel row left its default, and that the reopened tab still shows the
+selection. Filter combinations reuse the ones proven non-empty in WP-21.
 
 **Steps:**
 
-1. Set the viewport to 900x800 and navigate to /wallpapers (fresh, unfiltered)
-   - expect: the inline filter buttons (Category, Tag, Price, Color, Sort by) are not visible at this width
-   - expect: a single chip/button labeled "Filters" (no count suffix) is visible in their place
-   - [CONFIRM] 900x800 is confirmed live as one width where this collapse happens; the exact breakpoint
-     wasn't bisected - adjust the width rather than treat a miss as a scenario failure
-2. Record the hrefs of the first ~10 rendered cards, then click the "Filters" chip
-   - expect: a dialog opens (role=dialog, name "Filters") with a close control, "Clear all", one row per
-     filter group ("Categories Any", "Colors Any", "Tags Any", "Price Any", "Sort By Relevance"), and a
-     "Show Results" button
-3. Click the "Price Any" row
-   - expect: the dialog drills into a Price sub-view (heading "Price") with "Free"/"Paid" checkboxes and
-     "From"/"To" numeric inputs - the same options WP-19's `setPriceRange` exercises on the inline dropdown
-4. Click the "Free" checkbox (without closing the panel)
-   - expect: the URL updates immediately to contain `free=true`
-   - [CONFIRM] the card grid behind the still-open dialog already reflects the filter - confirm this is
-     intended live-preview behavior, not a rendering artifact
-5. Click "Show Results"
-   - expect: dialog closes, URL still contains `free=true`
-   - expect: card hrefs differ from the step-2 baseline, count > 0, no visible card has a price badge
-   - expect: the chip now reads "Filters (1)", and a "Reset All" control appears - same as WP-18/WP-19
+1. Open /wallpapers: inline filter buttons are hidden, one "Filters" chip is shown; the panel opens on defaults
+   (five rows, "Clear all", "Show Results")
+2. Categories is multi-select: pick Anime, then Nature; then Price=Free (no card has a price badge)
+3. "Clear" in the Categories tab resets only that tab (`categories` leaves the URL, `free=true` stays)
+4. "Clear all": every row on defaults, URL without filters, cards changed
+5. Color=Red, then Tag=halloween
+6. Sort By=Price: High to Low, then Price From/To (50-500, each value committed on its own)
+7. "Show Results": panel closes, the chip counts URL params (colors, tags, sort, minPrice, maxPrice = 5), every
+   card price is within the range and prices are non-increasing
+8. Reopen from the chip: Colors, Tags, Price and Sort By rows are still non-default
+9. "Clear all" again: defaults, URL without filters, cards changed, chip back to "Filters"
 
-**Note for the generator:** existing `WallpapersListPage` locators (`filterPrice`, `priceFilterDialog`, etc.)
-target the inline bar and won't match this panel's controls (different DOM, `Filters (1)` chip text, a nested
-dialog reusing the accessible name "Price") - add new locators for the panel rather than reusing those.
+**Known bugs, deliberately not encoded in this flow:** "Clear" in the Price tab resets neither Free/Paid nor
+the range; after "Clear" in Categories the checkboxes stay visually checked until the tab is reopened; Free +
+Paid together loses the range and is not restored on reopen; setting only "To" produces `minPrice=NaN`.
+"Reset All" does not exist at this width - "Clear all" inside the panel replaces it.
 
 ## Implementation notes for the generator and the POM pass
 

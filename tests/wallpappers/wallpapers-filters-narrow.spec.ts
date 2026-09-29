@@ -4,90 +4,82 @@
 import { test, expect } from '../../fixtures/test';
 import { hasUniqueValues } from '../../src/utils/helper';
 
+const anyFilterInUrl = /categories|minPrice|maxPrice|colors|tags|sort|free=true|paid=true/;
+
 test.describe('Responsive Filters Panel (narrow viewport)', () => {
   // Verified live at 900x800 in the existing Desktop Chrome project (window resized smaller, not a
-  // separate mobile device/project) - this is the one width the collapse to a "Filters" chip was
-  // confirmed at; the exact breakpoint wasn't bisected.
+  // separate mobile device/project) - the exact breakpoint wasn't bisected.
   test.use({ viewport: { width: 900, height: 800 } });
 
   test(
-    'WP-35 At reduced width, the Filters panel shows filter controls and Price=Free updates results the same way the inline bar does',
+    'WP-35 At reduced width, the Filters panel applies, keeps and clears every filter',
     { tag: ['@wallpapers', '@guest', '@regression'] },
     async ({ app, page }) => {
-      // 1. Set the viewport to 900x800 and navigate to /wallpapers (fresh, unfiltered)
+      // 1. Narrow /wallpapers shows one "Filters" chip instead of the inline bar; the panel opens on defaults
       await app.wallpapersListPage.open();
-
       await expect(app.wallpapersListPage.filterCategory).toBeHidden();
       await expect(app.wallpapersListPage.filterTag).toBeHidden();
       await expect(app.wallpapersListPage.filterPrice).toBeHidden();
       await expect(app.wallpapersListPage.filterColor).toBeHidden();
       await expect(app.wallpapersListPage.filterSortBy).toBeHidden();
-
-      await expect(app.wallpapersListPage.filtersChip).toBeVisible();
       await expect(app.wallpapersListPage.filtersChip).toHaveText('Filters');
 
-      // 2. Record the hrefs of the first ~10 rendered cards, then click the "Filters" chip
-      const hrefsBefore = (await app.wallpapersListPage.getCardsHref()).slice(0, 10);
-      expect(hasUniqueValues(hrefsBefore)).toBe(true);
-      expect(hrefsBefore.length).toBeGreaterThan(0);
+      const hrefsBaseline = await app.wallpapersListPage.getCardsHref();
+      expect(hasUniqueValues(hrefsBaseline)).toBe(true);
 
       await app.wallpapersListPage.filtersChip.click();
       await app.wallpapersListPage.validateFiltersPanel();
 
-      // 3. Every row opens to its own sub-view - checked for all five, not just the one this test
-      // goes on to interact with, so a broken tab elsewhere doesn't slip through unnoticed.
-      await app.wallpapersListPage.filtersPanelRow('Categories').click();
-      await app.wallpapersListPage.validateCategoriesFilterPanelView();
-      await app.wallpapersListPage.filtersPanelBackBtn.click();
-
-      await app.wallpapersListPage.filtersPanelRow('Colors').click();
-      await app.wallpapersListPage.validateColorsFilterPanelView();
-      await app.wallpapersListPage.filtersPanelBackBtn.click();
-
-      await app.wallpapersListPage.filtersPanelRow('Tags').click();
-      await app.wallpapersListPage.validateTagsFilterPanelView();
-      await app.wallpapersListPage.filtersPanelBackBtn.click();
-
-      await app.wallpapersListPage.filtersPanelRow('Sort By').click();
-      await app.wallpapersListPage.validateSortByFilterPanelView();
-      await app.wallpapersListPage.filtersPanelBackBtn.click();
-
-      await app.wallpapersListPage.filtersPanelRow('Price').click();
-      await app.wallpapersListPage.validatePriceFilterPanelView({ free: false, paid: false });
-
-      // 4. Click the "Free" checkbox (without closing the panel)
-      await app.wallpapersListPage.filtersPanelFreeCheckbox.click();
-      await expect(page).toHaveURL(/free=true/);
-
-      // The row label updates live too, before Show Results is clicked
-      await app.wallpapersListPage.filtersPanelBackBtn.click();
-      await app.wallpapersListPage.validateFiltersPanel({ price: 'Free' });
-      await app.wallpapersListPage.filtersPanelRow('Price').click();
-      await app.wallpapersListPage.validatePriceFilterPanelView({ free: true, paid: false });
-
-      // 5. Click "Show Results"
-      await app.wallpapersListPage.filtersPanelShowResultsBtn.click();
-
-      await expect(app.wallpapersListPage.filtersPanel).not.toBeAttached();
-      await expect(page).toHaveURL(/free=true/);
-
-      await app.wallpapersListPage.waitForCardsToUpdate(hrefsBefore);
-      const hrefsAfter = await app.wallpapersListPage.getCardsHref();
-      expect(hrefsAfter).not.toEqual(hrefsBefore);
-      expect(hrefsAfter.length).toBeGreaterThan(0);
-      expect(hasUniqueValues(hrefsAfter)).toBe(true);
+      // 2. Categories are multi-select; Price=Free on top of them
+      await app.wallpapersListPage.applyFiltersPanelOption('Categories', 'Anime', /categories=ANIME/);
+      await app.wallpapersListPage.applyFiltersPanelOption('Categories', 'Nature', /NATURE/);
+      await app.wallpapersListPage.applyFiltersPanelOption('Price', 'Free', /free=true/);
       await app.wallpapersListPage.validateCardExistance('Paid', false);
 
-      // Note: unlike the inline bar (WP-18/WP-19), the narrow panel exposes no separate "Reset All"
-      // control next to the chip - clearing requires reopening the panel and using "Clear all" instead.
-      await expect(app.wallpapersListPage.filtersChip).toHaveText('Filters (1)');
-      await expect(app.wallpapersListPage.resetAllBtn).toBeHidden();
+      // 3. "Clear" in one tab resets only that tab
+      await app.wallpapersListPage.clearFiltersPanelTab('Categories');
+      await expect(page).not.toHaveURL(/categories=/);
+      await expect(page).toHaveURL(/free=true/);
+      await app.wallpapersListPage.expectFiltersPanelRowDefault('Price', false);
+      await app.wallpapersListPage.validateCardExistance('Paid', false);
 
-      // Reopening confirms the selection persisted, exercising the same validator's optional-state path
+      // 4. "Clear all" resets everything
+      await app.wallpapersListPage.clearAllFiltersPanel();
+      await expect(page).not.toHaveURL(anyFilterInUrl);
+
+      // 5. Color and Tag
+      await app.wallpapersListPage.applyFiltersPanelOption('Colors', 'Red', /colors=red/);
+      await app.wallpapersListPage.applyFiltersPanelOption('Tags', 'halloween', /tags=halloween/);
+
+      // 6. Sort By and a Price range on top
+      await app.wallpapersListPage.applyFiltersPanelOption('Sort by', 'Price: High to Low', /sort=PRICE_DESC/);
+      await app.wallpapersListPage.applyFiltersPanelPriceRange(50, 500);
+
+      // 7. "Show Results" closes the panel; the chip counts active URL params (colors, tags, sort, minPrice, maxPrice); cards match the range and sort
+      await app.wallpapersListPage.filtersPanelShowResultsBtn.click();
+      await expect(app.wallpapersListPage.filtersPanel).not.toBeAttached();
+      await expect(app.wallpapersListPage.filtersChip).toHaveText('Filters (5)');
+      const cards = await app.wallpapersListPage.cardsAll.all();
+      expect(cards.length).toBeGreaterThan(0);
+      for (const card of cards) {
+        const price = await app.wallpapersListPage.getCardPriceBadgeTextAsNumber(card);
+        expect(price).toBeGreaterThanOrEqual(50);
+        expect(price).toBeLessThanOrEqual(500);
+      }
+      await app.wallpapersListPage.expectCardPricesNonIncreasing();
+
+      // 8. Reopened from the chip, every applied filter is still there
       await app.wallpapersListPage.filtersChip.click();
-      await app.wallpapersListPage.validateFiltersPanel({ price: 'Free' });
-      await app.wallpapersListPage.filtersPanelRow('Price').click();
-      await app.wallpapersListPage.validatePriceFilterPanelView({ free: true, paid: false });
+      await app.wallpapersListPage.expectFiltersPanelRowDefault('Colors', false);
+      await app.wallpapersListPage.expectFiltersPanelRowDefault('Tags', false);
+      await app.wallpapersListPage.expectFiltersPanelRowDefault('Price', false);
+      await app.wallpapersListPage.expectFiltersPanelRowDefault('Sort by', false);
+
+      // 9. "Clear all" again: defaults, clean URL, cards changed
+      await app.wallpapersListPage.clearAllFiltersPanel();
+      await expect(page).not.toHaveURL(anyFilterInUrl);
+      await app.wallpapersListPage.filtersPanelShowResultsBtn.click();
+      await expect(app.wallpapersListPage.filtersChip).toHaveText('Filters');
     }
   );
 });

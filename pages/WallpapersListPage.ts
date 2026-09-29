@@ -3,6 +3,7 @@ import { HeaderPage } from './HeaderPage';
 import { BodyHeaderPage } from './MainHeaderPage';
 import { removeSpaces, dismissCookieBanner } from '../src/utils/helper';
 import { TIMEOUTS } from '../src/config/timeouts';
+import { DEFAULT_FILTERS_VALUES } from '../src/utils/locals';
 import { WallpaperDetailPage } from './WallpaperDetailPage';
 import {
   ColorOptionType,
@@ -12,6 +13,7 @@ import {
   TagsOptionType,
   WallpaperCategoryType,
   CardsTypes,
+  FilterCategoriesType,
 } from '../src/types/types';
 import { existsSync } from 'fs';
 import { stat } from 'fs/promises';
@@ -551,8 +553,8 @@ export class WallpapersListPage extends HeaderPage {
   // validator per sub-view, each reusable with optional expected state so the same call can check a
   // tab's default/empty contents or that a selection persisted after reopening.
 
-  filtersPanelRow(group: 'Categories' | 'Colors' | 'Tags' | 'Price' | 'Sort By'): Locator {
-    return this.filtersPanel.getByRole('button', { name: new RegExp(`^${group}`) });
+  filtersPanelRow(group: FilterCategoriesType): Locator {
+    return this.filtersPanel.getByRole('button', { name: new RegExp(`^${group}`, 'i') });
   }
 
   async validateFiltersPanel(expected: Partial<{ categories: string; colors: string; tags: string; price: string; sortBy: string }> = {}) {
@@ -584,10 +586,10 @@ export class WallpapersListPage extends HeaderPage {
     await expect(this.filtersPanel.getByRole('combobox', { name: 'Search' })).toBeVisible();
   }
 
-  async validateSortByFilterPanelView(expectedChecked: SortByType = 'Relevance') {
+  async validateSortByFilterPanelView(expectedChecked?: SortByType) {
     await expect(this.filtersPanel.getByRole('heading', { name: 'Sort By' })).toBeVisible();
     await expect(this.filtersPanel.getByRole('button', { name: 'Clear' })).toBeVisible();
-    await expect(this.filtersPanel.getByRole('radio', { name: expectedChecked })).toBeChecked();
+    if (expectedChecked) await expect(this.filtersPanel.getByRole('radio', { name: expectedChecked })).toBeChecked();
   }
 
   async validatePriceFilterPanelView(expected?: { free?: boolean; paid?: boolean }) {
@@ -599,5 +601,96 @@ export class WallpapersListPage extends HeaderPage {
     if (expected?.paid !== undefined) await expect(this.filtersPanelPaidCheckbox).toBeChecked({ checked: expected.paid });
     await expect(this.filtersPanel.getByRole('spinbutton', { name: 'From' })).toBeVisible();
     await expect(this.filtersPanel.getByRole('spinbutton', { name: 'To' })).toBeVisible();
+  }
+
+  async openFiltersPanelTab(group: FilterCategoriesType) {
+    await this.filtersPanelRow(group).click();
+    switch (group) {
+      case 'Categories':
+        return this.validateCategoriesFilterPanelView();
+      case 'Colors':
+        return this.validateColorsFilterPanelView();
+      case 'Tags':
+        return this.validateTagsFilterPanelView();
+      case 'Price':
+        return this.validatePriceFilterPanelView();
+      case 'Sort by':
+        return this.validateSortByFilterPanelView();
+    }
+  }
+
+  filtersPanelOption(group: FilterCategoriesType, option: string): Locator {
+    const role = { Categories: 'checkbox', Colors: 'checkbox', Price: 'checkbox', Tags: 'option', 'Sort by': 'radio' } as const;
+    return this.filtersPanel.getByRole(role[group], { name: option, exact: true });
+  }
+
+  async expectFiltersPanelOptionSelected(group: FilterCategoriesType, option: string) {
+    const locator = this.filtersPanelOption(group, option);
+    if (group === 'Tags') await expect(locator).toHaveAttribute('aria-selected', 'true');
+    else await expect(locator).toBeChecked();
+  }
+
+  async expectFiltersPanelRowDefault(group: FilterCategoriesType, isDefault = true) {
+    const row = this.filtersPanelRow(group);
+    const defaultName = `${group} ${DEFAULT_FILTERS_VALUES[group][0]}`;
+    if (isDefault) await expect(row).toHaveAccessibleName(defaultName, { ignoreCase: true });
+    else await expect(row).not.toHaveAccessibleName(defaultName, { ignoreCase: true });
+  }
+
+  // The panel applies every change live (URL and cards update behind the open dialog), so each helper
+  // below checks the result right after its own action, then that the row and the reopened tab kept it.
+  async applyFiltersPanelOption(group: FilterCategoriesType, option: string, urlContains: RegExp) {
+    const hrefsBefore = await this.getCardsHref();
+    await this.openFiltersPanelTab(group);
+    await this.filtersPanelOption(group, option).click();
+    await expect(this.page).toHaveURL(urlContains);
+    await this.waitForCardsToUpdate(hrefsBefore);
+    expect((await this.getCardsHref()).length).toBeGreaterThan(0);
+
+    await this.filtersPanelBackBtn.click();
+    await this.expectFiltersPanelRowDefault(group, false);
+    await this.openFiltersPanelTab(group);
+    await this.expectFiltersPanelOptionSelected(group, option);
+    await this.filtersPanelBackBtn.click();
+  }
+
+  // From/To only commit to the URL once blurred, and blurring both in a row races the two commits
+  // (`minPrice=NaN`, same as setPriceRange above) - so each value is committed and awaited on its own.
+  async applyFiltersPanelPriceRange(from: number, to: number) {
+    const hrefsBefore = await this.getCardsHref();
+    await this.openFiltersPanelTab('Price');
+    const fromInput = this.filtersPanel.getByRole('spinbutton', { name: 'From' });
+    const toInput = this.filtersPanel.getByRole('spinbutton', { name: 'To' });
+    await fromInput.fill(String(from));
+    await fromInput.press('Tab');
+    await expect(this.page).toHaveURL(new RegExp(`minPrice=${from}`));
+    await toInput.fill(String(to));
+    await toInput.press('Tab');
+    await expect(this.page).toHaveURL(new RegExp(`maxPrice=${to}`));
+    await this.waitForCardsToUpdate(hrefsBefore);
+    expect((await this.getCardsHref()).length).toBeGreaterThan(0);
+
+    await this.filtersPanelBackBtn.click();
+    await this.expectFiltersPanelRowDefault('Price', false);
+    await this.openFiltersPanelTab('Price');
+    await expect(fromInput).toHaveValue(String(from));
+    await expect(toInput).toHaveValue(String(to));
+    await this.filtersPanelBackBtn.click();
+  }
+
+  async clearFiltersPanelTab(group: FilterCategoriesType) {
+    const hrefsBefore = await this.getCardsHref();
+    await this.openFiltersPanelTab(group);
+    await this.filtersPanel.getByRole('button', { name: 'Clear', exact: true }).click();
+    await this.waitForCardsToUpdate(hrefsBefore);
+    await this.filtersPanelBackBtn.click();
+    await this.expectFiltersPanelRowDefault(group);
+  }
+
+  async clearAllFiltersPanel() {
+    const hrefsBefore = await this.getCardsHref();
+    await this.filtersPanel.getByRole('button', { name: 'Clear all' }).click();
+    await this.waitForCardsToUpdate(hrefsBefore);
+    await this.validateFiltersPanel();
   }
 }
