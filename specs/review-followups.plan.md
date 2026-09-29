@@ -46,13 +46,13 @@ or the POM also a full headless run (`npm test`) and `npm run verify -- --files=
 
 ### 3. README
 
-- [ ] Rewrite `README.md`: short and exact - what this is, setup, scripts (`test`, `verify`, `lint`, ...), the loop in 5
+- [x] Rewrite `README.md`: short and exact - what this is, setup, scripts (`test`, `verify`, `lint`, ...), the loop in 5
       lines, Jira scripts, MCP servers, table of environment variables (`BASE_URL`, `CURRENTS_*`, `JIRA_*`)
 
 ### 4. Config
 
 - [ ] `playwright.config.ts`: `retries: 0`
-- [ ] Add `@currents/mcp` to devDependencies and run it from `node_modules` via `node --env-file=.env ...` in `.mcp.json`;
+- [ ] (also update the MCP and environment sections of `README.md`) Add `@currents/mcp` to devDependencies and run it from `node_modules` via `node --env-file=.env ...` in `.mcp.json`;
       move `CURRENTS_API_KEY` from `.claude/settings.local.json` into `.env` if the MCP server starts (otherwise revert and
       keep the key in `settings.local.json`); the `@currents/playwright` caret range stays as is
 - [ ] Workflows: add `permissions: contents: read` and `concurrency` (cancel superseded runs)
@@ -111,3 +111,6 @@ or the POM also a full headless run (`npm test`) and `npm run verify -- --files=
 - 2026-09-29: skill trim revised: restored the generic references (API, auth, third-party, forms, visual, drag-drop, Docker, sharding,
   reporting, ...). 40 of 59 files kept; `SKILL.md` stays a compact two-table index (26 KB -> 8 KB) so the token saving is kept.
   Subagent `model: sonnet` resolves to Sonnet 5.5 on the Anthropic API per the docs; left as an alias.
+- 2026-09-29: step 3 done: README rewritten (setup, commands, layout, loop, Jira scripts, MCP, env table); the old TC-01..TC-11 list is gone.
+  Note: the deleted `specs/README.md` was only the Playwright init stub ("This is a directory for test plans"), not a TC list - the TC list lived in the
+  root README.
