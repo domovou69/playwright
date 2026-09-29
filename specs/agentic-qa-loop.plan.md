@@ -257,15 +257,22 @@ cutting the manual reproduction step most of the time.
       the planner's output was later superseded/merged (see next bullet), but the planning step itself happened
       before any test code was written, as required
 - [x] Regression test written, reusing existing POM (search-before-write, no duplicate locators/helpers),
-      following `playwright-best-practices` — **honest caveat: written directly (Edit tool), not by invoking the
-      `playwright-test-generator` agent.** The planner agent surfaced that ZED-3 is the same bug as an existing
-      test, WP-29 (previously mis-scoped as "price 10 is always Download" - falsified by a real counter-example),
-      so the actual work became _correcting an existing test in place_ (its identifier, WP-29, never changes -
-      only its title wording, tag, and steps were fixed: replaced fragile card-selection with the two known
-      GUIDs, fixed a wrong "verified fact" in `specs/wallpapers.plan.md`) rather than generating a new one from
-      scratch - a shape the generator agent isn't set up for. Substance is verified regardless:
-      reuses `WallpaperDetailPage.buyBtn`/`downloadBtn`/`premiumBadge`/`priceText()` as-is, lints clean, passes
-      against production
+      following `playwright-best-practices`. ZED-3's fix (WP-29, correcting an existing mis-scoped test in
+      place) was written directly via Edit rather than through `playwright-test-generator` - that gap is now
+      closed for real on WP-35 (see below): `playwright-test-planner` scoped a genuinely new test-plan item
+      (the narrow-viewport "Filters" panel) against the live site, `playwright-test-generator` then wrote it.
+      The generator's own session had two real tool-access limits - no viewport-resize capability, and no
+      write access to `pages/WallpapersListPage.ts` - so it wrote plausible-but-unverified selectors as inline
+      `TODO(pom)` locators and reported this honestly rather than claiming a false pass. Reviewed by hand
+      against a live run: 3 of ~11 assertions needed a real fix (the panel's dialog has no accessible name
+      bound to its heading, so `getByRole('dialog', { name })` needs to drop the name and match on the heading
+      instead; `getByText` missed a button whose accessible name didn't match its raw DOM text, fixed via
+      `getByRole('button', { name })`; and the plan's assumption that a "Reset All" control appears next to the
+      chip at narrow width turned out to be wrong - it doesn't, only "Clear all" inside the panel does - the
+      test and `specs/wallpapers.plan.md` were corrected to assert the actual behavior instead). Locators moved
+      from inline `TODO(pom)` into `WallpapersListPage.ts` afterward per this repo's own convention. Confirmed
+      passing 4/4 runs (`--repeat-each=3` plus the original run) against production, lints clean, no regression
+      on the existing `wallpapers-filters.spec.ts` suite
 - [x] New/failing test always tagged with the Jira ticket ID for traceability — landed on `@BUG:ZED-<n>` (not
       plain `@ZED-<n>`) specifically for tests that encode a _known bug_, enforced via a regex in `src/utils/tags.ts`
       (`bug: [/^@BUG:[A-Z]+-\d+$/]`) that `eslint.config.js` picks up automatically through `Object.values(tags).flat()` - the old literal `@bug` tag (used by the pre-existing WP-29/WP-33) is now invalid on purpose, not an
@@ -296,6 +303,21 @@ assumption. Corrected WP-29 in place instead of adding a redundant test, fixed t
 tests (WP-29, WP-33) still using the old plain `@bug` tag - filed ZED-4 for WP-33's separate accessibility bug
 (also repro-confirmed with real evidence) so it could be retagged too, rather than quietly weakening the lint
 rule to keep them passing.
+
+**Closed the `playwright-test-generator` gap (WP-35, 2026-09-29):** with no confirmed-reproduced bug left
+pending, checked `specs/wallpapers.plan.md` coverage against actual test files and found no genuine backlog
+item - every WP-XX was already implemented. Rather than manufacture a fake gap, asked and got a real one from
+the user: the "Filters" chip/side-panel that replaces the inline filter bar at reduced viewport widths.
+`playwright-test-planner` explored it live and wrote the plan (merged into `specs/wallpapers.plan.md` as WP-35,
+not left as a standalone file); `playwright-test-generator` then wrote the test in a separate session that hit
+two real tool limits (no viewport resize, no POM write access) and correctly flagged its own selectors as
+unverified rather than claiming false success. Manually verified against production, fixed the resulting three
+selector/assumption mismatches, and moved the locators into `WallpapersListPage.ts`.
+
+Ahead of that, also did ordinary housekeeping (not agent-skill work): moved WP-02/WP-07/WP-28 out of the legacy
+`wallpapers.spec.ts` into the `WP-XX`-named files the rest of the suite already uses, then deleted the
+now-empty file. Caught a real bug in the move itself - WP-28 silently passed in 219ms because the move dropped
+an implicit page-open the old file's `beforeEach` provided - fixed before it could land as a false-positive test.
 
 **Output of this stage:** every confirmed bug gets a permanent regression test, and every fix is traceable
 ticket → test → PR.
@@ -359,9 +381,9 @@ comments were you and which were the agent, without needing a separate service a
 - [x] Stage 3: reproduction flow (production, no staging) — mechanism built and verified end-to-end on three real
       tickets (ZED-2: not-reproduced/needs-manual-repro; ZED-3, ZED-4: reproduced/repro-confirmed, both with real
       evidence attached). Interactive-only by design (see Stage 3's architectural-gap note), not a gap in itself
-- [~] Stage 4: test/fix generation via existing skills — planner and healer both run for real (WP-29 corrected
-  and retagged `@BUG:ZED-3`, WP-33 retagged `@BUG:ZED-4`, the one real flaky test from Currents' Sep 2026 data
-  root-caused and fixed), all lint-clean and passing against production; PR flow now formalized (branch → `gh pr
-create` → human merges) for work going forward. Not fully checked off only because the test edits so far were
-  written directly rather than via the `playwright-test-generator` agent — the one remaining open item
+- [x] Stage 4: test/fix generation via existing skills — planner and healer both run for real (WP-29 corrected
+      and retagged `@BUG:ZED-3`, WP-33 retagged `@BUG:ZED-4`, the one real flaky test from Currents' Sep 2026 data
+      root-caused and fixed, WP-35 planned and generated end-to-end via `playwright-test-planner` +
+      `playwright-test-generator`), all lint-clean and passing against production; PR flow formalized (branch →
+      `gh pr create` → human merges) for work going forward
 - [ ] Stage 5: review/feedback loop + dashboard

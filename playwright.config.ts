@@ -17,7 +17,7 @@ export default defineConfig({
   workers: 3,
   reporter: isCI ? [['html', { open: 'never' }], ['github'], currentsReporter()] : [['html', { open: 'on-failure' }], currentsReporter()],
   use: {
-    headless: true,
+    headless: false,
     actionTimeout: TIMEOUTS.action,
     navigationTimeout: TIMEOUTS.navigation,
     baseURL: process.env.BASE_URL ?? 'https://www.zedge.net/',

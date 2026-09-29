@@ -33,6 +33,12 @@ export class WallpapersListPage extends HeaderPage {
   readonly colorFilterDialog: Locator;
   readonly priceFilterDialog: Locator;
   readonly sortByFilterDialog: Locator;
+  readonly filtersChip: Locator;
+  readonly filtersPanel: Locator;
+  readonly filtersPanelBackBtn: Locator;
+  readonly filtersPanelShowResultsBtn: Locator;
+  readonly filtersPanelFreeCheckbox: Locator;
+  readonly filtersPanelPaidCheckbox: Locator;
   readonly exploreCategoriesHeading: Locator;
   readonly subFilterLinks: Locator;
 
@@ -67,6 +73,19 @@ export class WallpapersListPage extends HeaderPage {
     this.colorFilterDialog = this.page.getByRole('dialog', { name: 'Color' });
     this.priceFilterDialog = this.page.getByRole('dialog', { name: 'Price' });
     this.sortByFilterDialog = this.page.getByRole('dialog', { name: 'Sort by' });
+    // Narrow-viewport layout: the inline filter buttons above collapse into a single "Filters"/"Filters
+    // (N)" chip that opens a side panel. Its <h2> isn't wired as the dialog's accessible name (no
+    // aria-labelledby), so filtersPanel matches on role alone rather than a name - there is only ever
+    // one dialog open at a time in this flow.
+    this.filtersChip = this.main.getByRole('button', { name: /^Filters(\s\(\d+\))?$/ });
+    this.filtersPanel = this.page.getByRole('dialog');
+    // Same icon button throughout: closes the panel from its top-level row list, or goes back to that
+    // row list from a drilled-down sub-view (Categories/Colors/Tags/Price/Sort By) - always the first
+    // button in the dialog, confirmed live across every view.
+    this.filtersPanelBackBtn = this.filtersPanel.getByRole('button').first();
+    this.filtersPanelShowResultsBtn = this.page.getByRole('button', { name: 'Show Results' });
+    this.filtersPanelFreeCheckbox = this.filtersPanel.getByRole('checkbox', { name: 'Free' });
+    this.filtersPanelPaidCheckbox = this.filtersPanel.getByRole('checkbox', { name: 'Paid' });
     // "Explore different wallpaper categories" section at the bottom of /wallpapers renders outside
     // <main> (a separate page section), so this is scoped to the page, not `this.main`. The row of
     // sub-filter chip links rendered right after the H1 on the /category/wallpapers/<slug> pages it
@@ -526,5 +545,59 @@ export class WallpapersListPage extends HeaderPage {
     await button.click();
     const parent = this.resetAllBtn.locator('..');
     await parent.locator(':nth-child(2)').waitFor({ state: 'detached', timeout: 10000 });
+  }
+
+  // Narrow-viewport Filters panel (see filtersChip/filtersPanel above). One row-lookup helper plus one
+  // validator per sub-view, each reusable with optional expected state so the same call can check a
+  // tab's default/empty contents or that a selection persisted after reopening.
+
+  filtersPanelRow(group: 'Categories' | 'Colors' | 'Tags' | 'Price' | 'Sort By'): Locator {
+    return this.filtersPanel.getByRole('button', { name: new RegExp(`^${group}`) });
+  }
+
+  async validateFiltersPanel(expected: Partial<{ categories: string; colors: string; tags: string; price: string; sortBy: string }> = {}) {
+    await expect(this.filtersPanel).toBeVisible();
+    await expect(this.filtersPanel.getByRole('heading', { name: 'Filters' })).toBeVisible();
+    await expect(this.filtersPanel.getByRole('button', { name: 'Clear all' })).toBeVisible();
+    await expect(this.filtersPanel.getByRole('button', { name: `Categories ${expected.categories ?? 'Any'}` })).toBeVisible();
+    await expect(this.filtersPanel.getByRole('button', { name: `Colors ${expected.colors ?? 'Any'}` })).toBeVisible();
+    await expect(this.filtersPanel.getByRole('button', { name: `Tags ${expected.tags ?? 'Any'}` })).toBeVisible();
+    await expect(this.filtersPanel.getByRole('button', { name: `Price ${expected.price ?? 'Any'}` })).toBeVisible();
+    await expect(this.filtersPanel.getByRole('button', { name: `Sort By ${expected.sortBy ?? 'Relevance'}` })).toBeVisible();
+    await expect(this.filtersPanelShowResultsBtn).toBeVisible();
+  }
+
+  async validateCategoriesFilterPanelView() {
+    await expect(this.filtersPanel.getByRole('heading', { name: 'Categories' })).toBeVisible();
+    await expect(this.filtersPanel.getByRole('button', { name: 'Clear' })).toBeVisible();
+    await expect(this.filtersPanel.getByRole('textbox', { name: 'Search' })).toBeVisible();
+  }
+
+  async validateColorsFilterPanelView() {
+    await expect(this.filtersPanel.getByRole('heading', { name: 'Colors' })).toBeVisible();
+    await expect(this.filtersPanel.getByRole('button', { name: 'Clear' })).toBeVisible();
+  }
+
+  async validateTagsFilterPanelView() {
+    await expect(this.filtersPanel.getByRole('heading', { name: 'Tags' })).toBeVisible();
+    await expect(this.filtersPanel.getByRole('button', { name: 'Clear' })).toBeVisible();
+    await expect(this.filtersPanel.getByRole('combobox', { name: 'Search' })).toBeVisible();
+  }
+
+  async validateSortByFilterPanelView(expectedChecked: SortByType = 'Relevance') {
+    await expect(this.filtersPanel.getByRole('heading', { name: 'Sort By' })).toBeVisible();
+    await expect(this.filtersPanel.getByRole('button', { name: 'Clear' })).toBeVisible();
+    await expect(this.filtersPanel.getByRole('radio', { name: expectedChecked })).toBeChecked();
+  }
+
+  async validatePriceFilterPanelView(expected?: { free?: boolean; paid?: boolean }) {
+    await expect(this.filtersPanel.getByRole('heading', { name: 'Price' })).toBeVisible();
+    await expect(this.filtersPanel.getByRole('button', { name: 'Clear' })).toBeVisible();
+    await expect(this.filtersPanelFreeCheckbox).toBeVisible();
+    await expect(this.filtersPanelPaidCheckbox).toBeVisible();
+    if (expected?.free !== undefined) await expect(this.filtersPanelFreeCheckbox).toBeChecked({ checked: expected.free });
+    if (expected?.paid !== undefined) await expect(this.filtersPanelPaidCheckbox).toBeChecked({ checked: expected.paid });
+    await expect(this.filtersPanel.getByRole('spinbutton', { name: 'From' })).toBeVisible();
+    await expect(this.filtersPanel.getByRole('spinbutton', { name: 'To' })).toBeVisible();
   }
 }

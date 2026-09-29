@@ -60,14 +60,14 @@ Constraints:
 | -------------------------------------------- | ------ |
 | Covered as-is (TC-01, TC-02, TC-10)          | 3      |
 | Replaces an existing test (TC-03..08, TC-11) | 3      |
-| New                                          | 15     |
+| New                                          | 16     |
 | Bug documentation (`@bug`)                   | 2      |
-| **Total scenarios**                          | **23** |
+| **Total scenarios**                          | **24** |
 
 | Priority | Count |
 | -------- | ----- |
 | P1       | 7     |
-| P2       | 10    |
+| P2       | 11    |
 | P3       | 6     |
 
 ## Test Scenarios
@@ -400,6 +400,46 @@ Annotation: `{ type: 'bug', description: 'Opening the "Buy for Ƶ" modal logs a 
 
 1. Take the href of the first card from Price=Paid, Sort by=Price: High to Low; open a new page and go to that href
    - expect: Premium badge, price and "Buy for Ƶ<price>" are shown, same as when opened from the list
+
+### 8. Responsive Filters Panel (narrow viewport)
+
+**Seed:** `tests/seed.spec.ts`
+
+#### 8.1. WP-35 [P2][New][@regression] At reduced width, the Filters panel shows filter controls and Price=Free updates results the same way the inline bar does
+
+**File:** `tests/wallpappers/wallpapers-filters-narrow.spec.ts`
+
+Verified live at viewport 900x800 in the existing Desktop Chrome project (window resized smaller, not a
+mobile device/project - this only covers the behavior that appears at reduced width). One representative
+filter (Price = Free, the simplest case in WP-19), checked against the same URL/result invariants WP-19
+already asserts for the inline bar.
+
+**Steps:**
+
+1. Set the viewport to 900x800 and navigate to /wallpapers (fresh, unfiltered)
+   - expect: the inline filter buttons (Category, Tag, Price, Color, Sort by) are not visible at this width
+   - expect: a single chip/button labeled "Filters" (no count suffix) is visible in their place
+   - [CONFIRM] 900x800 is confirmed live as one width where this collapse happens; the exact breakpoint
+     wasn't bisected - adjust the width rather than treat a miss as a scenario failure
+2. Record the hrefs of the first ~10 rendered cards, then click the "Filters" chip
+   - expect: a dialog opens (role=dialog, name "Filters") with a close control, "Clear all", one row per
+     filter group ("Categories Any", "Colors Any", "Tags Any", "Price Any", "Sort By Relevance"), and a
+     "Show Results" button
+3. Click the "Price Any" row
+   - expect: the dialog drills into a Price sub-view (heading "Price") with "Free"/"Paid" checkboxes and
+     "From"/"To" numeric inputs - the same options WP-19's `setPriceRange` exercises on the inline dropdown
+4. Click the "Free" checkbox (without closing the panel)
+   - expect: the URL updates immediately to contain `free=true`
+   - [CONFIRM] the card grid behind the still-open dialog already reflects the filter - confirm this is
+     intended live-preview behavior, not a rendering artifact
+5. Click "Show Results"
+   - expect: dialog closes, URL still contains `free=true`
+   - expect: card hrefs differ from the step-2 baseline, count > 0, no visible card has a price badge
+   - expect: the chip now reads "Filters (1)", and a "Reset All" control appears - same as WP-18/WP-19
+
+**Note for the generator:** existing `WallpapersListPage` locators (`filterPrice`, `priceFilterDialog`, etc.)
+target the inline bar and won't match this panel's controls (different DOM, `Filters (1)` chip text, a nested
+dialog reusing the accessible name "Price") - add new locators for the panel rather than reusing those.
 
 ## Implementation notes for the generator and the POM pass
 
