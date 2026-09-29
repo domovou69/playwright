@@ -227,7 +227,7 @@ interactive agent session (as it did for ZED-2), the same interactive-vs-automat
 - [x] Three explicit outcomes, each a distinct label + attached evidence (trace/screenshot/log):
       reproduced / not-reproduced / inconclusive (env or flake noise) — implemented in `scripts/jira-repro.mjs`
       (`OUTCOME_LABELS`), which also handles the actual Jira attachment upload (multipart, `X-Atlassian-Token:
-    no-check` — different from the plain-JSON calls `jira-triage.mjs` makes) that Stage 2 didn't need
+  no-check` — different from the plain-JSON calls `jira-triage.mjs` makes) that Stage 2 didn't need
 - [x] "Not reproduced" never becomes "not a bug" automatically — routes to `needs-manual-repro` — `not-reproduced`
       maps directly to the `needs-manual-repro` label in `OUTCOME_LABELS`, never to a standalone "confirmed not a
       bug" state; the script never touches `status`, same rule as Stage 2
@@ -252,17 +252,40 @@ cutting the manual reproduction step most of the time.
 
 ### Stage 4 — New tests + fixes, using existing POM/skills
 
-- [ ] Confirmed-reproduced bugs first go through `playwright-test-planner` to turn the ticket into a concrete
-      scoped test plan (steps + expectations), before any code is written
-- [ ] Regression test written via `playwright-test-generator` skill/POM (search-before-write, no duplicate
-      locators/helpers), following `playwright-best-practices` throughout (this applies to every test
-      write/edit in this stage, not only new-test generation)
-- [ ] New/failing test always tagged with the Jira ticket ID for traceability
+- [x] Confirmed-reproduced bugs first go through `playwright-test-planner` to turn the ticket into a concrete
+      scoped test plan (steps + expectations), before any code is written — done for real on ZED-3 (see below);
+      the planner's output was later superseded/merged (see next bullet), but the planning step itself happened
+      before any test code was written, as required
+- [x] Regression test written, reusing existing POM (search-before-write, no duplicate locators/helpers),
+      following `playwright-best-practices` — **honest caveat: written directly (Edit tool), not by invoking the
+      `playwright-test-generator` agent.** The planner agent surfaced that ZED-3 is the same bug as an existing
+      test, WP-29 (previously mis-scoped as "price 10 is always Download" - falsified by a real counter-example),
+      so the actual work became _correcting an existing test in place_ (its identifier, WP-29, never changes -
+      only its title wording, tag, and steps were fixed: replaced fragile card-selection with the two known
+      GUIDs, fixed a wrong "verified fact" in `specs/wallpapers.plan.md`) rather than generating a new one from
+      scratch - a shape the generator agent isn't set up for. Substance is verified regardless:
+      reuses `WallpaperDetailPage.buyBtn`/`downloadBtn`/`premiumBadge`/`priceText()` as-is, lints clean, passes
+      against production
+- [x] New/failing test always tagged with the Jira ticket ID for traceability — landed on `@BUG:ZED-<n>` (not
+      plain `@ZED-<n>`) specifically for tests that encode a _known bug_, enforced via a regex in `src/utils/tags.ts`
+      (`bug: [/^@BUG:[A-Z]+-\d+$/]`) that `eslint.config.js` picks up automatically through `Object.values(tags).flat()` - the old literal `@bug` tag (used by the pre-existing WP-29/WP-33) is now invalid on purpose, not an
+      oversight. Applied for real: WP-29 → `@BUG:ZED-3`, WP-33 → `@BUG:ZED-4` (ZED-4 filed and repro-confirmed
+      alongside ZED-3, once retagging WP-33 required a real ticket to retag it to)
 - [ ] Failing/flaky existing tests triaged via `playwright-test-healer`, using `systematic-debugging` (the
       global 4-step verification skill — confirm exact name if this isn't it) to root-cause before proposing a
       fix: real regression vs. flake vs. stale locator — this distinction is a labeled decision, not silently
       auto-fixed away
-- [ ] Fix + test go into a PR; agent never merges
+- [ ] Fix + test go into a PR; agent never merges — test changes for ZED-3/ZED-4 exist locally, not yet committed
+      or opened as a PR (never done without being explicitly asked, per this repo's CLAUDE.md)
+
+**Verified end-to-end on real data 2026-09-29 (ZED-3, ZED-4):** filed ZED-3 for a real, live-confirmed bug (two
+Premium/price-10 wallpapers showing different primary buttons), triaged and repro-confirmed it through Stages
+2-3, then found via `playwright-test-planner` that it duplicates an existing test (WP-29) built on a now-falsified
+assumption. Corrected WP-29 in place instead of adding a redundant test, fixed the wrong "verified fact" in
+`specs/wallpapers.plan.md`, and along the way discovered the new `@BUG:` tag convention broke two pre-existing
+tests (WP-29, WP-33) still using the old plain `@bug` tag - filed ZED-4 for WP-33's separate accessibility bug
+(also repro-confirmed with real evidence) so it could be retagged too, rather than quietly weakening the lint
+rule to keep them passing.
 
 **Output of this stage:** every confirmed bug gets a permanent regression test, and every fix is traceable
 ticket → test → PR.
@@ -323,9 +346,12 @@ comments were you and which were the agent, without needing a separate service a
       check in the Currents dashboard itself remains open (needs manual login, can't be checked via API/MCP)
 - [x] Stage 2: Jira triage script built and verified end-to-end on real data (real CI run, real ticket, real
       write path, idempotency confirmed)
-- [~] Stage 3: reproduction flow (production, no staging) — mechanism built and verified end-to-end on ZED-2
-  (real repro attempt, real Jira attachments, correct `needs-manual-repro` routing); not fully checked off
-  since it's only been exercised on one ticket so far, and the mobile-viewport-vs-real-device gap it just
-  surfaced is a real limitation, not a solved problem
-- [ ] Stage 4: test/fix generation via existing skills
+- [x] Stage 3: reproduction flow (production, no staging) — mechanism built and verified end-to-end on three real
+      tickets (ZED-2: not-reproduced/needs-manual-repro; ZED-3, ZED-4: reproduced/repro-confirmed, both with real
+      evidence attached). Interactive-only by design (see Stage 3's architectural-gap note), not a gap in itself
+- [~] Stage 4: test/fix generation via existing skills — real progress on ZED-3/ZED-4 (planner run for real,
+  WP-29 corrected in place and retagged `@BUG:ZED-3`, WP-33 retagged `@BUG:ZED-4`, both lint-clean and passing
+  against production); not fully checked off since the actual test edit was written directly rather than via
+  the `playwright-test-generator` agent, `playwright-test-healer` hasn't been exercised at all, and nothing
+  has gone into a PR yet
 - [ ] Stage 5: review/feedback loop + dashboard

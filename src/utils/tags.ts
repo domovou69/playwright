@@ -1,7 +1,7 @@
 export const tags = {
   type: ['@smoke', '@regression'],
   scope: ['@wallpapers', '@ringtones', '@notification-sounds'],
-  bug: ['@bug'],
+  bug: [/^@BUG:[A-Z]+-\d+$/],
   misc: ['@guest', '@download'],
 } as const;
 

@@ -84,36 +84,28 @@ test.describe('Download and Purchase (Guest)', { tag: ['@wallpapers', '@guest', 
   }
 
   test(
-    'WP-29 Premium wallpapers priced exactly 10 show "Download" instead of "Buy"',
+    'WP-29 Premium wallpapers priced 10 credits show inconsistent primary action buttons (Download vs Buy)',
     {
-      tag: ['@wallpapers', '@guest', '@bug', '@regression'],
+      tag: ['@wallpapers', '@guest', '@BUG:ZED-3', '@regression'],
       annotation: {
         type: 'bug',
         description:
-          'Premium wallpapers priced exactly 10 credits show a "Download" button with a watch-ad unlock, while ' +
-          'every other price (1, 5, 11, 100, 1000) shows "Buy for Ƶ<price>". Expected: the same purchase gate ' +
-          'for every premium price.',
+          'Two Premium wallpapers at the same price (10 credits) show a different primary action button: one ' +
+          'shows "Download" (a watch-ad unlock), the other shows "Buy for Ƶ10" (the standard purchase modal). ' +
+          'Expected: a Premium wallpaper at a given price always shows Buy - Download is only correct for a ' +
+          'free wallpaper. Not a blanket "price 10 is always Download" rule (that was disproven - see ZED-3 and ' +
+          "the corrected fact in specs/wallpapers.plan.md); it's inconsistent per specific item.",
       },
     },
     async ({ app, page }) => {
-      await app.wallpapersListPage.open();
-      await app.wallpapersListPage.setPriceRange(10, 10);
-
-      // 1. Open the first card
-      const card = (await app.wallpapersListPage.cardsAll.all())[0]!;
-      const cardHref = await app.wallpapersListPage.getCardHref(card);
-      await app.wallpapersListPage.selectCard(card);
-      await page.waitForURL(`**${cardHref}`, { timeout: 5000 });
-
-      // expect: Premium badge and price 10 are shown
+      // 1. "White Feathers Floating Dark Wallpaper" - Premium, price 10, shows Download (the buggy variant)
+      await page.goto('/wallpapers/a1b0f0ad-1ccd-4410-95f7-f04b3823c604');
       await expect(app.wallpaperDetailsPage.premiumBadge).toBeVisible();
       await expect(app.wallpaperDetailsPage.priceText('10')).toBeVisible();
-
-      // expect (current, buggy): a "Download" button is shown instead of "Buy for Ƶ10"
       await expect(app.wallpaperDetailsPage.downloadBtn).toBeVisible();
       await expect(app.wallpaperDetailsPage.buyBtn).not.toBeAttached();
 
-      // 2. Click "Download"
+      // 2. Click "Download" on the buggy variant
       await app.wallpaperDetailsPage.clickDownload();
 
       // expect (current, buggy): modal "Unlock and Support the Artist" with "Login & Watch Ad" and "Buy Credits"
@@ -126,6 +118,13 @@ test.describe('Download and Purchase (Guest)', { tag: ['@wallpapers', '@guest', 
       // expect: modal closes, no download starts
       expect(page.url()).toBe(urlBeforeClose);
       await expect(app.wallpaperDetailsPage.downloadBtn).toBeVisible();
+
+      // 4. "Spooky Mansion" - same Premium/price-10 tier, but correctly shows Buy (proves the inconsistency)
+      await page.goto('/wallpapers/e1b7e619-872b-4180-bd79-2f426d91c225');
+      await expect(app.wallpaperDetailsPage.premiumBadge).toBeVisible();
+      await expect(app.wallpaperDetailsPage.priceText('10')).toBeVisible();
+      await expect(app.wallpaperDetailsPage.buyBtn).toHaveText('Buy for Ƶ10');
+      await expect(app.wallpaperDetailsPage.downloadBtn).not.toBeAttached();
     }
   );
 
@@ -150,7 +149,7 @@ test.describe('Download and Purchase (Guest)', { tag: ['@wallpapers', '@guest', 
   test(
     'WP-33 Purchase modal logs an accessibility console error',
     {
-      tag: ['@wallpapers', '@guest', '@bug', '@regression'],
+      tag: ['@wallpapers', '@guest', '@BUG:ZED-4', '@regression'],
       annotation: {
         type: 'bug',
         // The plan's original wording ("DialogContent requires a DialogTitle") no longer reproduces live -

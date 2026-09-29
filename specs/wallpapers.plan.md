@@ -26,10 +26,14 @@ Constraints:
 
 ## Verified facts (used as the test oracle)
 
-1. **Premium gate depends on price.** Price 1, 5, 11, 100, 1000 → detail page shows **"Buy for Ƶ<price>"** →
-   modal "To buy this item you need N Zedge Credits" with a credits package selector, a "Log in" link, Cancel and
-   Buy Credits. Price **exactly 10** → detail page shows **"Download"** → modal "Unlock and Support the Artist" with
-   "Login & Watch Ad" and "Buy Credits". Treated as a bug (see WP-29).
+1. **Premium gate depends on price - mostly.** Price 1, 5, 11, 100, 1000 → detail page shows **"Buy for
+   Ƶ<price>"** → modal "To buy this item you need N Zedge Credits" with a credits package selector, a "Log in"
+   link, Cancel and Buy Credits. Price 10 is where this breaks down, and not in the simple way first assumed:
+   it's not "price exactly 10 always shows Download" - two Premium/price-10 items were found showing different
+   buttons (one Download, one Buy for Ƶ10), so it's an inconsistency between specific items at that price, not a
+   price-wide rule. Confirmed live 2026-09-29 (ZED-3, `tests/wallpappers/wallpapers-purchase.spec.ts`). Where
+   "Download" does show for a Premium item, it opens the same "Unlock and Support the Artist" modal ("Login &
+   Watch Ad" / "Buy Credits") a free wallpaper's Download button opens - treated as a bug (see 7.3 below).
 2. **Price filter** has Free / Paid options and a From / To range (URL `minPrice`, `maxPrice`).
 3. **Sort by** options: Relevance, Newest first, Price: Low to High, Price: High to Low, Most popular
    (URL `sort=PRICE_ASC` / `PRICE_DESC`, ...).
@@ -335,7 +339,8 @@ Data-driven:
 | Highest price | Price=Paid, Sort by=Price: High to Low, first |
 | Lowest price  | Price=Paid, Sort by=Price: Low to High, first |
 
-If the picked card's price is exactly 10, take the next card whose price is not 10 (see WP-29).
+If the picked card's price is exactly 10, take the next card whose price is not 10 - price 10 is where the
+Download/Buy inconsistency lives (see 7.3), so avoiding it entirely sidesteps the ambiguity for this happy-path test.
 
 **Steps:**
 
@@ -349,23 +354,31 @@ If the picked card's price is exactly 10, take the next card whose price is not 
 3. Close the modal: Cancel for the first variant, Escape for the second
    - expect: modal closes, URL unchanged, "Buy for Ƶ<price>" still shown
 
-#### 7.3. WP-29 [P2][Bug, re-scopes TC-11][@bug][@regression] Premium wallpapers priced exactly 10 show "Download" instead of "Buy"
+#### 7.3. WP-29 [P2][Bug, re-scopes TC-11][@BUG:ZED-3][@regression] Two Premium wallpapers priced 10 credits show inconsistent primary action buttons
 
 **File:** `tests/wallpappers/wallpapers-purchase.spec.ts`
 
-Annotation: `{ type: 'bug', description: 'Premium wallpapers priced exactly 10 credits show a "Download" button with a watch-ad unlock, while every other price (1, 5, 11, 100, 1000) shows "Buy for Ƶ<price>". Expected: the same purchase gate for every premium price.' }`
+Originally scoped under the wrong assumption that price-10 items are _always_ Download; the test's identifier
+(WP-29) stays the same, only its title/description/tag were corrected once a counter-example (a price-10 item
+correctly showing Buy) was found - see the corrected fact 1 above.
+
+Annotation: `{ type: 'bug', description: 'Two Premium wallpapers at the same price (10 credits) show a different primary action button: one shows "Download" (a watch-ad unlock), the other shows "Buy for Ƶ10". Expected: a Premium wallpaper at a given price always shows Buy - Download is only correct for a free wallpaper.' }`
 
 **Steps:**
 
-1. Set Price From = 10, To = 10 and open the first card
+1. Go directly to the known Download-variant URL (`/wallpapers/a1b0f0ad-1ccd-4410-95f7-f04b3823c604`, "White
+   Feathers Floating Dark Wallpaper")
    - expect: Premium badge and price 10 are shown
    - expect (current, buggy): a "Download" button is shown instead of "Buy for Ƶ10"
 2. Click "Download"
    - expect (current, buggy): modal "Unlock and Support the Artist" with "Login & Watch Ad" and "Buy Credits"
 3. Close the modal with its close (X) button
    - expect: modal closes, no download starts
+4. Go directly to the known Buy-variant URL (`/wallpapers/e1b7e619-872b-4180-bd79-2f426d91c225`, "Spooky Mansion")
+   - expect: Premium badge and price 10 are shown, "Buy for Ƶ10" is shown, no Download button - proves the
+     inconsistency isn't price-wide
 
-#### 7.4. WP-33 [P2][Bug][@bug][@regression] Purchase modal logs an accessibility error
+#### 7.4. WP-33 [P2][Bug][@BUG:ZED-4][@regression] Purchase modal logs an accessibility error
 
 **File:** `tests/wallpappers/wallpapers-purchase.spec.ts`
 
