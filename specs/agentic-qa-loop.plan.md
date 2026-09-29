@@ -227,7 +227,7 @@ interactive agent session (as it did for ZED-2), the same interactive-vs-automat
 - [x] Three explicit outcomes, each a distinct label + attached evidence (trace/screenshot/log):
       reproduced / not-reproduced / inconclusive (env or flake noise) — implemented in `scripts/jira-repro.mjs`
       (`OUTCOME_LABELS`), which also handles the actual Jira attachment upload (multipart, `X-Atlassian-Token:
-  no-check` — different from the plain-JSON calls `jira-triage.mjs` makes) that Stage 2 didn't need
+no-check` — different from the plain-JSON calls `jira-triage.mjs` makes) that Stage 2 didn't need
 - [x] "Not reproduced" never becomes "not a bug" automatically — routes to `needs-manual-repro` — `not-reproduced`
       maps directly to the `needs-manual-repro` label in `OUTCOME_LABELS`, never to a standalone "confirmed not a
       bug" state; the script never touches `status`, same rule as Stage 2
@@ -271,10 +271,15 @@ cutting the manual reproduction step most of the time.
       (`bug: [/^@BUG:[A-Z]+-\d+$/]`) that `eslint.config.js` picks up automatically through `Object.values(tags).flat()` - the old literal `@bug` tag (used by the pre-existing WP-29/WP-33) is now invalid on purpose, not an
       oversight. Applied for real: WP-29 → `@BUG:ZED-3`, WP-33 → `@BUG:ZED-4` (ZED-4 filed and repro-confirmed
       alongside ZED-3, once retagging WP-33 required a real ticket to retag it to)
-- [ ] Failing/flaky existing tests triaged via `playwright-test-healer`, using `systematic-debugging` (the
-      global 4-step verification skill — confirm exact name if this isn't it) to root-cause before proposing a
-      fix: real regression vs. flake vs. stale locator — this distinction is a labeled decision, not silently
-      auto-fixed away
+- [x] Failing/flaky existing tests triaged via `playwright-test-healer` to root-cause before proposing a fix:
+      real regression vs. flake vs. stale locator — this distinction is a labeled decision, not silently
+      auto-fixed away. Done for real on the one flaky test Currents' Sep 2026 data showed (14.3% flakiness,
+      1/7 runs, `wallpappers/wallpapers.spec.ts` "allows users to search wallpapers by keywords"). Root cause:
+      `WallpapersListPage.waitForCardsToUpdate` had a hardcoded `{ timeout: 5000 }` poll — the one place in the
+      codebase not using the CI-aware `TIMEOUTS` constant, called 9x per test run under `workers: 3` against a
+      live production search API. Labeled **flake** (timing/concurrency, not a regression, not a stale locator) —
+      confirmed with the human before fixing, per the validation gate; fix applied (`TIMEOUTS.expect` instead of
+      the literal `5000`), lints clean, test re-run green
 - [ ] Fix + test go into a PR; agent never merges — test changes for ZED-3/ZED-4 exist locally, not yet committed
       or opened as a PR (never done without being explicitly asked, per this repo's CLAUDE.md)
 
@@ -349,9 +354,9 @@ comments were you and which were the agent, without needing a separate service a
 - [x] Stage 3: reproduction flow (production, no staging) — mechanism built and verified end-to-end on three real
       tickets (ZED-2: not-reproduced/needs-manual-repro; ZED-3, ZED-4: reproduced/repro-confirmed, both with real
       evidence attached). Interactive-only by design (see Stage 3's architectural-gap note), not a gap in itself
-- [~] Stage 4: test/fix generation via existing skills — real progress on ZED-3/ZED-4 (planner run for real,
-  WP-29 corrected in place and retagged `@BUG:ZED-3`, WP-33 retagged `@BUG:ZED-4`, both lint-clean and passing
-  against production); not fully checked off since the actual test edit was written directly rather than via
-  the `playwright-test-generator` agent, `playwright-test-healer` hasn't been exercised at all, and nothing
-  has gone into a PR yet
+- [~] Stage 4: test/fix generation via existing skills — planner and healer both run for real (WP-29 corrected
+  and retagged `@BUG:ZED-3`, WP-33 retagged `@BUG:ZED-4`, the one real flaky test from Currents' Sep 2026 data
+  root-caused and fixed), all lint-clean and passing against production; not fully checked off since the test
+  edits were written directly rather than via the `playwright-test-generator` agent, and nothing has gone into
+  a PR yet — everything so far has been committed straight to `main`
 - [ ] Stage 5: review/feedback loop + dashboard

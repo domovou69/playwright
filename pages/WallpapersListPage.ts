@@ -286,7 +286,7 @@ export class WallpapersListPage extends HeaderPage {
   }
 
   async waitForCardsToUpdate(hrefsBefore: string[]) {
-    await expect.poll(() => this.getCardsHref(), { timeout: 5000, intervals: [500] }).not.toEqual(hrefsBefore);
+    await expect.poll(() => this.getCardsHref(), { timeout: TIMEOUTS.expect, intervals: [500] }).not.toEqual(hrefsBefore);
   }
 
   async searchAndWaitForUpdate(value: string, filter: SearchOptionType = 'All') {
