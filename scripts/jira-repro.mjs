@@ -11,14 +11,14 @@
 //     --steps="1. Open /wallpapers\n2. ..." \
 //     --notes="Confirmed: interstitial ad overlays the download button on mobile viewport (390x844)." \
 //     --evidence=test-results/repro-zed-3.png,test-results/repro-zed-3-trace.zip
+//
+// A duplicate the agent confirmed by meaning (triage only suggests keyword matches) is recorded with
+//   --outcome=duplicate-suspected --of=ZED-2 --reason="Same overlay on the download button, same viewport."
+// It stays a suspicion: the ticket is never closed or linked as a duplicate here, a human decides.
 
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { AGENT_MARKER } from './jira-common.mjs';
-
-const JIRA_BASE_URL = requireEnv('JIRA_BASE_URL');
-const JIRA_EMAIL = requireEnv('JIRA_EMAIL');
-const JIRA_API_TOKEN = requireEnv('JIRA_API_TOKEN');
+import { addLabel, jira, postComment } from './jira-common.mjs';
 
 // "not-reproduced" deliberately maps to needs-manual-repro, not its own "not-reproduced" label - a
 // ticket in this state still needs a human to look at it, it never becomes "not a bug" by itself
@@ -27,15 +27,8 @@ const OUTCOME_LABELS = {
   reproduced: 'repro-confirmed',
   'not-reproduced': 'needs-manual-repro',
   inconclusive: 'repro-inconclusive',
+  'duplicate-suspected': 'duplicate-suspected',
 };
-
-const AUTH_HEADER = 'Basic ' + Buffer.from(`${JIRA_EMAIL}:${JIRA_API_TOKEN}`).toString('base64');
-
-function requireEnv(name) {
-  const value = process.env[name];
-  if (!value) throw new Error(`Missing required env var: ${name}`);
-  return value;
-}
 
 function parseArgs(argv) {
   const args = {};
@@ -47,68 +40,24 @@ function parseArgs(argv) {
   return args;
 }
 
-async function jira(path, options = {}) {
-  const res = await fetch(`${JIRA_BASE_URL}${path}`, {
-    ...options,
-    headers: {
-      Authorization: AUTH_HEADER,
-      Accept: 'application/json',
-      ...options.headers,
-    },
-  });
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Jira API ${options.method || 'GET'} ${path} failed: ${res.status} ${body}`);
-  }
-  if (res.status === 204) return null;
-  return res.json();
-}
-
-function textParagraph(text) {
-  return {
-    type: 'doc',
-    version: 1,
-    content: text.split('\n').map(line => ({ type: 'paragraph', content: line ? [{ type: 'text', text: line }] : [] })),
-  };
-}
-
-async function addLabel(issueKey, label) {
-  await jira(`/rest/api/3/issue/${issueKey}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ update: { labels: [{ add: label }] } }),
-  });
-}
-
-async function postComment(issueKey, text) {
-  await jira(`/rest/api/3/issue/${issueKey}/comment`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ body: textParagraph(`${AGENT_MARKER}\n${text}`) }),
-  });
-}
-
-// Jira's attachment endpoint requires multipart/form-data and the "no-check" XSRF header, and
-// explicitly forbids the Content-Type: application/json header the other calls use.
+// Jira's attachment endpoint requires multipart/form-data and the "no-check" XSRF header.
 async function uploadAttachment(issueKey, filePath) {
   const fileBuffer = await readFile(filePath);
   const form = new FormData();
   form.append('file', new Blob([fileBuffer]), path.basename(filePath));
-
-  const res = await fetch(`${JIRA_BASE_URL}/rest/api/3/issue/${issueKey}/attachments`, {
+  return jira(`/rest/api/3/issue/${issueKey}/attachments`, {
     method: 'POST',
-    headers: {
-      Authorization: AUTH_HEADER,
-      Accept: 'application/json',
-      'X-Atlassian-Token': 'no-check',
-    },
+    headers: { 'X-Atlassian-Token': 'no-check' },
     body: form,
   });
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Jira attachment upload failed for ${filePath}: ${res.status} ${body}`);
-  }
-  return res.json();
+}
+
+// The agent names the original by meaning; the script only checks it exists and quotes its title.
+async function duplicateLines(issueKey, of, reason) {
+  if (!of || !reason) throw new Error('--outcome=duplicate-suspected needs --of=<KEY> and --reason=<why it is the same bug>');
+  if (of === issueKey) throw new Error('--of must be a different ticket');
+  const original = await jira(`/rest/api/3/issue/${encodeURIComponent(of)}?fields=summary`);
+  return `Suspected duplicate of ${original.key} ("${original.fields.summary}").\nReason: ${reason}\n\n`;
 }
 
 async function main() {
@@ -119,6 +68,10 @@ async function main() {
   if (!OUTCOME_LABELS[outcome]) {
     throw new Error(`--outcome must be one of: ${Object.keys(OUTCOME_LABELS).join(', ')} (got: ${outcome})`);
   }
+  if (outcome !== 'duplicate-suspected' && (args.of || args.reason)) {
+    throw new Error('--of and --reason are only for --outcome=duplicate-suspected');
+  }
+  const duplicate = outcome === 'duplicate-suspected' ? await duplicateLines(issueKey, args.of, args.reason) : '';
   const steps = args.steps || '(not provided)';
   const notes = args.notes || '(none)';
   const evidencePaths = (args.evidence || '')
@@ -134,7 +87,7 @@ async function main() {
   }
 
   const evidenceLine = uploaded.length ? `Evidence attached: ${uploaded.join(', ')}.` : 'No evidence attached.';
-  await postComment(issueKey, `Repro attempt outcome: ${outcome}.\n\nSteps run:\n${steps}\n\nNotes: ${notes}\n\n${evidenceLine}`);
+  await postComment(issueKey, `Repro attempt outcome: ${outcome}.\n\n${duplicate}Steps run:\n${steps}\n\nNotes: ${notes}\n\n${evidenceLine}`);
   await addLabel(issueKey, OUTCOME_LABELS[outcome]);
   console.log(`${issueKey}: labeled ${OUTCOME_LABELS[outcome]}, comment posted.`);
 }

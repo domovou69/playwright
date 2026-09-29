@@ -46,10 +46,10 @@ they get reviewed.
 ## The loop
 
 1. **Analytics.** CI reports every run to Currents (flaky detection, history); agents read it through the Currents MCP.
-2. **Triage.** `Jira Triage` workflow (manual): new bugs get a `needs-repro` label and a comment, possible duplicates are
-   flagged. A plain script, no LLM.
-3. **Repro.** Claude reproduces the bug against production through the Playwright MCP, then records the outcome with
-   `scripts/jira-repro.mjs` (comment, evidence, label).
+2. **Triage.** `Jira Triage` workflow (manual): new bugs get a `needs-repro` label and a comment that lists possibly related
+   tickets (keyword overlap on title + description, not confirmed). A plain script, no LLM.
+3. **Repro.** Claude reproduces the bug against production through the Playwright MCP, judges the related candidates
+   by meaning (only then `duplicate-suspected` is set), then records the outcome with `scripts/jira-repro.mjs` (comment, evidence, label).
 4. **Test and fix.** Planner, generator and healer agents write the regression test (tagged `@BUG:<KEY>`) and the fix on a
    branch; a human reviews the PR and merges.
 5. **Self-check.** `npm run verify` before review; flaky tests get the `flaky-unconfirmed` label on their ticket.
@@ -59,15 +59,18 @@ Automation only comments and labels. It never changes ticket status and never cl
 ## Jira scripts
 
 ```bash
-# triage: specific tickets, or leave ISSUE_KEYS empty to scan candidates
+# triage: specific tickets, or leave ISSUE_KEYS empty to scan candidates; DRY_RUN=1 writes nothing to Jira
 ISSUE_KEYS="ZED-1,ZED-2" node --env-file=.env scripts/jira-triage.mjs
+DRY_RUN=1 ISSUE_KEYS="ZED-3" node --env-file=.env scripts/jira-triage.mjs
 
 # record a repro attempt
 node --env-file=.env scripts/jira-repro.mjs --issue=ZED-3 --outcome=reproduced \
   --steps="1. Open /wallpapers ..." --notes="..." --evidence=test-results/shot.png
 ```
 
-`--outcome` is `reproduced`, `not-reproduced` or `inconclusive`. In CI, run the `Jira Triage` workflow from the Actions tab.
+`--outcome` is `reproduced`, `not-reproduced`, `inconclusive` or `duplicate-suspected` (the last one also takes
+`--of=ZED-N --reason="..."`). The shared client is `scripts/jira-common.mjs`. In CI, run the `Jira Triage` workflow from
+the Actions tab (it has a `dryRun` checkbox).
 
 ## MCP servers
 
@@ -83,5 +86,6 @@ The Currents server is pinned in `devDependencies` (`@currents/mcp`), runs from 
 | `CURRENTS_RECORD_KEY`                           | Currents reporter       | Secret in CI                               |
 | `CURRENTS_API_KEY`                              | Currents MCP            | Different from the record key              |
 | `JIRA_BASE_URL`, `JIRA_EMAIL`, `JIRA_API_TOKEN` | triage, repro, `verify` | `JIRA_API_TOKEN` is a secret in CI         |
-| `JIRA_PROJECT`                                  | triage                  | Project key, `ZED`                         |
+| `JIRA_PROJECT`                                  | triage, repro           | Project key, `ZED`                         |
 | `ISSUE_KEYS`                                    | triage                  | Optional, comma-separated                  |
+| `DRY_RUN`                                       | triage                  | `1` prints instead of writing to Jira      |

@@ -59,14 +59,15 @@ or the POM also a full headless run (`npm test`) and `npm run verify -- --files=
 
 ### 5. Jira
 
-- [ ] Move the shared client (`jira()`, auth header, `addLabel`, `postComment`, ADF helpers) into `scripts/jira-common.mjs`;
+- [x] Move the shared client (`jira()`, auth header, `addLabel`, `postComment`, ADF helpers) into `scripts/jira-common.mjs`;
       `jira-triage`, `jira-repro`, `verify-changed` import it
-- [ ] Smarter duplicate search in `jira-triage.mjs`: keywords from title + description (stop-words and short tokens
+- [x] Smarter duplicate search in `jira-triage.mjs`: keywords from title + description (stop-words and short tokens
       dropped), JQL `text ~ ... OR text ~ ...`, candidates scored locally by shared keywords, only those above a
-      threshold are listed, each with the shared terms as the reason; comment wording says "keyword overlap, not confirmed"
-- [ ] `DRY_RUN=1` for triage: prints candidates and the would-be comment, writes nothing (verify on ZED-3..7 without touching Jira)
-- [ ] `jira-repro.mjs`: outcome `duplicate-suspected` with `--of=ZED-N --reason=...` for duplicates the agent confirms by meaning
-- [ ] Update the Stage 2 / Stage 3 wording in `specs/agentic-qa-loop.plan.md`
+      threshold are listed (max 5), each with the shared terms as the reason; comment wording says "keyword overlap,
+      not confirmed"; triage always sets `needs-repro`, `duplicate-suspected` only comes from `jira-repro`
+- [x] `DRY_RUN=1` for triage: prints candidates and the would-be comment, writes nothing (verify on ZED-3..7 without touching Jira)
+- [x] `jira-repro.mjs`: outcome `duplicate-suspected` with `--of=ZED-N --reason=...` for duplicates the agent confirms by meaning
+- [x] Update the Stage 2 / Stage 3 wording in `specs/agentic-qa-loop.plan.md`
 
 ### 6. Tags and CI split
 
@@ -119,3 +120,13 @@ or the POM also a full headless run (`npm test`) and `npm run verify -- --files=
   `currents-get-projects` (worked, key came from `.env`). The key was removed from `.claude/settings.local.json` (`.env` already held the same one).
   Workflows got `permissions: contents: read` and `concurrency` (CI cancels superseded PR runs only; triage runs never cancel each other).
   The PR = smoke split waits for step 6.
+- 2026-09-29: step 5 done. `scripts/jira-common.mjs` now holds the client (`jira`, `addLabel`, `postComment`, ADF helpers, `requireEnv`,
+  `hasJiraEnv`; env read on use, so `verify` works without `JIRA_*`); triage, repro and verify import it. Issue keys of the configured
+  project become links in comments. Duplicate search: title + description keywords, OR-ed `text ~` query, local score (title words x2,
+  threshold 5, template boilerplate dropped), comment says "keyword overlap, not confirmed". `DRY_RUN=1` (also a `dryRun` checkbox on
+  the workflow) checked on ZED-3..7 with nothing written: ZED-6 <-> ZED-7 (sibling "Clear" bugs) and ZED-4 -> ZED-3 flagged, the rest
+  `needs-repro`. `jira-repro.mjs --outcome=duplicate-suspected --of --reason` validated (missing args, unknown `--of`, self, misuse on
+  other outcomes all fail before any write); a real post was not made. Plan and README wording updated.
+- 2026-09-29: step 5 revised after review: keyword overlap gives false positives, so triage no longer sets `duplicate-suspected`; it sets
+  `needs-repro` and lists up to 5 "possibly related" tickets. The label now comes only from `jira-repro --outcome=duplicate-suspected`
+  after an agent judged by meaning. A model call inside triage (a cheap model, at most 5 pairs) is postponed until triage runs unattended.

@@ -1,4 +1,92 @@
-// Shared by the Jira scripts: prefixes every automated comment so it stays distinguishable from a manual
-// one even though it posts under a personal account. Model-neutral on purpose - the model changes, the fact
-// that an AI agent wrote the comment doesn't.
+// Shared by the Jira scripts (triage, repro, verify). Env vars are read on use, so a script that does not need
+// Jira (verify without JIRA_* set) can still import this file.
+
+// Prefixes every automated comment so it stays distinguishable from a manual one even though it posts under a
+// personal account. Model-neutral on purpose - the model changes, the fact that an AI agent wrote the comment doesn't.
 export const AGENT_MARKER = '[agent - Claude]';
+
+export function requireEnv(name) {
+  const value = process.env[name];
+  if (!value) throw new Error(`Missing required env var: ${name}`);
+  return value;
+}
+
+export function hasJiraEnv() {
+  return ['JIRA_BASE_URL', 'JIRA_EMAIL', 'JIRA_API_TOKEN'].every(name => process.env[name]);
+}
+
+export async function jira(path, options = {}) {
+  const auth = Buffer.from(`${requireEnv('JIRA_EMAIL')}:${requireEnv('JIRA_API_TOKEN')}`).toString('base64');
+  const res = await fetch(`${requireEnv('JIRA_BASE_URL')}${path}`, {
+    ...options,
+    headers: {
+      Authorization: `Basic ${auth}`,
+      Accept: 'application/json',
+      // A FormData body (attachments) must not get a JSON content type - fetch sets the multipart boundary itself.
+      ...(typeof options.body === 'string' && { 'Content-Type': 'application/json' }),
+      ...options.headers,
+    },
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Jira API ${options.method || 'GET'} ${path} failed: ${res.status} ${body}`);
+  }
+  if (res.status === 204) return null;
+  return res.json();
+}
+
+// Jira Cloud stores description/comment bodies as Atlassian Document Format (ADF), a nested JSON tree, not plain
+// text. Flatten it to check for real content and to build search keywords.
+export function adfToText(node) {
+  if (!node || typeof node !== 'object') return '';
+  let text = typeof node.text === 'string' ? node.text : '';
+  if (Array.isArray(node.content)) {
+    text += node.content.map(adfToText).join(' ');
+  }
+  return text;
+}
+
+// Keys of the configured project become links; without JIRA_PROJECT the text stays plain.
+function inline(text) {
+  const project = process.env.JIRA_PROJECT;
+  const parts = project ? text.split(new RegExp(`(\\b${project}-\\d+\\b)`)) : [text];
+  return parts
+    .map((part, i) => ({ part, isKey: i % 2 === 1 }))
+    .filter(({ part }) => part)
+    .map(({ part, isKey }) => {
+      if (!isKey) return { type: 'text', text: part };
+      const href = `${requireEnv('JIRA_BASE_URL')}/browse/${part}`;
+      return { type: 'text', text: part, marks: [{ type: 'link', attrs: { href } }] };
+    });
+}
+
+// One line per paragraph (a blank line is an empty paragraph); consecutive "- " lines become a real bullet list.
+export function toAdf(text) {
+  const paragraph = value => ({ type: 'paragraph', content: inline(value) });
+  const content = [];
+  for (const line of text.split('\n')) {
+    if (line.startsWith('- ')) {
+      const item = { type: 'listItem', content: [paragraph(line.slice(2))] };
+      const last = content.at(-1);
+      if (last?.type === 'bulletList') last.content.push(item);
+      else content.push({ type: 'bulletList', content: [item] });
+    } else {
+      content.push(paragraph(line));
+    }
+  }
+  return { type: 'doc', version: 1, content };
+}
+
+export async function addLabel(issueKey, label) {
+  await jira(`/rest/api/3/issue/${issueKey}`, {
+    method: 'PUT',
+    body: JSON.stringify({ update: { labels: [{ add: label }] } }),
+  });
+}
+
+export async function postComment(issueKey, text) {
+  await jira(`/rest/api/3/issue/${issueKey}/comment`, {
+    method: 'POST',
+    body: JSON.stringify({ body: toAdf(`${AGENT_MARKER}\n${text}`) }),
+  });
+}

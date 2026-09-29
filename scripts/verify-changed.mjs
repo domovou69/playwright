@@ -12,6 +12,7 @@
 
 import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
+import { addLabel, hasJiraEnv } from './jira-common.mjs';
 
 const REPORT_FILE = 'test-results/verify-report.json';
 const FLAKY_LABEL = 'flaky-unconfirmed';
@@ -56,20 +57,11 @@ function collectSpecs(suite, found = []) {
 }
 
 async function labelFlaky(issueKey) {
-  const { JIRA_BASE_URL, JIRA_EMAIL, JIRA_API_TOKEN } = process.env;
-  if (!JIRA_BASE_URL || !JIRA_EMAIL || !JIRA_API_TOKEN) {
+  if (!hasJiraEnv()) {
     console.log(`${issueKey}: JIRA_* env vars not set - not labeled ${FLAKY_LABEL}`);
     return;
   }
-  const res = await fetch(`${JIRA_BASE_URL}/rest/api/3/issue/${issueKey}`, {
-    method: 'PUT',
-    headers: {
-      Authorization: 'Basic ' + Buffer.from(`${JIRA_EMAIL}:${JIRA_API_TOKEN}`).toString('base64'),
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ update: { labels: [{ add: FLAKY_LABEL }] } }),
-  });
-  if (!res.ok) throw new Error(`Jira label failed: ${res.status} ${await res.text()}`);
+  await addLabel(issueKey, FLAKY_LABEL);
   console.log(`${issueKey}: labeled ${FLAKY_LABEL}`);
 }
 

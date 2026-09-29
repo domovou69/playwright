@@ -4,11 +4,9 @@
 // clearly-marked comment and adds a label — every decision (duplicate,
 // won't-fix, unsupported version) is confirmed by a human, this only proposes.
 
-import { AGENT_MARKER } from './jira-common.mjs';
+import { AGENT_MARKER, addLabel, adfToText, jira, postComment, requireEnv } from './jira-common.mjs';
 
-const JIRA_BASE_URL = requireEnv('JIRA_BASE_URL');
 const JIRA_EMAIL = requireEnv('JIRA_EMAIL');
-const JIRA_API_TOKEN = requireEnv('JIRA_API_TOKEN');
 const JIRA_PROJECT = requireEnv('JIRA_PROJECT');
 // Accepts a comma-separated list, tolerant of extra/missing spaces around
 // entries or commas (e.g. "ZED-1, ZED-2 ,ZED-3" and "ZED-1,ZED-2,ZED-3" both work).
@@ -16,6 +14,8 @@ const ISSUE_KEYS = (process.env.ISSUE_KEYS || '')
   .split(',')
   .map(key => key.trim())
   .filter(Boolean);
+// DRY_RUN=1: read from Jira, print what would be posted, write nothing.
+const DRY_RUN = process.env.DRY_RUN === '1';
 
 // Every label this pipeline can apply. Doubles as the JQL "already triaged"
 // marker - a ticket carrying any of these has been through this script before.
@@ -29,61 +29,6 @@ const PIPELINE_LABELS = [
   'needs-human-review',
 ];
 const PIPELINE_LABELS_JQL = PIPELINE_LABELS.map(l => `"${l}"`).join(', ');
-const AUTH_HEADER = 'Basic ' + Buffer.from(`${JIRA_EMAIL}:${JIRA_API_TOKEN}`).toString('base64');
-
-function requireEnv(name) {
-  const value = process.env[name];
-  if (!value) throw new Error(`Missing required env var: ${name}`);
-  return value;
-}
-
-async function jira(path, options = {}) {
-  const res = await fetch(`${JIRA_BASE_URL}${path}`, {
-    ...options,
-    headers: {
-      Authorization: AUTH_HEADER,
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  });
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Jira API ${options.method || 'GET'} ${path} failed: ${res.status} ${body}`);
-  }
-  if (res.status === 204) return null;
-  return res.json();
-}
-
-// Jira Cloud stores description/comment bodies as Atlassian Document Format (ADF),
-// a nested JSON tree, not plain text. Flatten it to check for real content and to
-// build search keywords.
-function adfToText(node) {
-  if (!node || typeof node !== 'object') return '';
-  let text = typeof node.text === 'string' ? node.text : '';
-  if (Array.isArray(node.content)) {
-    text += node.content.map(adfToText).join(' ');
-  }
-  return text;
-}
-
-// One line per paragraph; consecutive "- " lines become a real bullet list.
-function toAdf(text) {
-  const content = [];
-  for (const line of text.split('\n')) {
-    const paragraph = value => ({ type: 'paragraph', content: [{ type: 'text', text: value }] });
-    if (line.startsWith('- ')) {
-      const item = { type: 'listItem', content: [paragraph(line.slice(2))] };
-      const last = content.at(-1);
-      if (last?.type === 'bulletList') last.content.push(item);
-      else content.push({ type: 'bulletList', content: [item] });
-    } else {
-      content.push(paragraph(line));
-    }
-  }
-  return { type: 'doc', version: 1, content };
-}
-
 async function findCandidates() {
   if (ISSUE_KEYS.length > 0) {
     // A typo'd key (or one that got mangled by bad list formatting) must not
@@ -131,28 +76,78 @@ async function alreadyHandledSinceLastUpdate(issue) {
   return new Date(lastAgentComment.created) >= new Date(issue.fields.updated);
 }
 
+// Keyword overlap, not semantics: the script only proposes candidates, the agent session judges by meaning.
+// A shared word scores 2 when it is in this ticket's title, 1 when it is only in the description.
+const MIN_SCORE = 5;
+const MAX_QUERY_KEYWORDS = 10;
+const MAX_CANDIDATES = 5;
+const MAX_SHOWN_TERMS = 6;
+const STOP_WORDS = new Set(
+  (
+    'about above after again also always because been before being below between both cannot could does doing done down ' +
+    'during each either else even ever every expected actual from have here into issue just like make many more most ' +
+    'much must never only other over same should since some steps still such than that their them then there these they ' +
+    'this those through under until upon very want were what when where whether which while will with without would your ' +
+    'page site wallpaper zedge reproduce result results happens shows show click https http reproduced production chromium firefox webkit browser'
+  ).split(' ')
+);
+
+// Light plural/suffix trim, enough to match "downloads" with "download"; Jira applies its own stemming on the query side.
+const stem = word => (word.length > 5 ? word.replace(/(ing|ed|es|s)$/, '') : word.replace(/s$/, ''));
+
+function keywords(text) {
+  const words = text.toLowerCase().match(/(?<![\p{L}\p{N}])\p{L}[\p{L}\p{N}]{3,}/gu) ?? [];
+  return [...new Set(words)].filter(word => !STOP_WORDS.has(word) && !STOP_WORDS.has(stem(word)));
+}
+
+function issueText(issue) {
+  return `${issue.fields.summary ?? ''} ${adfToText(issue.fields.description)}`;
+}
+
+// Words present in more than half of the tickets are template boilerplate ("reproduced", "production", ...).
+function boilerplate(wordLists) {
+  if (wordLists.length < 4) return new Set();
+  const counts = new Map();
+  for (const words of wordLists) {
+    for (const stemmed of new Set(words.map(stem))) counts.set(stemmed, (counts.get(stemmed) ?? 0) + 1);
+  }
+  return new Set([...counts].filter(([, count]) => count > wordLists.length / 2).map(([stemmed]) => stemmed));
+}
+
 async function findPossibleDuplicates(issue) {
-  const summaryText = issue.fields.summary?.trim();
-  if (!summaryText) return [];
-  // Best-effort only (see plan: Jira full-text search misses paraphrased duplicates).
-  // Never treated as authoritative - only surfaced for a human to judge.
-  const jql = `project = "${JIRA_PROJECT}" AND key != "${issue.key}" AND text ~ "${summaryText.replace(/"/g, '')}"`;
-  const result = await jira(`/rest/api/3/search/jql?jql=${encodeURIComponent(jql)}&fields=summary&maxResults=5`);
-  return result.issues;
+  const title = keywords(issue.fields.summary ?? '');
+  const mine = [...new Set([...title, ...keywords(issueText(issue))])];
+  if (mine.length === 0) return [];
+  // Jira's `text ~ "a b"` needs every term, so one OR per keyword casts the net; the scoring below narrows it.
+  const terms = mine.slice(0, MAX_QUERY_KEYWORDS).map(word => `text ~ "${word}"`);
+  const jql = `project = "${JIRA_PROJECT}" AND key != "${issue.key}" AND (${terms.join(' OR ')})`;
+  const result = await jira(`/rest/api/3/search/jql?jql=${encodeURIComponent(jql)}&fields=summary,description&maxResults=30`);
+
+  const others = result.issues.map(candidate => ({ key: candidate.key, summary: candidate.fields.summary, words: keywords(issueText(candidate)) }));
+  const common = boilerplate([mine, ...others.map(other => other.words)]);
+  const titleStems = new Set(title.map(stem));
+  return others
+    .map(other => {
+      const theirStems = new Set(other.words.map(stem));
+      const shared = mine.filter(word => theirStems.has(stem(word)) && !common.has(stem(word)));
+      const score = shared.reduce((sum, word) => sum + (titleStems.has(stem(word)) ? 2 : 1), 0);
+      return { key: other.key, summary: other.summary, shared, score };
+    })
+    .filter(candidate => candidate.score >= MIN_SCORE)
+    .sort((a, b) => b.score - a.score || a.key.localeCompare(b.key))
+    .slice(0, MAX_CANDIDATES);
 }
 
-async function addLabel(issueKey, label) {
-  await jira(`/rest/api/3/issue/${issueKey}`, {
-    method: 'PUT',
-    body: JSON.stringify({ update: { labels: [{ add: label }] } }),
-  });
-}
-
-async function postComment(issueKey, text) {
-  await jira(`/rest/api/3/issue/${issueKey}/comment`, {
-    method: 'POST',
-    body: JSON.stringify({ body: toAdf(`${AGENT_MARKER}\n${text}`) }),
-  });
+// The only place that writes to Jira, so DRY_RUN covers every write.
+async function applyTriage(issueKey, label, text) {
+  if (DRY_RUN) {
+    console.log(
+      `[dry-run] ${issueKey}: would add label "${label}" and post:\n${[AGENT_MARKER, text].map(line => `    ${line.replaceAll('\n', '\n    ')}`).join('\n')}`
+    );
+    return;
+  }
+  await addLabel(issueKey, label);
+  await postComment(issueKey, text);
 }
 
 async function triageOne(issue) {
@@ -163,29 +158,25 @@ async function triageOne(issue) {
   }
 
   if (await alreadyHandledSinceLastUpdate(issue)) {
-    console.log(`${issue.key}: skipping - already triaged, no changes since`);
-    return;
+    if (!DRY_RUN) {
+      console.log(`${issue.key}: skipping - already triaged, no changes since`);
+      return;
+    }
+    console.log(`${issue.key}: already triaged, no changes since (a real run would skip it; dry run continues)`);
   }
 
-  const duplicates = await findPossibleDuplicates(issue);
-  if (duplicates.length > 0) {
-    const list = duplicates.map(d => `${d.key} ("${d.fields.summary}")`).join(', ');
-    await addLabel(issue.key, 'duplicate-suspected');
-    await postComment(
-      issue.key,
-      [
-        'Triage: duplicate-suspected',
-        'Possible duplicates (best-effort title match, not confirmed - verify before closing):',
-        ...duplicates.map(d => `- ${d.key} ("${d.fields.summary}")`),
-      ].join('\n')
-    );
-    console.log(`${issue.key}: labeled duplicate-suspected (candidates: ${list})`);
-    return;
-  }
-
-  await addLabel(issue.key, 'needs-repro');
-  await postComment(issue.key, ['Triage: needs-repro', 'Duplicates: none found', 'Next step: reproduce against production'].join('\n'));
-  console.log(`${issue.key}: labeled needs-repro`);
+  // Keyword overlap is only a hint, so it never sets `duplicate-suspected`: that label comes from jira-repro.mjs
+  // once an agent has read both tickets and agrees.
+  const related = await findPossibleDuplicates(issue);
+  const relatedLines =
+    related.length > 0
+      ? [
+          'Possibly related (keyword overlap, not confirmed - judge by meaning):',
+          ...related.map(r => `- ${r.key} ("${r.summary}") - shared: ${r.shared.slice(0, MAX_SHOWN_TERMS).join(', ')}`),
+        ]
+      : ['Possibly related: no keyword overlap found'];
+  await applyTriage(issue.key, 'needs-repro', ['Triage: needs-repro', ...relatedLines, 'Next step: reproduce against production'].join('\n'));
+  console.log(`${issue.key}: needs-repro${related.length > 0 ? ` (possibly related: ${related.map(r => r.key).join(', ')})` : ''}`);
 }
 
 async function main() {
