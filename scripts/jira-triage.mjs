@@ -21,7 +21,15 @@ const AGENT_MARKER = '[agent - Claude Sonnet 5]';
 
 // Every label this pipeline can apply. Doubles as the JQL "already triaged"
 // marker - a ticket carrying any of these has been through this script before.
-const PIPELINE_LABELS = ['duplicate-suspected', 'needs-repro', 'repro-confirmed', 'auto-fix-proposed', 'needs-human-review'];
+const PIPELINE_LABELS = [
+  'duplicate-suspected',
+  'needs-repro',
+  'repro-confirmed',
+  'repro-inconclusive',
+  'needs-manual-repro',
+  'auto-fix-proposed',
+  'needs-human-review',
+];
 const PIPELINE_LABELS_JQL = PIPELINE_LABELS.map(l => `"${l}"`).join(', ');
 const AUTH_HEADER = 'Basic ' + Buffer.from(`${JIRA_EMAIL}:${JIRA_API_TOKEN}`).toString('base64');
 

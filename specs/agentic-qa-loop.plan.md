@@ -202,12 +202,50 @@ iOS browser, different layout entirely) are out of scope — a mobile-reported b
 actually be reproduced by this pipeline yet. Noted so it isn't rediscovered by surprise later; not solved as
 part of this plan.
 
-- [ ] From a ticket's (possibly incomplete) description, reconstruct candidate repro steps
-- [ ] Run candidate steps via Playwright MCP against production (`BASE_URL`), respecting the no-destructive-
-      action constraints above
-- [ ] Three explicit outcomes, each a distinct label + attached evidence (trace/screenshot/log):
-      reproduced / not-reproduced / inconclusive (env or flake noise)
-- [ ] "Not reproduced" never becomes "not a bug" automatically — routes to `needs-manual-repro`
+**Interactive-only, unlike Stage 2 — not an oversight, an architectural gap.** `scripts/jira-repro.mjs` only
+covers the deterministic tail end (upload evidence, post comment, apply the outcome label - plain Jira REST
+calls, same shape as `jira-triage.mjs`). The actual content of this stage - reading a ticket's free-text
+description and turning it into concrete steps, then driving Playwright MCP against production and reacting to
+whatever actually shows up (e.g. picking a different wallpaper card after one turned out to be paid, not free) -
+is agent judgment, not scriptable logic. A plain `workflow_dispatch` Node job has no model behind it to make
+those calls, so unlike Stage 2 this cannot move into CI as-is. Moving it there would mean standing up an actual
+agent runner in CI (Claude Agent SDK or the Claude API driving Playwright MCP headless, with its own
+`ANTHROPIC_API_KEY` secret, its own error/timeout handling, real token cost per run) - a distinct, non-trivial
+piece of work, not a missing config value. Given the validation gates already require a human on every
+not-reproduced/inconclusive result regardless, the payoff of full CI automation here is smaller than it was for
+Stage 2's triage. Not decided yet whether/when to build that runner - until then, this stage runs from an
+interactive agent session (as it did for ZED-2), the same interactive-vs-automated split already noted for
+`CURRENTS_API_KEY` and the interactive Jira MCP idea in Stage 2.
+
+- [x] From a ticket's (possibly incomplete) description, reconstruct candidate repro steps — done by an agent
+      interactively (judgment over free text, not a deterministic script): read the ticket via the Jira API,
+      turned the description into concrete steps grounded in the actual site/POM
+- [x] Run candidate steps via Playwright MCP against production (`BASE_URL`), respecting the no-destructive-
+      action constraints above — done via `planner_setup_page` + the raw `browser_*` MCP tools (navigate, resize,
+      click, snapshot, screenshot), not a `.spec.ts` file, since this is a one-off exploratory repro, not a
+      permanent regression test (that's Stage 4's job, once a bug is confirmed)
+- [x] Three explicit outcomes, each a distinct label + attached evidence (trace/screenshot/log):
+      reproduced / not-reproduced / inconclusive (env or flake noise) — implemented in `scripts/jira-repro.mjs`
+      (`OUTCOME_LABELS`), which also handles the actual Jira attachment upload (multipart, `X-Atlassian-Token:
+    no-check` — different from the plain-JSON calls `jira-triage.mjs` makes) that Stage 2 didn't need
+- [x] "Not reproduced" never becomes "not a bug" automatically — routes to `needs-manual-repro` — `not-reproduced`
+      maps directly to the `needs-manual-repro` label in `OUTCOME_LABELS`, never to a standalone "confirmed not a
+      bug" state; the script never touches `status`, same rule as Stage 2
+
+**Verified end-to-end on real data 2026-09-29 (ZED-2):** reconstructed steps from ZED-2's description ("open a
+wallpaper detail page on mobile, tap Download, an ad interstitial covers the button and can't be dismissed"),
+ran them for real via Playwright MCP at a 390x844 viewport against `zedge.net`. First attempt picked a wallpaper
+that turned out to carry a price ("10" credits, not actually free) and hit an unrelated "Unlock and Support the
+Artist" dialog — corrected by re-picking via the Price=Free filter, same definition of "Free" the test suite
+already uses (`WallpapersListPage.cardsFree`). On a confirmed-free wallpaper: tapping Download did show an ad
+interstitial ("Preparing your download", AD placeholder, 6s countdown) matching the reported symptom, but it
+auto-dismissed on its own and the download completed successfully - not reproduced as "blocks and can't be
+dismissed." Recorded via `scripts/jira-repro.mjs`: outcome `not-reproduced`, two screenshots uploaded as real
+Jira attachments, labeled `needs-manual-repro` (not treated as "not a bug" - this suite only emulates a mobile
+_viewport size_ in desktop Chromium, not a real mobile OS/browser/ad SDK, so a real device could still genuinely
+differ; this is exactly the Stage 3 "known gap" below, now hit in practice rather than just anticipated).
+Confirmed via a direct Jira API read afterward (label present, status untouched at `To Do`), not just the CLI's
+own output.
 
 **Output of this stage:** a ticket that reaches a human already has an attempted repro with evidence attached,
 cutting the manual reproduction step most of the time.
@@ -285,6 +323,9 @@ comments were you and which were the agent, without needing a separate service a
       check in the Currents dashboard itself remains open (needs manual login, can't be checked via API/MCP)
 - [x] Stage 2: Jira triage script built and verified end-to-end on real data (real CI run, real ticket, real
       write path, idempotency confirmed)
-- [ ] Stage 3: reproduction flow (production, no staging)
+- [~] Stage 3: reproduction flow (production, no staging) — mechanism built and verified end-to-end on ZED-2
+  (real repro attempt, real Jira attachments, correct `needs-manual-repro` routing); not fully checked off
+  since it's only been exercised on one ticket so far, and the mobile-viewport-vs-real-device gap it just
+  surfaced is a real limitation, not a solved problem
 - [ ] Stage 4: test/fix generation via existing skills
 - [ ] Stage 5: review/feedback loop + dashboard
