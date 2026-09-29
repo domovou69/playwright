@@ -5,6 +5,7 @@ import { test, expect } from '../../fixtures/test';
 import type { AppPageObjects } from '../../pages/AppPageObjects';
 import type { Locator } from '@playwright/test';
 import type { SortByType } from '../../src/types/types';
+import { clearDownloadFolder } from '../../src/utils/helper';
 
 type CloseMethod = 'Cancel button' | 'Escape key';
 
@@ -43,6 +44,15 @@ async function pickPaidCardSkippingTen(app: AppPageObjects): Promise<{ card: Loc
 }
 
 test.describe('Download and Purchase (Guest)', { tag: ['@wallpapers', '@guest', '@smoke'] }, () => {
+  test.beforeAll('Clear downloads folder', async () => {
+    await clearDownloadFolder();
+  });
+
+  test('WP-28 Free wallpaper downloads after the ad', { tag: ['@download'] }, async ({ app }) => {
+    await app.wallpapersListPage.open();
+    await app.wallpapersListPage.downloadFreeWallpapers('free', 1);
+  });
+
   for (const variant of variants) {
     test(`WP-30 ${variant.name} premium wallpaper shows its price and the purchase gate`, async ({ app, page }) => {
       await app.wallpapersListPage.open();

@@ -99,9 +99,10 @@ Constraints:
 
 #### 2.1. WP-02 [P1][Covered - TC-01][@smoke] Search by single and multi-word keywords
 
-**File:** `tests/wallpappers/wallpapers.spec.ts`
+**File:** `tests/wallpappers/wallpapers-search.spec.ts`
 
-Already automated. Keep as is.
+Already automated. Moved here from the old `wallpapers.spec.ts` (deleted) to align with the rest of this
+section's naming/location convention - behavior unchanged.
 
 #### 2.2. WP-03 [P2][New][@regression] Search with no matches shows the empty state
 
@@ -145,9 +146,10 @@ Already automated. Keep as is.
 
 #### 3.1. WP-07 [P1][Covered - TC-02][@smoke] Auto-load on scroll preserves previous results
 
-**File:** `tests/wallpappers/wallpapers.spec.ts`
+**File:** `tests/wallpappers/wallpapers-scroll.spec.ts`
 
-Already automated (scrolls until "Load more" appears). Keep as is.
+Already automated (scrolls until "Load more" appears). Moved here from the old `wallpapers.spec.ts` (deleted)
+to sit alongside WP-08, which covers the rest of the same scroll behavior - behavior unchanged.
 
 #### 3.2. WP-08 [P2][Extends TC-02][@regression] "Load more" loads more cards and re-enables auto-loading
 
@@ -324,9 +326,10 @@ Data-driven, one test per pair, each from unfiltered /wallpapers:
 
 #### 7.1. WP-28 [P1][Covered - TC-10][@smoke][@download] Free wallpaper downloads after the ad
 
-**File:** `tests/wallpappers/wallpapers.spec.ts`
+**File:** `tests/wallpappers/wallpapers-purchase.spec.ts`
 
-Already automated. Keep as is.
+Already automated. Moved here from the old `wallpapers.spec.ts` (deleted) to sit alongside the rest of the
+Download/Purchase section - behavior unchanged.
 
 #### 7.2. WP-30 [P1][Replaces TC-11][@smoke] Premium wallpaper shows its price and the purchase gate
 

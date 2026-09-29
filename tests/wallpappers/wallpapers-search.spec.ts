@@ -8,6 +8,21 @@ test.describe('Search', () => {
     await app.wallpapersListPage.open();
   });
 
+  test('WP-02 Search by single and multi-word keywords', { tag: ['@wallpapers', '@guest', '@smoke'] }, async ({ app }) => {
+    const searchTextSingleArr = ['sun', 'anime', 'space', 'messi', 'car', 'wall-e'];
+    const searchTextMultipleArr = ['stone river', 'city tower car', 'space sun light'];
+
+    for (const text of searchTextSingleArr) {
+      await app.wallpapersListPage.searchAndWaitForUpdate(text, 'Wallpapers');
+      await app.wallpapersListPage.validateWallpapersToHaveLabels(text);
+    }
+
+    for (const textMultiple of searchTextMultipleArr) {
+      await app.wallpapersListPage.searchAndWaitForUpdate(textMultiple, 'Wallpapers');
+      await app.wallpapersListPage.validateWallpapersToHaveLabels(textMultiple);
+    }
+  });
+
   test('WP-03 Search with no matches shows the empty state', { tag: ['@wallpapers', '@guest', '@regression'] }, async ({ app, page }) => {
     // 1. Search (All filter) for a nonsense term, e.g. zzzxxxqqqnonexistent123456
     // Note: the plan's "Wallpapers filter" wording matches this page (/find/<term>, filter "All"),

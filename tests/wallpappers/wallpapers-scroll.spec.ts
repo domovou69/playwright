@@ -9,6 +9,10 @@ test.describe('Infinite Scroll and Load More', () => {
     await app.wallpapersListPage.open();
   });
 
+  test('WP-07 Auto-load on scroll preserves previous results', { tag: ['@wallpapers', '@guest', '@smoke'] }, async ({ app }) => {
+    await app.wallpapersListPage.validateAutoLoadImagesOnScrollDown();
+  });
+
   test('WP-08 "Load more" loads more cards', { tag: ['@wallpapers', '@guest', '@regression'] }, async ({ app }) => {
     const { wallpapersListPage } = app;
 
