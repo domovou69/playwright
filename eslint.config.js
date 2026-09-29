@@ -1,11 +1,12 @@
 // @ts-check
+import { defineConfig } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 import playwright from 'eslint-plugin-playwright';
 import { tags } from './src/utils/tags.ts';
 
 const allowedTagValues = Object.values(tags).flat();
 
-export default tseslint.config(
+export default defineConfig(
   {
     ignores: ['node_modules', 'test-results', 'playwright-report', 'downloads', 'dist', 'scripts'],
   },
