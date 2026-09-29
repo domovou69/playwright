@@ -27,21 +27,6 @@ test.describe('List Page', { tag: ['@wallpapers', '@guest'] }, () => {
     // expect: every href matches ^/wallpapers/[a-f0-9-]{36}$
     // expect: every title is non-empty and equals the aria-label
     // expect: every premium card (crown badge) has a digits-only price badge; free cards have no price badge
-    const cardCount = await app.wallpapersListPage.cardsAll.count();
-    const cards = Array.from({ length: Math.min(20, cardCount) }, (_, i) => app.wallpapersListPage.cardsAll.nth(i));
-    expect(cards.length).toBeGreaterThan(0);
-
-    let premiumWithPriceCount = 0;
-    for (const card of cards) {
-      await app.wallpapersListPage.validateCommonWallpaper(card);
-
-      if (await app.wallpapersListPage.cardHasPriceBadge(card)) {
-        await app.wallpapersListPage.validatePremiumWallpaper(card);
-        premiumWithPriceCount++;
-      } else {
-        await expect(card.locator('div[class*="card-footer"]')).not.toBeAttached();
-      }
-    }
-    expect(premiumWithPriceCount).toBeGreaterThan(0);
+    await app.wallpapersListPage.validateFirstCards(20);
   });
 });

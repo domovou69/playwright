@@ -188,6 +188,31 @@ export class WallpapersListPage extends HeaderPage {
     }
   }
 
+  async validateFirstCards(limit: number) {
+    const count = await this.cardsAll.count();
+    const cards = Array.from({ length: Math.min(limit, count) }, (_, i) => this.cardsAll.nth(i));
+    expect(cards.length).toBeGreaterThan(0);
+
+    let premiumWithPriceCount = 0;
+    for (const card of cards) {
+      await this.validateCommonWallpaper(card);
+
+      if (await this.cardHasPriceBadge(card)) {
+        await this.validatePremiumWallpaper(card);
+        premiumWithPriceCount++;
+      } else {
+        await expect(card.locator('div[class*="card-footer"]')).not.toBeAttached();
+      }
+    }
+    expect(premiumWithPriceCount).toBeGreaterThan(0);
+  }
+
+  async validateAllCardsPremiumWithPrice() {
+    const allCount = await this.cardsAll.count();
+    expect(allCount).toBeGreaterThan(0);
+    await expect(this.cardsPremiumWithPrice).toHaveCount(allCount);
+  }
+
   async validateWallpapersToHaveLabels(label: string | string[]) {
     const CARDS = await this.cardsAll.all();
 

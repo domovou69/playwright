@@ -2,6 +2,7 @@
 // seed: tests/seed.spec.ts
 
 import { test, expect } from '../../fixtures/test';
+import type { Page } from '@playwright/test';
 import type { AppPageObjects } from '../../pages/AppPageObjects';
 import type { WallpaperCategoryType, TagsOptionType, ColorOptionType, PriceOptionType, SortByType } from '../../src/types/types';
 
@@ -28,56 +29,35 @@ type SingleFilterCase = {
   filter: FilterName;
   option: string;
   urlContains: RegExp;
-  extraInvariant?: 'noPriceBadge' | 'allPremiumWithPrice';
 };
 
 const singleFilterCases: SingleFilterCase[] = [
   { filter: 'Category', option: 'Nature', urlContains: /categories=NATURE/ },
   { filter: 'Tag', option: 'fall', urlContains: /tags=fall/ },
   { filter: 'Color', option: 'Pink', urlContains: /colors=pink/ },
-  { filter: 'Price', option: 'Free', urlContains: /free=true/, extraInvariant: 'noPriceBadge' },
-  { filter: 'Price', option: 'Paid', urlContains: /paid=true/, extraInvariant: 'allPremiumWithPrice' },
   { filter: 'Sort by', option: 'Most popular', urlContains: /sort=POPULAR/ },
 ];
 
-type FilterStep = {
-  filter: FilterName;
-  option: string;
-  urlContains: RegExp;
-};
+const freeFilter: SingleFilterCase = { filter: 'Price', option: 'Free', urlContains: /free=true/ };
+const paidFilter: SingleFilterCase = { filter: 'Price', option: 'Paid', urlContains: /paid=true/ };
 
-type PairwiseFilterCase = {
-  name: string;
-  steps: [FilterStep, FilterStep];
-  extraInvariant: 'noPriceBadge' | 'hrefsChangeEachStep' | 'pricesNonIncreasing';
-};
+// Applies one filter and checks the URL; returns the card hrefs before and after so a caller can
+// assert what changed.
+async function validateFilterApplied(app: AppPageObjects, page: Page, current: SingleFilterCase) {
+  const hrefsBefore = await app.wallpapersListPage.getCardsHref();
+  await applyFilter(app, current.filter, current.option);
+  await expect(page).toHaveURL(current.urlContains);
 
-const pairwiseFilterCases: PairwiseFilterCase[] = [
-  {
-    name: 'Category=Anime + Price=Free',
-    steps: [
-      { filter: 'Category', option: 'Anime', urlContains: /categories=ANIME/ },
-      { filter: 'Price', option: 'Free', urlContains: /free=true/ },
-    ],
-    extraInvariant: 'noPriceBadge',
-  },
-  {
-    name: 'Color=Red + Tag=halloween',
-    steps: [
-      { filter: 'Color', option: 'Red', urlContains: /colors=red/ },
-      { filter: 'Tag', option: 'halloween', urlContains: /tags=halloween/ },
-    ],
-    extraInvariant: 'hrefsChangeEachStep',
-  },
-  {
-    name: 'Price=Paid + Sort by=Price: High to Low',
-    steps: [
-      { filter: 'Price', option: 'Paid', urlContains: /paid=true/ },
-      { filter: 'Sort by', option: 'Price: High to Low', urlContains: /sort=PRICE_DESC/ },
-    ],
-    extraInvariant: 'pricesNonIncreasing',
-  },
-];
+  await app.wallpapersListPage.waitForCardsToUpdate(hrefsBefore);
+  const hrefsAfter = await app.wallpapersListPage.getCardsHref();
+  expect(hrefsAfter).not.toEqual(hrefsBefore);
+  expect(hrefsAfter.length).toBeGreaterThan(0);
+}
+
+async function validateStepApplied(app: AppPageObjects, page: Page, step: SingleFilterCase) {
+  await applyFilter(app, step.filter, step.option);
+  await expect(page).toHaveURL(step.urlContains);
+}
 
 test.describe('Filtering', { tag: ['@wallpapers', '@guest'] }, () => {
   test.beforeEach('Open unfiltered /wallpapers', async ({ app }) => {
@@ -86,29 +66,23 @@ test.describe('Filtering', { tag: ['@wallpapers', '@guest'] }, () => {
 
   for (const current of singleFilterCases) {
     test(`WP-19 ${current.filter}: ${current.option} filter applied alone updates results and URL`, { tag: ['@smoke'] }, async ({ app, page }) => {
-      // 1. Record baseline card hrefs, apply the filter option
-      const hrefsBefore = await app.wallpapersListPage.getCardsHref();
-      await applyFilter(app, current.filter, current.option);
-
-      await expect(page).toHaveURL(current.urlContains);
-
-      await app.wallpapersListPage.waitForCardsToUpdate(hrefsBefore);
-      const hrefsAfter = await app.wallpapersListPage.getCardsHref();
-      expect(hrefsAfter).not.toEqual(hrefsBefore);
-      expect(hrefsAfter.length).toBeGreaterThan(0);
-
-      // extra invariant, per case
-      if (current.extraInvariant === 'noPriceBadge') {
-        // no card has a price badge
-        await app.wallpapersListPage.validateCardExistance('Paid', false);
-      } else if (current.extraInvariant === 'allPremiumWithPrice') {
-        // every card has a crown and a price badge
-        const allCount = await app.wallpapersListPage.cardsAll.count();
-        expect(allCount).toBeGreaterThan(0);
-        await expect(app.wallpapersListPage.cardsPremiumWithPrice).toHaveCount(allCount);
-      }
+      await validateFilterApplied(app, page, current);
     });
   }
+
+  test('WP-19 Price: Free filter applied alone updates results and URL', { tag: ['@smoke'] }, async ({ app, page }) => {
+    await validateFilterApplied(app, page, freeFilter);
+
+    // no card has a price badge
+    await app.wallpapersListPage.validateCardExistance('Paid', false);
+  });
+
+  test('WP-19 Price: Paid filter applied alone updates results and URL', { tag: ['@smoke'] }, async ({ app, page }) => {
+    await validateFilterApplied(app, page, paidFilter);
+
+    // every card has a crown and a price badge
+    await app.wallpapersListPage.validateAllCardsPremiumWithPrice();
+  });
 
   test('WP-18 Reset All clears every active filter', { tag: ['@smoke'] }, async ({ app, page }) => {
     // 1. On unfiltered /wallpapers
@@ -181,33 +155,33 @@ test.describe('Filtering', { tag: ['@wallpapers', '@guest'] }, () => {
     await app.wallpapersListPage.filtersBar.closeFilter();
   });
 
-  for (const current of pairwiseFilterCases) {
-    test(`WP-21 Pairwise filter combinations: ${current.name}`, { tag: ['@regression'] }, async ({ app, page }) => {
-      // Apply both filters in sequence; check the URL after each, and hrefs after each when that's
-      // this case's invariant.
-      let previousHrefs = await app.wallpapersListPage.getCardsHref();
-      for (const step of current.steps) {
-        await applyFilter(app, step.filter, step.option);
-        await expect(page).toHaveURL(step.urlContains);
+  test('WP-21 Pairwise filter combinations: Category=Anime + Price=Free', { tag: ['@regression'] }, async ({ app, page }) => {
+    await validateStepApplied(app, page, { filter: 'Category', option: 'Anime', urlContains: /categories=ANIME/ });
+    await validateStepApplied(app, page, freeFilter);
 
-        if (current.extraInvariant === 'hrefsChangeEachStep') {
-          await app.wallpapersListPage.waitForCardsToUpdate(previousHrefs);
-          const hrefsAfterStep = await app.wallpapersListPage.getCardsHref();
-          expect(hrefsAfterStep).not.toEqual(previousHrefs);
-          previousHrefs = hrefsAfterStep;
-        }
-      }
+    // no card has a price badge
+    await app.wallpapersListPage.validateCardExistance('Paid', false);
+  });
 
-      // extra invariant, after both filters
-      if (current.extraInvariant === 'noPriceBadge') {
-        // no card has a price badge
-        await app.wallpapersListPage.validateCardExistance('Paid', false);
-      } else if (current.extraInvariant === 'pricesNonIncreasing') {
-        // prices of the first 10 cards are non-increasing
-        await app.wallpapersListPage.expectCardPricesNonIncreasing();
-      }
-    });
-  }
+  test('WP-21 Pairwise filter combinations: Color=Red + Tag=halloween', { tag: ['@regression'] }, async ({ app, page }) => {
+    const hrefsBefore = await app.wallpapersListPage.getCardsHref();
+    await validateStepApplied(app, page, { filter: 'Color', option: 'Red', urlContains: /colors=red/ });
+    await app.wallpapersListPage.waitForCardsToUpdate(hrefsBefore);
+    const hrefsAfterColor = await app.wallpapersListPage.getCardsHref();
+    expect(hrefsAfterColor).not.toEqual(hrefsBefore);
+
+    await validateStepApplied(app, page, { filter: 'Tag', option: 'halloween', urlContains: /tags=halloween/ });
+    await app.wallpapersListPage.waitForCardsToUpdate(hrefsAfterColor);
+    expect(await app.wallpapersListPage.getCardsHref()).not.toEqual(hrefsAfterColor);
+  });
+
+  test('WP-21 Pairwise filter combinations: Price=Paid + Sort by=Price: High to Low', { tag: ['@regression'] }, async ({ app, page }) => {
+    await validateStepApplied(app, page, paidFilter);
+    await validateStepApplied(app, page, { filter: 'Sort by', option: 'Price: High to Low', urlContains: /sort=PRICE_DESC/ });
+
+    // prices of the first 10 cards are non-increasing
+    await app.wallpapersListPage.expectCardPricesNonIncreasing();
+  });
 
   test('WP-34 Price range From/To limits card prices', { tag: ['@regression'] }, async ({ app, page }) => {
     // 1. Open the Price filter, set From = 50, To = 500
