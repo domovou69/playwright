@@ -19,7 +19,7 @@ or the POM also a full headless run (`npm test`) and `npm run verify -- --files=
 - Skill `playwright-best-practices` stays vendored (diffs visible), trimmed to the relevant files. A plugin would not
   change when it triggers (skills load by description match either way). To make it a default: a line in `CLAUDE.md`
   plus `skills:` in the generator/healer agent frontmatter (preloads the full skill into the subagent).
-- `force: true` clicks stay until the cookie experiment proves them unnecessary (without them 20 of 34 tests failed).
+- `force: true` clicks stay until the cookie experiment proves them unnecessary (without them 20 of 34 tests failed). Outcome: the banner was not the cause, see step 7.
 - Locator quality pass and conditional-logic cleanup in tests are separate later steps, not part of this batch.
 
 ## Steps
@@ -79,11 +79,15 @@ or the POM also a full headless run (`npm test`) and `npm run verify -- --files=
 
 ### 7. Cookie banner experiment (time-boxed)
 
-- [ ] Try a Didomi consent cookie via `context.addCookies` / `addInitScript` in the fixture so the banner never appears
-- [ ] If the banner is gone: drop the `addLocatorHandler`, `dismissCookieBanner` and the banner wait in `open()`;
-      then try removing `force: true` (pages + spec); keep only what is stable in `verify` x3 and a full run
-- [ ] If not stable: revert, keep the current three-part mechanism, record the finding here
-- [ ] `gotoWallpapersWithRetry`: log the reason for every retry (test annotation)
+- [x] Try a Didomi consent cookie via `context.addCookies` / `addInitScript` in the fixture so the banner never appears
+      (not testable: from this machine Didomi reports `shouldConsentBeCollected() === false`, the banner never shows, only
+      `didomi_dcs` is set; the banner race can only be seen where Didomi collects consent, e.g. CI)
+- [x] The banner-removal branch is dropped: the `addLocatorHandler`, `dismissCookieBanner` and the banner wait in `open()` stay
+      as they are (they protect the CI run, which cannot be exercised locally)
+- [x] `force: true` (11 in pages, 1 in a spec) removed: they were never about the banner. Without them the same 20 tests fail
+      with no banner at all; the cause is the closing click on an open filter dropdown (Radix makes the page inert and the popup
+      overlays the chip). Fix: `WallpapersListPage.closeFilter()` (no arguments) presses Escape and checks that no dialog is left; `HeaderPage.clickSearchFilter` likewise
+- [x] `gotoWallpapersWithRetry`: every retry adds a `navigation-retry` test annotation with the reason (error screen or no title)
 
 ### 8. Split the POM
 
@@ -136,3 +140,10 @@ or the POM also a full headless run (`npm test`) and `npm run verify -- --files=
   (`require-tags`, `valid-test-tags`) is the only enforcement. A custom `check-tags` script that required exactly one level was
   added and then removed at the owner's request.
   `ci.yml`: PR runs `--grep @smoke`, push to main runs everything; `test:smoke` npm script added. Test titles unchanged.
+- 2026-09-29: step 7 done, with a different finding than expected. The banner is not shown from this machine (Didomi does not collect
+  consent for this region), yet without `force: true` the same 20 of 34 tests failed, so the banner was never the cause: the clicks
+  closing an open filter dropdown hit the inert page / popup overlay. `closeFilter` (Escape) replaced all 12 `force: true`; full run
+  34/34 and `verify` x3 on all 33 specs stable (3/3), lint warnings 25 -> 14. The consent-cookie idea could not be tested locally, so
+  the banner handling (`addLocatorHandler`, `dismissCookieBanner`, banner wait in `open()`) stays untouched. Retry reasons of
+  `gotoWallpapersWithRetry` are now test annotations (the branch was not triggered in the runs, only type-checked).
+- 2026-09-29: `closeFilter` made argument-free: Escape closes the topmost open filter dropdown or drawer, then it checks that no `dialog` remains. `verify` x3 on all 33 specs stable again.

@@ -178,8 +178,7 @@ test.describe('Filtering', { tag: ['@wallpapers', '@guest'] }, () => {
     expect(colorsAfterUncheck).toContain('white');
 
     // Close filter
-    await app.wallpapersListPage.filterColor.click({ force: true });
-    await expect(app.wallpapersListPage.colorFilterDialog).not.toBeAttached();
+    await app.wallpapersListPage.closeFilter();
   });
 
   for (const current of pairwiseFilterCases) {

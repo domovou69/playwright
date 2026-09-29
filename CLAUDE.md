@@ -40,7 +40,7 @@ Before writing or editing a test, invoke the `playwright-best-practices` skill. 
 - Open any `/wallpapers` URL through `app.wallpapersListPage.open(path)`, not `page.goto()` (the cookie banner race).
 - Locators and helpers live in `pages/`. Search for an existing one before adding a new one. Assertions that belong to a
   component go in its `validate*` methods.
-- No `waitForTimeout`, no new `force: true`, no conditionals in a test body. Data-driven variants carry plain data only,
+- No `waitForTimeout`, no `force: true` (close an open filter dropdown with `closeFilter()`, i.e. Escape), no conditionals in a test body. Data-driven variants carry plain data only,
   never functions or branches.
 - A test ID and title (`WP-XX ...`) is never renamed; only tags are added or changed.
 - Tags (`src/utils/tags.ts`): `@wallpapers` and `@guest` go on the `describe`, never on a test. `@smoke` marks a P1 scenario

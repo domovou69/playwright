@@ -1,4 +1,4 @@
-import { expect, Locator, Page } from '@playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
 import { HeaderPage } from './HeaderPage';
 import { BodyHeaderPage } from './MainHeaderPage';
 import { removeSpaces, dismissCookieBanner } from '../src/utils/helper';
@@ -126,6 +126,10 @@ export class WallpapersListPage extends HeaderPage {
         await this.page.waitForTimeout(100);
       }
       if (await this.wallpaperTitle.isVisible()) return;
+      const reason = (await appWallpaperLoadError.isVisible())
+        ? 'Next.js client-side error screen'
+        : `no wallpaper title within ${TIMEOUTS.action} ms`;
+      test.info().annotations.push({ type: 'navigation-retry', description: `${path} attempt ${attempt + 1}: ${reason}` });
       if (attempt === retries) throw new Error(`${path} failed to render after ${retries + 1} attempts`);
     }
   }
@@ -369,6 +373,13 @@ export class WallpapersListPage extends HeaderPage {
     }
   }
 
+  // Closes whichever filter dropdown or drawer is open. Clicking the chip again does not work: the page behind an open
+  // dropdown is inert and its popup covers the chip. Escape closes the topmost layer.
+  async closeFilter() {
+    await this.page.keyboard.press('Escape');
+    await expect(this.page.getByRole('dialog')).not.toBeAttached();
+  }
+
   async waitForFilterToBeApplied(filterName: string) {
     const appliedFilterBtn = this.page.locator('button', { hasText: new RegExp(filterName, 'i') });
     await appliedFilterBtn.waitFor({ state: 'visible' });
@@ -387,16 +398,14 @@ export class WallpapersListPage extends HeaderPage {
     }
 
     // Close filter
-    await this.filterCategory.click({ force: true });
-    await expect(this.categoryFilterDialog).not.toBeAttached();
+    await this.closeFilter();
   }
 
   async isCategorySelected(category: WallpaperCategoryType): Promise<boolean> {
     await this.filterCategory.click();
     await expect(this.categoryFilterDialog).toBeVisible();
     const isSelected = (await this.categoryFilterDialog.getByRole('option', { name: category }).getAttribute('aria-checked')) === 'true';
-    await this.filterCategory.click({ force: true });
-    await expect(this.categoryFilterDialog).not.toBeAttached();
+    await this.closeFilter();
     return isSelected;
   }
 
@@ -433,16 +442,14 @@ export class WallpapersListPage extends HeaderPage {
     }
 
     // Close filter
-    await this.filterColor.click({ force: true });
-    await expect(this.colorFilterDialog).not.toBeAttached();
+    await this.closeFilter();
   }
 
   async isColorSelected(color: ColorOptionType): Promise<boolean> {
     await this.filterColor.click();
     await expect(this.colorFilterDialog).toBeVisible();
     const isSelected = (await this.colorFilterDialog.getByRole('option', { name: color }).getAttribute('aria-checked')) === 'true';
-    await this.filterColor.click({ force: true });
-    await expect(this.colorFilterDialog).not.toBeAttached();
+    await this.closeFilter();
     return isSelected;
   }
 
@@ -460,8 +467,7 @@ export class WallpapersListPage extends HeaderPage {
     }
 
     // Close filter
-    await this.filterTag.click({ force: true });
-    await expect(tagDialog).not.toBeAttached();
+    await this.closeFilter();
   }
 
   async filterByPrice(prices: PriceOptionType[]) {
@@ -477,8 +483,7 @@ export class WallpapersListPage extends HeaderPage {
     }
 
     // Close filter
-    await this.filterPrice.click({ force: true });
-    await expect(this.priceFilterDialog).not.toBeAttached();
+    await this.closeFilter();
   }
 
   async setPriceRange(from: number, to: number) {
@@ -498,8 +503,7 @@ export class WallpapersListPage extends HeaderPage {
     await expect(this.page).toHaveURL(new RegExp(`maxPrice=${to}`));
 
     // Close filter
-    await this.filterPrice.click({ force: true });
-    await expect(this.priceFilterDialog).not.toBeAttached();
+    await this.closeFilter();
   }
 
   async filterBySortBy(option: SortByType) {
@@ -517,8 +521,7 @@ export class WallpapersListPage extends HeaderPage {
     await this.filterSortBy.click();
     await expect(this.sortByFilterDialog).toBeVisible();
     const isSelected = (await this.sortByFilterDialog.getByRole('menuitemradio', { name: option }).getAttribute('aria-checked')) === 'true';
-    await this.filterSortBy.click({ force: true });
-    await expect(this.sortByFilterDialog).not.toBeAttached();
+    await this.closeFilter();
     return isSelected;
   }
 
@@ -526,8 +529,7 @@ export class WallpapersListPage extends HeaderPage {
     await this.filterPrice.click();
     await expect(this.priceFilterDialog).toBeVisible();
     const value = await this.priceFilterDialog.getByRole('menuitem', { name: 'From' }).inputValue();
-    await this.filterPrice.click({ force: true });
-    await expect(this.priceFilterDialog).not.toBeAttached();
+    await this.closeFilter();
     return value;
   }
 
