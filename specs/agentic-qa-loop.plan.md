@@ -142,7 +142,9 @@ running.
       job than standing up an MCP server. An interactive Jira MCP (for me to browse/query tickets
       conversationally with the user, distinct from the automated pipeline) remains a separate, optional,
       not-yet-done addition — same local-vs-automated split already noted for `CURRENTS_API_KEY`
-- [x] Label vocabulary defined and implemented as `PIPELINE_LABELS` in `scripts/jira-triage.mjs`:
+- [x] Label vocabulary defined and implemented as `STATE_LABELS` in `scripts/jira-common.mjs` (one state at a time: setting one
+      removes the other state labels, labels added by people are never touched; `flaky-unconfirmed` is a separate flag that
+      `verify` sets on a flaky `@BUG` test and clears once the ticket's tests are all stable):
       `duplicate-suspected`, `needs-repro`, `repro-confirmed`, `auto-fix-proposed`, `needs-human-review`. A
       ticket with none of these is implicitly "needs-triage" (no separate label needed for that state — absence
       of a pipeline label already means it hasn't been through this pipeline)

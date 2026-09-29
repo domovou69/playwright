@@ -155,3 +155,4 @@ or the POM also a full headless run (`npm test`) and `npm run verify -- --files=
   stable (previous entry); after: full run 34/34, `verify` x3 on all 33 specs 3/3, `tsc` clean, lint 14 warnings (unchanged).
 - 2026-09-29: `FiltersPanel` renamed to `FilterDrawer` (`app.wallpapersListPage.filterDrawer`), as "panel" is too generic; the scroll spec no longer destructures `app`.
 - 2026-09-29: conditional logic removed from WP-01/19/21 (linear tests, `validate*` helpers), npm 12 installed in CI, `skills:` preload confirmed in generator and healer (SKILL.md body present, references read on demand), custom dashboard dropped.
+- 2026-09-30: `getCardsHref` reads hrefs in one `evaluateAll` (per-card waits hung tests in CI); pipeline labels became a state machine (`setStateLabel` removes the other state labels, `verify` clears `flaky-unconfirmed` when the ticket's tests turn stable).

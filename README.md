@@ -56,7 +56,8 @@ they get reviewed.
    branch; a human reviews the PR and merges.
 5. **Self-check.** `npm run verify` before review; flaky tests get the `flaky-unconfirmed` label on their ticket.
 
-Automation only comments and labels. It never changes ticket status and never closes anything.
+Automation only comments and labels. A ticket carries one pipeline state label at a time (setting a new one removes the previous
+state); labels added by people are never removed. It never changes ticket status and never closes anything.
 
 ## Jira scripts
 

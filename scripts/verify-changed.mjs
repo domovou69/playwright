@@ -12,7 +12,7 @@
 
 import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
-import { addLabel, hasJiraEnv } from './jira-common.mjs';
+import { addLabel, hasJiraEnv, removeLabel } from './jira-common.mjs';
 
 const REPORT_FILE = 'test-results/verify-report.json';
 const FLAKY_LABEL = 'flaky-unconfirmed';
@@ -56,14 +56,16 @@ function collectSpecs(suite, found = []) {
   return found;
 }
 
-async function labelFlaky(issueKey) {
+async function syncFlakyLabel(issueKey, flaky) {
   if (!hasJiraEnv()) {
-    console.log(`${issueKey}: JIRA_* env vars not set - not labeled ${FLAKY_LABEL}`);
+    console.log(`${issueKey}: JIRA_* env vars not set - ${FLAKY_LABEL} not updated`);
     return;
   }
-  await addLabel(issueKey, FLAKY_LABEL);
-  console.log(`${issueKey}: labeled ${FLAKY_LABEL}`);
+  await (flaky ? addLabel : removeLabel)(issueKey, FLAKY_LABEL);
+  console.log(`${issueKey}: ${flaky ? 'labeled' : 'cleared'} ${FLAKY_LABEL}`);
 }
+
+const bugTickets = tests => new Set(tests.flatMap(r => r.tags.map(tag => /^BUG:([A-Z]+-\d+)$/.exec(tag)?.[1]).filter(Boolean)));
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
@@ -98,9 +100,12 @@ async function main() {
     console.log(`  ${r.passed}/${r.total} ${verdict.padEnd(7)} ${r.title}`);
   }
 
-  // The ticket comes from the test's own @BUG:<KEY> tag - a flaky test without one has no ticket to label.
-  const tickets = new Set(flaky.flatMap(r => r.tags.map(tag => /^BUG:([A-Z]+-\d+)$/.exec(tag)?.[1]).filter(Boolean)));
-  for (const issueKey of tickets) await labelFlaky(issueKey);
+  // The ticket comes from the test's own @BUG:<KEY> tag - a test without one has no ticket to label. A ticket whose
+  // tests are all stable loses the label, so it reflects the latest verdict; failing tests leave it as it was.
+  const flakyTickets = bugTickets(flaky);
+  const stableTickets = [...bugTickets(results.filter(r => r.passed === r.total))].filter(key => !flakyTickets.has(key));
+  for (const issueKey of flakyTickets) await syncFlakyLabel(issueKey, true);
+  for (const issueKey of stableTickets) await syncFlakyLabel(issueKey, false);
   if (flaky.length || failing.length) process.exit(1);
 }
 

@@ -77,12 +77,33 @@ export function toAdf(text) {
   return { type: 'doc', version: 1, content };
 }
 
-export async function addLabel(issueKey, label) {
+// Where a ticket is in the pipeline; exactly one at a time, so setting a new one removes the others.
+// Any other label (added by a human, or a project label) is never touched.
+export const STATE_LABELS = [
+  'needs-repro',
+  'repro-confirmed',
+  'repro-inconclusive',
+  'needs-manual-repro',
+  'duplicate-suspected',
+  'auto-fix-proposed',
+  'needs-human-review',
+];
+
+async function updateLabels(issueKey, operations) {
   await jira(`/rest/api/3/issue/${issueKey}`, {
     method: 'PUT',
-    body: JSON.stringify({ update: { labels: [{ add: label }] } }),
+    body: JSON.stringify({ update: { labels: operations } }),
   });
 }
+
+export const addLabel = (issueKey, label) => updateLabels(issueKey, [{ add: label }]);
+export const removeLabel = (issueKey, label) => updateLabels(issueKey, [{ remove: label }]);
+
+export function stateLabelOperations(label) {
+  return [{ add: label }, ...STATE_LABELS.filter(other => other !== label).map(other => ({ remove: other }))];
+}
+
+export const setStateLabel = (issueKey, label) => updateLabels(issueKey, stateLabelOperations(label));
 
 export async function postComment(issueKey, text) {
   await jira(`/rest/api/3/issue/${issueKey}/comment`, {

@@ -4,7 +4,7 @@
 // clearly-marked comment and adds a label — every decision (duplicate,
 // won't-fix, unsupported version) is confirmed by a human, this only proposes.
 
-import { AGENT_MARKER, addLabel, adfToText, jira, postComment, requireEnv } from './jira-common.mjs';
+import { AGENT_MARKER, STATE_LABELS, adfToText, jira, postComment, requireEnv, setStateLabel } from './jira-common.mjs';
 
 const JIRA_EMAIL = requireEnv('JIRA_EMAIL');
 const JIRA_PROJECT = requireEnv('JIRA_PROJECT');
@@ -17,17 +17,8 @@ const ISSUE_KEYS = (process.env.ISSUE_KEYS || '')
 // DRY_RUN=1: read from Jira, print what would be posted, write nothing.
 const DRY_RUN = process.env.DRY_RUN === '1';
 
-// Every label this pipeline can apply. Doubles as the JQL "already triaged"
-// marker - a ticket carrying any of these has been through this script before.
-const PIPELINE_LABELS = [
-  'duplicate-suspected',
-  'needs-repro',
-  'repro-confirmed',
-  'repro-inconclusive',
-  'needs-manual-repro',
-  'auto-fix-proposed',
-  'needs-human-review',
-];
+// Doubles as the JQL "already triaged" marker - a ticket carrying any state label has been through this script before.
+const PIPELINE_LABELS = STATE_LABELS;
 const PIPELINE_LABELS_JQL = PIPELINE_LABELS.map(l => `"${l}"`).join(', ');
 async function findCandidates() {
   if (ISSUE_KEYS.length > 0) {
@@ -142,11 +133,11 @@ async function findPossibleDuplicates(issue) {
 async function applyTriage(issueKey, label, text) {
   if (DRY_RUN) {
     console.log(
-      `[dry-run] ${issueKey}: would add label "${label}" and post:\n${[AGENT_MARKER, text].map(line => `    ${line.replaceAll('\n', '\n    ')}`).join('\n')}`
+      `[dry-run] ${issueKey}: would set state label "${label}" and post:\n${[AGENT_MARKER, text].map(line => `    ${line.replaceAll('\n', '\n    ')}`).join('\n')}`
     );
     return;
   }
-  await addLabel(issueKey, label);
+  await setStateLabel(issueKey, label);
   await postComment(issueKey, text);
 }
 

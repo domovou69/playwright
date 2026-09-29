@@ -18,7 +18,7 @@
 
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { addLabel, jira, postComment } from './jira-common.mjs';
+import { jira, postComment, setStateLabel } from './jira-common.mjs';
 
 // "not-reproduced" deliberately maps to needs-manual-repro, not its own "not-reproduced" label - a
 // ticket in this state still needs a human to look at it, it never becomes "not a bug" by itself
@@ -88,7 +88,7 @@ async function main() {
 
   const evidenceLine = uploaded.length ? `Evidence attached: ${uploaded.join(', ')}.` : 'No evidence attached.';
   await postComment(issueKey, `Repro attempt outcome: ${outcome}.\n\n${duplicate}Steps run:\n${steps}\n\nNotes: ${notes}\n\n${evidenceLine}`);
-  await addLabel(issueKey, OUTCOME_LABELS[outcome]);
+  await setStateLabel(issueKey, OUTCOME_LABELS[outcome]);
   console.log(`${issueKey}: labeled ${OUTCOME_LABELS[outcome]}, comment posted.`);
 }
 
