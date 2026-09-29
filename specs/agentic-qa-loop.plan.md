@@ -324,7 +324,7 @@ ticket → test → PR.
 
 ### Stage 5 — Review, feedback, and closing the loop back into the system
 
-- [ ] Before requesting human review, agent self-runs new/changed tests a **fixed, capped number of times**
+- [x] Before requesting human review, agent self-runs new/changed tests a **fixed, capped number of times**
       (default: 3 — an arbitrary but reasonable starting point, not a derived number: 1 run tells you nothing
       about flakiness, 2 barely more, 3 gives a minimal majority signal — e.g. 2/3 pass flags real instability —
       while keeping the cost multiplier low for e2e browser tests, which aren't cheap to repeat. Not tied to
@@ -332,10 +332,19 @@ ticket → test → PR.
       built-in `--repeat-each=3` rather than a custom retry loop. Revisit the number once real flake-rate data
       exists from Stage 1's Currents.dev history) to catch obvious flakiness — not open-ended "N", to avoid
       runaway time/token/CI-minute cost. If still inconsistent after the cap, label `flaky-unconfirmed` and hand
-      to a human rather than retrying further
-- [ ] PR description auto-includes: repro steps used, what changed, why, related tests that could be affected
-- [ ] Reviewer corrections (e.g. "don't use waitForTimeout, use our helper") get captured back into
-      `CLAUDE.md`/skills, not re-litigated on the next PR
+      to a human rather than retrying further. Built as `npm run verify` (`scripts/verify-changed.mjs`): runs the
+      specs changed vs `main`, in the working tree or untracked (or `--files=`) with `--repeat-each=3`, prints
+      passed/runs per test (stable / FLAKY / FAILING), exits non-zero unless everything is stable, and with
+      a flaky test tagged `@BUG:<KEY>` gets that ticket labeled `flaky-unconfirmed` automatically (taken from the tag, nothing to pass by hand). Verified on real specs (all 3/3); the flaky
+      branch and the label call have not been exercised on a genuinely flaky test yet
+- [ ] ~~PR description auto-includes: repro steps used, what changed, why, related tests that could be affected~~
+      — dropped: a generator was built and removed again, it only repeated what the Jira ticket already says
+      (the reviewer opens the ticket anyway); the one thing the ticket lacks, the tests tagged `@BUG:<KEY>`,
+      is not worth a script - a PR description written by hand covers it
+- [~] Reviewer corrections (e.g. "don't use waitForTimeout, use our helper") get captured back into
+  `CLAUDE.md`/skills, not re-litigated on the next PR — happening in practice (commit-message rules,
+  headless-only, no destructuring of `app`), but by hand; no mechanism beyond "the agent adds it to
+  `CLAUDE.md`/memory when told"
 - [ ] Dashboard (Currents.dev + Jira together) surfaces: new since last review, fixed-but-unverified, flaky
       duration — the "what changed" view for a QA lead
 
@@ -386,4 +395,4 @@ comments were you and which were the agent, without needing a separate service a
       root-caused and fixed, WP-35 planned and generated end-to-end via `playwright-test-planner` +
       `playwright-test-generator`), all lint-clean and passing against production; PR flow formalized (branch →
       `gh pr create` → human merges) for work going forward
-- [ ] Stage 5: review/feedback loop + dashboard
+- [~] Stage 5: review/feedback loop — self-check (`npm run verify`) built and verified; reviewer feedback capture is manual; the Currents + Jira dashboard is deliberately postponed (test project - core loop first, polish later)
