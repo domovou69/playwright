@@ -58,6 +58,8 @@ Before writing or editing a test, invoke the `playwright-best-practices` skill. 
 - Before handing over new or changed tests run `npm run verify` (each test repeated, stable/flaky/failing verdict). It finds
   the Jira ticket from the `@BUG:<KEY>` tag; never pass a ticket by hand.
 - `npm run lint`, `npx tsc --noEmit` and `npm run format:check` must be clean.
+- Optional: if a global `systematic-debugging` skill is installed, use it to find the root cause of a flaky or failing test
+  before changing anything; it is not vendored, so skip this when it is missing.
 
 ## Jira and the agent loop
 
