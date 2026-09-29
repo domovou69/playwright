@@ -109,7 +109,7 @@ test.describe('Download and Purchase (Guest)', { tag: ['@wallpapers', '@guest', 
     },
     async ({ app, page }) => {
       // 1. "White Feathers Floating Dark Wallpaper" - Premium, price 10, shows Download (the buggy variant)
-      await page.goto('/wallpapers/a1b0f0ad-1ccd-4410-95f7-f04b3823c604');
+      await app.wallpapersListPage.open('/wallpapers/a1b0f0ad-1ccd-4410-95f7-f04b3823c604');
       await expect(app.wallpaperDetailsPage.premiumBadge).toBeVisible();
       await expect(app.wallpaperDetailsPage.priceText('10')).toBeVisible();
       await expect(app.wallpaperDetailsPage.downloadBtn).toBeVisible();
@@ -130,7 +130,7 @@ test.describe('Download and Purchase (Guest)', { tag: ['@wallpapers', '@guest', 
       await expect(app.wallpaperDetailsPage.downloadBtn).toBeVisible();
 
       // 4. "Spooky Mansion" - same Premium/price-10 tier, but correctly shows Buy (proves the inconsistency)
-      await page.goto('/wallpapers/e1b7e619-872b-4180-bd79-2f426d91c225');
+      await app.wallpapersListPage.open('/wallpapers/e1b7e619-872b-4180-bd79-2f426d91c225');
       await expect(app.wallpaperDetailsPage.premiumBadge).toBeVisible();
       await expect(app.wallpaperDetailsPage.priceText('10')).toBeVisible();
       await expect(app.wallpaperDetailsPage.buyBtn).toHaveText('Buy for Ƶ10');

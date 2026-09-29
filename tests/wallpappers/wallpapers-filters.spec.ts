@@ -227,9 +227,9 @@ test.describe('Filtering', { tag: ['@wallpapers', '@guest', '@smoke'] }, () => {
     }
   });
 
-  test('WP-23 Filters are restored from a deep link', { tag: ['@wallpapers', '@guest', '@regression'] }, async ({ app, page }) => {
+  test('WP-23 Filters are restored from a deep link', { tag: ['@wallpapers', '@guest', '@regression'] }, async ({ app }) => {
     // 1. Navigate to `/wallpapers?categories=NATURE&sort=PRICE_DESC&minPrice=1`
-    await page.goto('/wallpapers?categories=NATURE&sort=PRICE_DESC&minPrice=1');
+    await app.wallpapersListPage.open('/wallpapers?categories=NATURE&sort=PRICE_DESC&minPrice=1');
 
     // expect: Category shows "Nature" as selected
     expect(await app.wallpapersListPage.isCategorySelected('Nature')).toBe(true);
