@@ -4,7 +4,6 @@
 // clearly-marked comment and adds a label — every decision (duplicate,
 // won't-fix, unsupported version) is confirmed by a human, this only proposes.
 
-import { execFileSync } from 'node:child_process';
 import { AGENT_MARKER } from './jira-common.mjs';
 
 const JIRA_BASE_URL = requireEnv('JIRA_BASE_URL');
@@ -68,12 +67,21 @@ function adfToText(node) {
   return text;
 }
 
-function textParagraph(text) {
-  return {
-    type: 'doc',
-    version: 1,
-    content: [{ type: 'paragraph', content: [{ type: 'text', text }] }],
-  };
+// One line per paragraph; consecutive "- " lines become a real bullet list.
+function toAdf(text) {
+  const content = [];
+  for (const line of text.split('\n')) {
+    const paragraph = value => ({ type: 'paragraph', content: [{ type: 'text', text: value }] });
+    if (line.startsWith('- ')) {
+      const item = { type: 'listItem', content: [paragraph(line.slice(2))] };
+      const last = content.at(-1);
+      if (last?.type === 'bulletList') last.content.push(item);
+      else content.push({ type: 'bulletList', content: [item] });
+    } else {
+      content.push(paragraph(line));
+    }
+  }
+  return { type: 'doc', version: 1, content };
 }
 
 async function findCandidates() {
@@ -133,67 +141,6 @@ async function findPossibleDuplicates(issue) {
   return result.issues;
 }
 
-const STOPWORDS = new Set([
-  'the',
-  'and',
-  'for',
-  'with',
-  'that',
-  'this',
-  'from',
-  'into',
-  'when',
-  'after',
-  'before',
-  'does',
-  'not',
-  'are',
-  'was',
-  'were',
-  'has',
-  'have',
-  'should',
-  'shows',
-  'show',
-  'showing',
-  'error',
-  'issue',
-  'bug',
-  'ticket',
-  'page',
-  'user',
-  'app',
-]);
-
-function extractKeywords(summary) {
-  return [
-    ...new Set(
-      summary
-        .toLowerCase()
-        .split(/[^a-z0-9]+/)
-        .filter(word => word.length > 3 && !STOPWORDS.has(word))
-    ),
-  ].slice(0, 6);
-}
-
-// Best-effort check for a commit that might already have fixed this - never
-// authoritative (see findPossibleDuplicates), just a hint for the human to
-// verify. Keywords are matched with OR (any one hit surfaces the commit),
-// favoring recall over precision since a bug title rarely echoes a commit
-// message verbatim.
-function findPossibleFixCommits(issue) {
-  const keywords = extractKeywords(issue.fields.summary || '');
-  if (keywords.length === 0) return [];
-  try {
-    const args = ['log', '--all', '--oneline', '-i', '-n', '5', ...keywords.map(k => `--grep=${k}`)];
-    const output = execFileSync('git', args, { encoding: 'utf8' }).trim();
-    return output ? output.split('\n') : [];
-  } catch (err) {
-    console.error(`git log search failed: ${err.message}`);
-    return [];
-  }
-}
-
 async function addLabel(issueKey, label) {
   await jira(`/rest/api/3/issue/${issueKey}`, {
     method: 'PUT',
@@ -204,7 +151,7 @@ async function addLabel(issueKey, label) {
 async function postComment(issueKey, text) {
   await jira(`/rest/api/3/issue/${issueKey}/comment`, {
     method: 'POST',
-    body: JSON.stringify({ body: textParagraph(`${AGENT_MARKER} ${text}`) }),
+    body: JSON.stringify({ body: toAdf(`${AGENT_MARKER}\n${text}`) }),
   });
 }
 
@@ -221,18 +168,16 @@ async function triageOne(issue) {
   }
 
   const duplicates = await findPossibleDuplicates(issue);
-  const fixCommits = findPossibleFixCommits(issue);
-  const fixCommitsNote = fixCommits.length
-    ? ` Also found commit(s) that might already address this (keyword match, unverified): ${fixCommits.join('; ')} - please check before assuming still-open.`
-    : '';
-
   if (duplicates.length > 0) {
     const list = duplicates.map(d => `${d.key} ("${d.fields.summary}")`).join(', ');
     await addLabel(issue.key, 'duplicate-suspected');
     await postComment(
       issue.key,
-      `Possible duplicate(s) found by title search: ${list}. This is a best-effort text match, ` +
-        `not a confirmed duplicate - please verify before closing.${fixCommitsNote}`
+      [
+        'Triage: duplicate-suspected',
+        'Possible duplicates (best-effort title match, not confirmed - verify before closing):',
+        ...duplicates.map(d => `- ${d.key} ("${d.fields.summary}")`),
+      ].join('\n')
     );
     console.log(`${issue.key}: labeled duplicate-suspected (candidates: ${list})`);
     return;
@@ -241,10 +186,13 @@ async function triageOne(issue) {
   await addLabel(issue.key, 'needs-repro');
   await postComment(
     issue.key,
-    `No obvious duplicates found (best-effort title search). Marked needs-repro - ` +
-      `next step is attempting reproduction (see specs/agentic-qa-loop.plan.md, Stage 3).${fixCommitsNote}`
+    [
+      'Triage: needs-repro',
+      'Duplicates: none found',
+      'Next step: reproduce against production',
+    ].join('\n')
   );
-  console.log(`${issue.key}: labeled needs-repro${fixCommits.length ? ' (possible fix commits found)' : ''}`);
+  console.log(`${issue.key}: labeled needs-repro`);
 }
 
 async function main() {

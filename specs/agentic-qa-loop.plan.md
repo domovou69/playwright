@@ -147,13 +147,13 @@ running.
       `duplicate-suspected`, `needs-repro`, `repro-confirmed`, `auto-fix-proposed`, `needs-human-review`. A
       ticket with none of these is implicitly "needs-triage" (no separate label needed for that state — absence
       of a pipeline label already means it hasn't been through this pipeline)
-- [x] Build duplicate/already-fixed check: search existing tickets (Jira `text ~` title search) + `git log
---all --grep` keyword search across commit messages for the reported symptom (`scripts/jira-triage.mjs`,
-      `findPossibleDuplicates` + `findPossibleFixCommits`) — **risk, not a solved step**: both are best-effort
-      keyword matches (Jira search misses paraphrased duplicates, git log rarely echoes a bug title verbatim),
-      always surfaced as an unverified hint in the comment, never treated as authoritative or used to
-      auto-resolve anything. Requires `actions/checkout` with `fetch-depth: 0` in CI (shallow clone would only
-      see the latest commit) — already set in `jira-triage.yml`
+- [x] Build duplicate check: search existing tickets (Jira `text ~` title search, `findPossibleDuplicates` in
+      `scripts/jira-triage.mjs`) — **risk, not a solved step**: best-effort keyword match (Jira search misses
+      paraphrased duplicates), always surfaced as an unverified hint in the comment, never treated as
+      authoritative or used to auto-resolve anything. A `git log` keyword search for "commits that might
+      already fix it" was built first and removed: commit messages say nothing about whether a bug is fixed,
+      it only produced noise. Whether a bug still exists is answered by Stage 3 (reproduction on production),
+      not by triage
 - [x] Every triage action is a **comment + label change**, never an auto-close — implemented (`addLabel` +
       `postComment` only; the script never touches `status` or transitions/resolves anything)
 - [x] Every automated comment is prefixed with `[agent - Claude]` (`AGENT_MARKER` in
@@ -163,13 +163,12 @@ running.
 **Both remaining gaps closed 2026-09-29, verified end-to-end on real data:**
 
 - [x] Ran for real as a GitHub Actions job via `workflow_dispatch` (not just local `node
-scripts/jira-triage.mjs`) — secrets/vars resolved correctly, `fetch-depth: 0` checkout worked, run
+scripts/jira-triage.mjs`) — secrets/vars resolved correctly, run
       finished green
 - [x] Write path exercised against a real ticket: created `ZED-2` (Bug, real description: "Ad interstitial
       blocks wallpaper download button on mobile") via the Jira API, ran the workflow against it. Result:
-      labeled `needs-repro`, posted the marked comment, found 5 keyword-matching commits via the git-log search
-      (correctly surfaced as unverified, not auto-resolved) — duplicate-check, fix-commit search, `addLabel`,
-      and `postComment` all confirmed working, and confirmed via a direct Jira API read (label present, status
+      labeled `needs-repro`, posted the marked comment, duplicate-check, `addLabel` and `postComment` all confirmed
+      working, and confirmed via a direct Jira API read (label present, status
       untouched at `To Do`), not just trusting the CI log
 - [x] Idempotency guard verified too: re-ran against `ZED-2` a second time — correctly skipped
       ("already triaged, no changes since") instead of re-labeling/re-commenting

@@ -86,7 +86,7 @@ async function postComment(issueKey, text) {
   await jira(`/rest/api/3/issue/${issueKey}/comment`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ body: textParagraph(`${AGENT_MARKER} ${text}`) }),
+    body: JSON.stringify({ body: textParagraph(`${AGENT_MARKER}\n${text}`) }),
   });
 }
 
