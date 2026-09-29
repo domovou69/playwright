@@ -51,11 +51,11 @@ or the POM also a full headless run (`npm test`) and `npm run verify -- --files=
 
 ### 4. Config
 
-- [ ] `playwright.config.ts`: `retries: 0`
-- [ ] (also update the MCP and environment sections of `README.md`) Add `@currents/mcp` to devDependencies and run it from `node_modules` via `node --env-file=.env ...` in `.mcp.json`;
+- [x] `playwright.config.ts`: `retries: 0`
+- [x] (also update the MCP and environment sections of `README.md`) Add `@currents/mcp` to devDependencies and run it from `node_modules` via `node --env-file=.env ...` in `.mcp.json`;
       move `CURRENTS_API_KEY` from `.claude/settings.local.json` into `.env` if the MCP server starts (otherwise revert and
       keep the key in `settings.local.json`); the `@currents/playwright` caret range stays as is
-- [ ] Workflows: add `permissions: contents: read` and `concurrency` (cancel superseded runs)
+- [x] Workflows: add `permissions: contents: read` and `concurrency` (cancel superseded runs)
 
 ### 5. Jira
 
@@ -114,3 +114,8 @@ or the POM also a full headless run (`npm test`) and `npm run verify -- --files=
 - 2026-09-29: step 3 done: README rewritten (setup, commands, layout, loop, Jira scripts, MCP, env table); the old TC-01..TC-11 list is gone.
   Note: the deleted `specs/README.md` was only the Playwright init stub ("This is a directory for test plans"), not a TC list - the TC list lived in the
   root README.
+- 2026-09-29: step 4 done. `retries: 0` (full suite 34/34 without retries beforehand). `@currents/mcp` pinned to 2.6.1 in devDependencies, `.mcp.json` runs it
+  with `node --env-file-if-exists=.env`; checked by starting the server with `CURRENTS_API_KEY` removed from the process env and calling
+  `currents-get-projects` (worked, key came from `.env`). The key was removed from `.claude/settings.local.json` (`.env` already held the same one).
+  Workflows got `permissions: contents: read` and `concurrency` (CI cancels superseded PR runs only; triage runs never cancel each other).
+  The PR = smoke split waits for step 6.

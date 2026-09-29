@@ -22,6 +22,7 @@
     "npm": ">=12"
   },
   "devDependencies": {
+    "@currents/mcp": "2.6.1",
     "@currents/playwright": "^2.5.1",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.63.0",

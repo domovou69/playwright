@@ -71,8 +71,9 @@ node --env-file=.env scripts/jira-repro.mjs --issue=ZED-3 --outcome=reproduced \
 
 ## MCP servers
 
-Configured in `.mcp.json`: `playwright-test` (headless browser and test tools for the agents) and `currents` (test analytics;
-needs `CURRENTS_API_KEY`).
+Configured in `.mcp.json`: `playwright-test` (headless browser and test tools for the agents) and `currents` (test analytics).
+The Currents server is pinned in `devDependencies` (`@currents/mcp`), runs from `node_modules` after `npm install` and reads
+`CURRENTS_API_KEY` from `.env`.
 
 ## Environment
 
