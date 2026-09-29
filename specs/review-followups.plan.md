@@ -35,12 +35,12 @@ or the POM also a full headless run (`npm test`) and `npm run verify -- --files=
 
 ### 2. Conventions and skill
 
-- [ ] `CLAUDE.md`: add project conventions (no `const { page } = app` destructuring in tests, test IDs never renamed - only
+- [x] `CLAUDE.md`: add project conventions (no `const { page } = app` destructuring in tests, test IDs never renamed - only
       tags added, bug tests assert current behavior and stay green with `@BUG:KEY`, no per-ticket plan files, POM search-before-write,
       Claude runs tests headless only, no `--issue` flags, avoid needless multi-line comments)
-- [ ] `CLAUDE.md`: "before writing or editing tests invoke the `playwright-best-practices` skill; project rules above win"
-- [ ] Add `skills: [playwright-best-practices]` to the generator and healer agent frontmatter
-- [ ] Trim the skill to ~8 relevant files (locators, assertions-waiting, page-object-model / pom-vs-fixtures, fixtures-hooks,
+- [x] `CLAUDE.md`: "before writing or editing tests invoke the `playwright-best-practices` skill; project rules above win"
+- [x] Add `skills: [playwright-best-practices]` to the generator and healer agent frontmatter
+- [x] Trim the skill to ~8 relevant files (locators, assertions-waiting, page-object-model / pom-vs-fixtures, fixtures-hooks,
       flaky-tests, test-tags, annotations, configuration, github-actions); show the list before deleting; fix the index in
       `SKILL.md`, update `.claude/skills/VENDORED.md` (source SHA, "trimmed on <date>, kept: ...")
 
@@ -103,3 +103,11 @@ or the POM also a full headless run (`npm test`) and `npm run verify -- --files=
 - 2026-09-29: step 1 done. Also: `@eslint/js` + `globals` added (scripts linted with the JS recommended set), lint-staged covers `*.mjs`,
   stale TC-xx / `wallpapers.spec.ts` references in the planner/generator agents fixed. Explorbot plan already held the outcome;
   only its closing note was updated.
+- 2026-09-29: step 2 done (skill trim later revised, see the next entry). CLAUDE.md has the conventions; skill trimmed 59 -> 19 reference files (kept: locators, assertions-waiting,
+  page-object-model, fixtures-hooks, test-suite-structure, test-tags, annotations, configuration, test-data, pom-vs-fixtures,
+  flaky-tests, debugging, console-errors, file-upload-download, accessibility, mobile-testing, network-advanced, ci-cd,
+  github-actions), SKILL.md index rewritten, dead links removed. `skills:` preload in generator/healer is per the docs but not
+  yet observed in a real subagent run - confirm the next time one runs.
+- 2026-09-29: skill trim revised: restored the generic references (API, auth, third-party, forms, visual, drag-drop, Docker, sharding,
+  reporting, ...). 40 of 59 files kept; `SKILL.md` stays a compact two-table index (26 KB -> 8 KB) so the token saving is kept.
+  Subagent `model: sonnet` resolves to Sonnet 5.5 on the Anthropic API per the docs; left as an alias.

@@ -1,6 +1,6 @@
 # Multi-Tab, Window & Popup Testing
 
-This file covers **single-user scenarios** with multiple browser tabs, windows, and popups. For **multi-user collaboration testing** (multiple users interacting simultaneously), see [multi-user.md](multi-user.md).
+This file covers **single-user scenarios** with multiple browser tabs, windows, and popups.
 
 ## Table of Contents
 
@@ -223,8 +223,6 @@ test('sync between windows', async ({ context }) => {
 ```
 
 ### Different Users in Different Windows
-
-> **For multi-user collaboration patterns** (admin/user interactions, real-time collaboration, role-based testing, concurrent actions), see [multi-user.md](multi-user.md). This file focuses on single-user scenarios with multiple tabs/windows/popups.
 
 ## Tab Coordination
 

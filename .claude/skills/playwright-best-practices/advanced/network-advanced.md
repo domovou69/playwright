@@ -391,11 +391,6 @@ test('slow network experience', async ({ page, context }) => {
 
 Use `context.setOffline(true/false)` to simulate network connectivity changes.
 
-> **For comprehensive offline testing patterns:**
->
-> - **Network failure simulation** (error recovery, graceful degradation): See [error-testing.md](error-testing.md#offline-testing)
-> - **Offline-first/PWA testing** (service workers, caching, background sync): See [service-workers.md](service-workers.md#offline-testing)
-
 ### Network Throttling Fixture
 
 ```typescript
@@ -444,4 +439,3 @@ export const test = base.extend<NetworkFixtures>({
 ## Related References
 
 - **Basic Mocking**: See [test-suite-structure.md](../core/test-suite-structure.md) for simple mocking
-- **WebSockets**: See [websockets.md](../browser-apis/websockets.md) for real-time mocking

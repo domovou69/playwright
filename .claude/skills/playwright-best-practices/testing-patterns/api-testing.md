@@ -8,7 +8,6 @@
 4. [Troubleshooting](#troubleshooting)
 
 > **When to use**: Testing REST APIs directly — validating endpoints, seeding test data, or verifying backend behavior without browser overhead.
-> **See also**: [graphql-testing.md](graphql-testing.md) for GraphQL-specific patterns.
 
 ## Patterns
 

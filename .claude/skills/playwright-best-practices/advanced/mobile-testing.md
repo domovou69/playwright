@@ -402,4 +402,3 @@ test.describe('visual regression', () => {
 - **Visual Testing**: See [test-suite-structure.md](../core/test-suite-structure.md) for screenshot testing
 - **Locators**: See [locators.md](../core/locators.md) for mobile-friendly selectors
 - **Browser APIs**: See [browser-apis.md](../browser-apis/browser-apis.md) for permissions (camera, geolocation, notifications)
-- **Canvas/Touch**: See [canvas-webgl.md](../testing-patterns/canvas-webgl.md) for touch gestures on canvas elements

@@ -538,5 +538,3 @@ export default defineConfig({
 - [parallel-sharding.md](parallel-sharding.md) — sharding strategies
 - [reporting.md](reporting.md) — reporter configuration
 - [docker.md](docker.md) — container images
-- [gitlab.md](gitlab.md) — GitLab CI equivalent
-- [other-providers.md](other-providers.md) — CircleCI, Azure DevOps, Jenkins
