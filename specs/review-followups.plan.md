@@ -99,8 +99,8 @@ or the POM also a full headless run (`npm test`) and `npm run verify -- --files=
 ## Later (separate steps, not in this batch)
 
 - [ ] Locator quality pass (the agent-written `div[class*="card-footer"]` style selectors)
-- [ ] Remove conditional logic from tests (25 lint warnings), then `eslint --max-warnings 0`
-- [ ] Currents + Jira dashboard (postponed in the loop plan)
+- [x] Remove conditional logic from tests (`--max-warnings 0` deliberately not enabled; 3 `waitForTimeout` warnings remain)
+- [x] Currents + Jira dashboard dropped: the ready-made Currents dashboard is used
 
 ## Progress log
 
@@ -154,3 +154,4 @@ or the POM also a full headless run (`npm test`) and `npm run verify -- --files=
   (`getCardsHref`, `waitForCardsToUpdate`, `selectCard`). Call sites in 6 specs updated mechanically, no test title changed. Before: full run and `verify` x3
   stable (previous entry); after: full run 34/34, `verify` x3 on all 33 specs 3/3, `tsc` clean, lint 14 warnings (unchanged).
 - 2026-09-29: `FiltersPanel` renamed to `FilterDrawer` (`app.wallpapersListPage.filterDrawer`), as "panel" is too generic; the scroll spec no longer destructures `app`.
+- 2026-09-29: conditional logic removed from WP-01/19/21 (linear tests, `validate*` helpers), npm 12 installed in CI, `skills:` preload confirmed in generator and healer (SKILL.md body present, references read on demand), custom dashboard dropped.

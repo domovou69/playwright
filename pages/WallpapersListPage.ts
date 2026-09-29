@@ -248,12 +248,9 @@ export class WallpapersListPage extends HeaderPage {
     return href;
   }
 
+  // One atomic read: per-card waits hung until the test timeout when the list re-rendered to fewer cards mid-loop.
   async getCardsHref(): Promise<string[]> {
-    const cards = await this.cardsAll.all();
-    const hrefs = [];
-    for (const card of cards) {
-      hrefs.push(await this.getCardHref(card));
-    }
+    const hrefs = await this.cardsAll.evaluateAll(cards => cards.map(card => card.getAttribute('href') || ''));
     return hrefs.filter(Boolean);
   }
 

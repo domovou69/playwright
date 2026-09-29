@@ -11,9 +11,8 @@ A closed loop connecting **Jira (signal source) ↔ test analytics (state/histor
   the Jira ticket that prompted them.
 - Failing/flaky tests get diagnosed (real regression vs. flake vs. stale locator) and fixed, with the decision
   always confirmed by a human, never auto-closed.
-- Anyone can open one dashboard and see: what's currently broken, what's new since last review, what got fixed
-  but never verified, flaky tests and how long they've been flaky, and where the AI's proposals fit into all
-  that (agentic audit trail).
+- What's broken, what's flaky and for how long is visible in the ready-made Currents.dev dashboard; Jira labels
+  (`needs-repro`, `flaky-unconfirmed`, ...) and the `[agent - Claude]` comments are the audit trail of the AI's proposals.
 
 Explicit non-goal: not building a full test-management platform from scratch (see `## Why Currents.dev, not
 build-your-own` below). Coverly (github.com/domovou69/coverly) is optional/future — a thin orchestration layer
@@ -356,8 +355,7 @@ ticket → test → PR.
   `CLAUDE.md`/skills, not re-litigated on the next PR — happening in practice (commit-message rules,
   headless-only, no destructuring of `app`), but by hand; no mechanism beyond "the agent adds it to
   `CLAUDE.md`/memory when told"
-- [ ] Dashboard (Currents.dev + Jira together) surfaces: new since last review, fixed-but-unverified, flaky
-      duration — the "what changed" view for a QA lead
+- [x] No custom dashboard: the ready-made Currents.dev dashboard covers runs, flaky tests and history
 
 **Output of this stage:** the full loop — signal in, triage, repro, fix, test, review, feedback — with a human
 decision point at every irreversible step (duplicate/won't-fix, bug confirmation, fix correctness) and a single
@@ -406,4 +404,4 @@ comments were you and which were the agent, without needing a separate service a
       root-caused and fixed, WP-35 planned and generated end-to-end via `playwright-test-planner` +
       `playwright-test-generator`), all lint-clean and passing against production; PR flow formalized (branch →
       `gh pr create` → human merges) for work going forward
-- [~] Stage 5: review/feedback loop — self-check (`npm run verify`) built and verified; reviewer feedback capture is manual; the Currents + Jira dashboard is deliberately postponed (test project - core loop first, polish later)
+- [~] Stage 5: review/feedback loop — self-check (`npm run verify`) built and verified; reviewer feedback capture is manual; no custom dashboard, the ready-made Currents.dev one is used
