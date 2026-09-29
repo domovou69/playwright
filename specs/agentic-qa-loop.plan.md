@@ -280,8 +280,13 @@ cutting the manual reproduction step most of the time.
       live production search API. Labeled **flake** (timing/concurrency, not a regression, not a stale locator) —
       confirmed with the human before fixing, per the validation gate; fix applied (`TIMEOUTS.expect` instead of
       the literal `5000`), lints clean, test re-run green
-- [ ] Fix + test go into a PR; agent never merges — test changes for ZED-3/ZED-4 exist locally, not yet committed
-      or opened as a PR (never done without being explicitly asked, per this repo's CLAUDE.md)
+- [x] Fix + test go into a PR; agent never merges — formalized flow: agent works on a feature branch
+      (`fix/<ticket>-<slug>` or `test/<ticket>-<slug>`), never commits without being asked (per this repo's
+      CLAUDE.md), and once the human approves the diff and asks for a commit, opens a PR via `gh pr create`
+      against `main` instead of pushing directly to it — CI's existing `pull_request` trigger
+      (`.github/workflows/ci.yml`) then gates it. The human merges; the agent never does. ZED-3/ZED-4 and the
+      flaky-test fix predate this convention and were committed straight to `main` (already merged, not
+      retroactively redone) — this flow applies from here on
 
 **Verified end-to-end on real data 2026-09-29 (ZED-3, ZED-4):** filed ZED-3 for a real, live-confirmed bug (two
 Premium/price-10 wallpapers showing different primary buttons), triaged and repro-confirmed it through Stages
@@ -356,7 +361,7 @@ comments were you and which were the agent, without needing a separate service a
       evidence attached). Interactive-only by design (see Stage 3's architectural-gap note), not a gap in itself
 - [~] Stage 4: test/fix generation via existing skills — planner and healer both run for real (WP-29 corrected
   and retagged `@BUG:ZED-3`, WP-33 retagged `@BUG:ZED-4`, the one real flaky test from Currents' Sep 2026 data
-  root-caused and fixed), all lint-clean and passing against production; not fully checked off since the test
-  edits were written directly rather than via the `playwright-test-generator` agent, and nothing has gone into
-  a PR yet — everything so far has been committed straight to `main`
+  root-caused and fixed), all lint-clean and passing against production; PR flow now formalized (branch → `gh pr
+create` → human merges) for work going forward. Not fully checked off only because the test edits so far were
+  written directly rather than via the `playwright-test-generator` agent — the one remaining open item
 - [ ] Stage 5: review/feedback loop + dashboard
