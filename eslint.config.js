@@ -1,5 +1,7 @@
 // @ts-check
 import { defineConfig } from 'eslint/config';
+import js from '@eslint/js';
+import globals from 'globals';
 import tseslint from 'typescript-eslint';
 import playwright from 'eslint-plugin-playwright';
 import { tags } from './src/utils/tags.ts';
@@ -8,7 +10,12 @@ const allowedTagValues = Object.values(tags).flat();
 
 export default defineConfig(
   {
-    ignores: ['node_modules', 'test-results', 'playwright-report', 'downloads', 'dist', 'scripts'],
+    ignores: ['node_modules', 'test-results', 'playwright-report', 'downloads', 'dist'],
+  },
+  {
+    files: ['scripts/**/*.mjs'],
+    extends: [js.configs.recommended],
+    languageOptions: { globals: globals.node },
   },
   playwright.configs['flat/recommended'],
   {

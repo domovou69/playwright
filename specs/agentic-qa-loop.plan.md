@@ -75,7 +75,7 @@ from the doc summary alone.
 
 - [x] Sign up for Currents.dev free tier, get project ID + record key (project `OOKVTP`)
 - [x] Add `@currents/playwright` reporter to `playwright.config.ts` + `currents.config.ts`
-- [x] Run existing suite (`tests/wallpappers/wallpapers-filters.spec.ts`) against it, confirm results land in
+- [x] Run existing suite (`tests/wallpapers/wallpapers-filters.spec.ts`) against it, confirm results land in
       the Currents dashboard — 13/13 passed, run visible at `https://app.currents.dev/run/d01bec858c163f66`
 - [x] Run the full suite (not just one spec file) to get a real baseline — all 9 spec files, 32/32 passed,
       1m26s, run visible at `https://app.currents.dev/run/6a691674937bb140`
@@ -280,7 +280,7 @@ cutting the manual reproduction step most of the time.
 - [x] Failing/flaky existing tests triaged via `playwright-test-healer` to root-cause before proposing a fix:
       real regression vs. flake vs. stale locator — this distinction is a labeled decision, not silently
       auto-fixed away. Done for real on the one flaky test Currents' Sep 2026 data showed (14.3% flakiness,
-      1/7 runs, `wallpappers/wallpapers.spec.ts` "allows users to search wallpapers by keywords"). Root cause:
+      1/7 runs, `wallpapers/wallpapers.spec.ts` "allows users to search wallpapers by keywords"). Root cause:
       `WallpapersListPage.waitForCardsToUpdate` had a hardcoded `{ timeout: 5000 }` poll — the one place in the
       codebase not using the CI-aware `TIMEOUTS` constant, called 9x per test run under `workers: 3` against a
       live production search API. Labeled **flake** (timing/concurrency, not a regression, not a stale locator) —

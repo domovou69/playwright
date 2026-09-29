@@ -27,11 +27,11 @@ or the POM also a full headless run (`npm test`) and `npm run verify -- --files=
 
 ### 1. Cleanup
 
-- [ ] Delete `.prettierrc.json` (`.prettierrc` is the one prettier uses)
-- [ ] Delete `explorbot-experiment/`; make sure `specs/explorbot-experiment.plan.md` states the outcome (add a few lines if not)
-- [ ] Delete stale `specs/README.md` (old TC-01.. list, superseded by `wallpapers.plan.md`)
-- [ ] `git mv tests/wallpappers tests/wallpapers`; update every path (`File:` lines in specs, `verify` usage comment, README, plans)
-- [ ] Put `scripts/` back under eslint and prettier (remove from `ignores` / `.prettierignore`), fix what they report
+- [x] Delete `.prettierrc.json` (`.prettierrc` is the one prettier uses)
+- [x] Delete `explorbot-experiment/`; make sure `specs/explorbot-experiment.plan.md` states the outcome (add a few lines if not)
+- [x] Delete stale `specs/README.md` (old TC-01.. list, superseded by `wallpapers.plan.md`)
+- [x] `git mv tests/wallpappers tests/wallpapers`; update every path (`File:` lines in specs, `verify` usage comment, README, plans)
+- [x] Put `scripts/` back under eslint and prettier (remove from `ignores` / `.prettierignore`), fix what they report
 
 ### 2. Conventions and skill
 
@@ -99,4 +99,7 @@ or the POM also a full headless run (`npm test`) and `npm run verify -- --files=
 
 ## Progress log
 
-- 2026-09-29: review done, plan written; no steps executed yet.
+- 2026-09-29: review done, plan written.
+- 2026-09-29: step 1 done. Also: `@eslint/js` + `globals` added (scripts linted with the JS recommended set), lint-staged covers `*.mjs`,
+  stale TC-xx / `wallpapers.spec.ts` references in the planner/generator agents fixed. Explorbot plan already held the outcome;
+  only its closing note was updated.

@@ -77,8 +77,8 @@ professional formatting suitable for sharing with development and QA teams.
 
 **Existing coverage**
 
-- Before planning, read `README.md` (TC-01..TC-11), `tests/wallpappers/wallpapers.spec.ts` and `pages/*.ts`.
-- Mark each scenario as `Covered by TC-xx`, `Extends TC-xx` or `New`. Do not plan duplicates of covered cases.
+- Before planning, read `specs/wallpapers.plan.md` (existing WP-xx scenarios), `tests/wallpapers/*.spec.ts` and `pages/*.ts`.
+- Mark each scenario as `Covered by WP-xx`, `Extends WP-xx` or `New`. Do not plan duplicates of covered cases.
 
 **Optimization**
 

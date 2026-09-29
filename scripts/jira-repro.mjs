@@ -68,9 +68,7 @@ function textParagraph(text) {
   return {
     type: 'doc',
     version: 1,
-    content: text
-      .split('\n')
-      .map(line => ({ type: 'paragraph', content: line ? [{ type: 'text', text: line }] : [] })),
+    content: text.split('\n').map(line => ({ type: 'paragraph', content: line ? [{ type: 'text', text: line }] : [] })),
   };
 }
 
@@ -136,10 +134,7 @@ async function main() {
   }
 
   const evidenceLine = uploaded.length ? `Evidence attached: ${uploaded.join(', ')}.` : 'No evidence attached.';
-  await postComment(
-    issueKey,
-    `Repro attempt outcome: ${outcome}.\n\nSteps run:\n${steps}\n\nNotes: ${notes}\n\n${evidenceLine}`
-  );
+  await postComment(issueKey, `Repro attempt outcome: ${outcome}.\n\nSteps run:\n${steps}\n\nNotes: ${notes}\n\n${evidenceLine}`);
   await addLabel(issueKey, OUTCOME_LABELS[outcome]);
   console.log(`${issueKey}: labeled ${OUTCOME_LABELS[outcome]}, comment posted.`);
 }

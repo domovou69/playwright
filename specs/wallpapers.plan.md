@@ -31,7 +31,7 @@ Constraints:
    link, Cancel and Buy Credits. Price 10 is where this breaks down, and not in the simple way first assumed:
    it's not "price exactly 10 always shows Download" - two Premium/price-10 items were found showing different
    buttons (one Download, one Buy for Ƶ10), so it's an inconsistency between specific items at that price, not a
-   price-wide rule. Confirmed live 2026-09-29 (ZED-3, `tests/wallpappers/wallpapers-purchase.spec.ts`). Where
+   price-wide rule. Confirmed live 2026-09-29 (ZED-3, `tests/wallpapers/wallpapers-purchase.spec.ts`). Where
    "Download" does show for a Premium item, it opens the same "Unlock and Support the Artist" modal ("Login &
    Watch Ad" / "Buy Credits") a free wallpaper's Download button opens - treated as a bug (see 7.3 below).
 2. **Price filter** has Free / Paid options and a From / To range (URL `minPrice`, `maxPrice`).
@@ -78,7 +78,7 @@ Constraints:
 
 #### 1.1. WP-01 [P2][New][@regression] List page loads with header, filter bar and valid cards
 
-**File:** `tests/wallpappers/wallpapers-list.spec.ts`
+**File:** `tests/wallpapers/wallpapers-list.spec.ts`
 
 **Steps:**
 
@@ -99,14 +99,14 @@ Constraints:
 
 #### 2.1. WP-02 [P1][Covered - TC-01][@smoke] Search by single and multi-word keywords
 
-**File:** `tests/wallpappers/wallpapers-search.spec.ts`
+**File:** `tests/wallpapers/wallpapers-search.spec.ts`
 
 Already automated. Moved here from the old `wallpapers.spec.ts` (deleted) to align with the rest of this
 section's naming/location convention - behavior unchanged.
 
 #### 2.2. WP-03 [P2][New][@regression] Search with no matches shows the empty state
 
-**File:** `tests/wallpappers/wallpapers-search.spec.ts`
+**File:** `tests/wallpapers/wallpapers-search.spec.ts`
 
 **Steps:**
 
@@ -119,7 +119,7 @@ section's naming/location convention - behavior unchanged.
 
 #### 2.3. WP-05 [P3][New][@regression] Cancel clears the search input
 
-**File:** `tests/wallpappers/wallpapers-search.spec.ts`
+**File:** `tests/wallpapers/wallpapers-search.spec.ts`
 
 **Steps:**
 
@@ -130,7 +130,7 @@ section's naming/location convention - behavior unchanged.
 
 #### 2.4. WP-06 [P3][Extends TC-01][@regression] Search filter dropdown defaults to "All" and reflects the selection
 
-**File:** `tests/wallpappers/wallpapers-search.spec.ts`
+**File:** `tests/wallpapers/wallpapers-search.spec.ts`
 
 **Steps:**
 
@@ -146,14 +146,14 @@ section's naming/location convention - behavior unchanged.
 
 #### 3.1. WP-07 [P1][Covered - TC-02][@smoke] Auto-load on scroll preserves previous results
 
-**File:** `tests/wallpappers/wallpapers-scroll.spec.ts`
+**File:** `tests/wallpapers/wallpapers-scroll.spec.ts`
 
 Already automated (scrolls until "Load more" appears). Moved here from the old `wallpapers.spec.ts` (deleted)
 to sit alongside WP-08, which covers the rest of the same scroll behavior - behavior unchanged.
 
 #### 3.2. WP-08 [P2][Extends TC-02][@regression] "Load more" loads more cards and re-enables auto-loading
 
-**File:** `tests/wallpappers/wallpapers-scroll.spec.ts`
+**File:** `tests/wallpapers/wallpapers-scroll.spec.ts`
 
 **Steps:**
 
@@ -172,7 +172,7 @@ to sit alongside WP-08, which covers the rest of the same scroll behavior - beha
 
 #### 4.1. WP-10 [P1][New][@smoke] Header "Categories" menu opens a category in the list page
 
-**File:** `tests/wallpappers/wallpapers-category-nav.spec.ts`
+**File:** `tests/wallpapers/wallpapers-category-nav.spec.ts`
 
 **Steps:**
 
@@ -184,7 +184,7 @@ to sit alongside WP-08, which covers the rest of the same scroll behavior - beha
 
 #### 4.2. WP-11 [P2][New][@regression] "Explore different wallpaper categories" opens a category page with sub-filters
 
-**File:** `tests/wallpappers/wallpapers-category-nav.spec.ts`
+**File:** `tests/wallpapers/wallpapers-category-nav.spec.ts`
 
 Data-driven: run for "Nature" and "Space".
 
@@ -202,11 +202,11 @@ Data-driven: run for "Nature" and "Space".
 **Seed:** `tests/seed.spec.ts`
 
 Replaces the chained test "allows filtering wallpapers by category, color, tags, price and sort by" (TC-03..TC-08).
-After the new tests pass, remove the chained test from `tests/wallpappers/wallpapers.spec.ts`.
+After the new tests pass, remove the chained test from `tests/wallpapers/wallpapers.spec.ts`.
 
 #### 5.1. WP-19 [P1][Replaces TC-03..TC-07][@smoke] Each filter applied alone updates results and URL
 
-**File:** `tests/wallpappers/wallpapers-filters.spec.ts`
+**File:** `tests/wallpapers/wallpapers-filters.spec.ts`
 
 Data-driven, one test per row, each starting from unfiltered /wallpapers:
 
@@ -228,7 +228,7 @@ Data-driven, one test per row, each starting from unfiltered /wallpapers:
 
 #### 5.2. WP-18 [P1][Replaces TC-08][@smoke] Reset All clears every active filter
 
-**File:** `tests/wallpappers/wallpapers-filters.spec.ts`
+**File:** `tests/wallpapers/wallpapers-filters.spec.ts`
 
 **Steps:**
 
@@ -242,7 +242,7 @@ Data-driven, one test per row, each starting from unfiltered /wallpapers:
 
 #### 5.3. WP-20 [P2][New][@regression] Multiple options in one filter
 
-**File:** `tests/wallpappers/wallpapers-filters.spec.ts`
+**File:** `tests/wallpapers/wallpapers-filters.spec.ts`
 
 Use Color (multi-select). Category is single-select and is not used here.
 
@@ -257,7 +257,7 @@ Use Color (multi-select). Category is single-select and is not used here.
 
 #### 5.4. WP-21 [P2][New][@regression] Pairwise filter combinations
 
-**File:** `tests/wallpappers/wallpapers-filters.spec.ts`
+**File:** `tests/wallpapers/wallpapers-filters.spec.ts`
 
 Data-driven, one test per pair, each from unfiltered /wallpapers:
 
@@ -269,7 +269,7 @@ Data-driven, one test per pair, each from unfiltered /wallpapers:
 
 #### 5.5. WP-34 [P2][New][@regression] Price range From / To limits card prices
 
-**File:** `tests/wallpappers/wallpapers-filters.spec.ts`
+**File:** `tests/wallpapers/wallpapers-filters.spec.ts`
 
 **Steps:**
 
@@ -279,7 +279,7 @@ Data-driven, one test per pair, each from unfiltered /wallpapers:
 
 #### 5.6. WP-23 [P3][New][@regression] Filters are restored from a deep link
 
-**File:** `tests/wallpappers/wallpapers-filters.spec.ts`
+**File:** `tests/wallpapers/wallpapers-filters.spec.ts`
 
 **Steps:**
 
@@ -293,7 +293,7 @@ Data-driven, one test per pair, each from unfiltered /wallpapers:
 
 #### 6.1. WP-24 [P2][New][@regression] Free wallpaper detail page
 
-**File:** `tests/wallpappers/wallpaper-detail.spec.ts`
+**File:** `tests/wallpapers/wallpaper-detail.spec.ts`
 
 **Steps:**
 
@@ -304,7 +304,7 @@ Data-driven, one test per pair, each from unfiltered /wallpapers:
 
 #### 6.2. WP-26 [P3][New][@regression] Tag chip on the detail page opens a keyword search
 
-**File:** `tests/wallpappers/wallpaper-detail.spec.ts`
+**File:** `tests/wallpapers/wallpaper-detail.spec.ts`
 
 **Steps:**
 
@@ -313,7 +313,7 @@ Data-driven, one test per pair, each from unfiltered /wallpapers:
 
 #### 6.3. WP-27 [P3][New][@regression] Related section renders valid cards
 
-**File:** `tests/wallpappers/wallpaper-detail.spec.ts`
+**File:** `tests/wallpapers/wallpaper-detail.spec.ts`
 
 **Steps:**
 
@@ -326,14 +326,14 @@ Data-driven, one test per pair, each from unfiltered /wallpapers:
 
 #### 7.1. WP-28 [P1][Covered - TC-10][@smoke][@download] Free wallpaper downloads after the ad
 
-**File:** `tests/wallpappers/wallpapers-purchase.spec.ts`
+**File:** `tests/wallpapers/wallpapers-purchase.spec.ts`
 
 Already automated. Moved here from the old `wallpapers.spec.ts` (deleted) to sit alongside the rest of the
 Download/Purchase section - behavior unchanged.
 
 #### 7.2. WP-30 [P1][Replaces TC-11][@smoke] Premium wallpaper shows its price and the purchase gate
 
-**File:** `tests/wallpappers/wallpapers-purchase.spec.ts`
+**File:** `tests/wallpapers/wallpapers-purchase.spec.ts`
 
 Data-driven:
 
@@ -359,7 +359,7 @@ Download/Buy inconsistency lives (see 7.3), so avoiding it entirely sidesteps th
 
 #### 7.3. WP-29 [P2][Bug, re-scopes TC-11][@BUG:ZED-3][@regression] Two Premium wallpapers priced 10 credits show inconsistent primary action buttons
 
-**File:** `tests/wallpappers/wallpapers-purchase.spec.ts`
+**File:** `tests/wallpapers/wallpapers-purchase.spec.ts`
 
 Originally scoped under the wrong assumption that price-10 items are _always_ Download; the test's identifier
 (WP-29) stays the same, only its title/description/tag were corrected once a counter-example (a price-10 item
@@ -383,7 +383,7 @@ Annotation: `{ type: 'bug', description: 'Two Premium wallpapers at the same pri
 
 #### 7.4. WP-33 [P2][Bug][@BUG:ZED-4][@regression] Purchase modal logs an accessibility error
 
-**File:** `tests/wallpappers/wallpapers-purchase.spec.ts`
+**File:** `tests/wallpapers/wallpapers-purchase.spec.ts`
 
 Annotation: `{ type: 'bug', description: 'Opening the "Buy for Ƶ" modal logs a console error: DialogContent requires a DialogTitle for the component to be accessible for screen reader users. Expected: no console error; the dialog has an accessible title.' }`
 
@@ -394,7 +394,7 @@ Annotation: `{ type: 'bug', description: 'Opening the "Buy for Ƶ" modal logs a 
 
 #### 7.5. WP-32 [P3][New][@regression] Opening a premium wallpaper by direct URL keeps the gate
 
-**File:** `tests/wallpappers/wallpapers-purchase.spec.ts`
+**File:** `tests/wallpapers/wallpapers-purchase.spec.ts`
 
 **Steps:**
 
@@ -407,7 +407,7 @@ Annotation: `{ type: 'bug', description: 'Opening the "Buy for Ƶ" modal logs a 
 
 #### 8.1. WP-35 [P2][New][@regression] At reduced width, the Filters panel applies, keeps and clears every filter
 
-**File:** `tests/wallpappers/wallpapers-filters-narrow.spec.ts`
+**File:** `tests/wallpapers/wallpapers-filters-narrow.spec.ts`
 
 Verified live at viewport 900x800 in the existing Desktop Chrome project (window resized smaller, not a mobile
 device/project). One end-to-end flow rather than a test per tab. The panel applies every change live (URL and

@@ -8,7 +8,7 @@
 // Usage:
 //   npm run verify                       # specs changed vs main, in the working tree, or untracked
 //   npm run verify -- --repeat=5
-//   npm run verify -- --files=tests/wallpappers/wallpapers-filters-narrow.spec.ts
+//   npm run verify -- --files=tests/wallpapers/wallpapers-filters-narrow.spec.ts
 
 import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';

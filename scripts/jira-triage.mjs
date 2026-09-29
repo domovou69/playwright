@@ -184,14 +184,7 @@ async function triageOne(issue) {
   }
 
   await addLabel(issue.key, 'needs-repro');
-  await postComment(
-    issue.key,
-    [
-      'Triage: needs-repro',
-      'Duplicates: none found',
-      'Next step: reproduce against production',
-    ].join('\n')
-  );
+  await postComment(issue.key, ['Triage: needs-repro', 'Duplicates: none found', 'Next step: reproduce against production'].join('\n'));
   console.log(`${issue.key}: labeled needs-repro`);
 }
 

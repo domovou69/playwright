@@ -68,7 +68,7 @@ application behavior.
 
 **Before generating**
 
-- Read `fixtures/test.ts`, `pages/*.ts` and `tests/wallpappers/wallpapers.spec.ts` to learn the existing page
+- Read `fixtures/test.ts`, `pages/*.ts` and the existing `tests/wallpapers/*.spec.ts` to learn the existing page
   objects and conventions.
 
 **Test file shape**
@@ -77,7 +77,7 @@ application behavior.
   `import { test, expect } from '../../fixtures/test';`
 - Use the `app` fixture (`async ({ app }) => ...`), not raw `page`, and open the section through its page object,
   for example `await app.wallpapersListPage.open();`. The cookie banner is handled by a fixture; do not handle it.
-- Put tests under `tests/wallpappers/`. Add the tags from the plan: `{ tag: ['@smoke'] }`.
+- Put tests under `tests/wallpapers/`. Add the tags from the plan: `{ tag: ['@smoke'] }`.
 
 **Page objects**
 
