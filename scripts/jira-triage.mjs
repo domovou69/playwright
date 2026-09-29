@@ -5,6 +5,7 @@
 // won't-fix, unsupported version) is confirmed by a human, this only proposes.
 
 import { execFileSync } from 'node:child_process';
+import { AGENT_MARKER } from './jira-common.mjs';
 
 const JIRA_BASE_URL = requireEnv('JIRA_BASE_URL');
 const JIRA_EMAIL = requireEnv('JIRA_EMAIL');
@@ -16,8 +17,6 @@ const ISSUE_KEYS = (process.env.ISSUE_KEYS || '')
   .split(',')
   .map(key => key.trim())
   .filter(Boolean);
-
-const AGENT_MARKER = '[agent - Claude Sonnet 5]';
 
 // Every label this pipeline can apply. Doubles as the JQL "already triaged"
 // marker - a ticket carrying any of these has been through this script before.

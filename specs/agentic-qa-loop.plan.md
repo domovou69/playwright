@@ -156,8 +156,8 @@ running.
       see the latest commit) — already set in `jira-triage.yml`
 - [x] Every triage action is a **comment + label change**, never an auto-close — implemented (`addLabel` +
       `postComment` only; the script never touches `status` or transitions/resolves anything)
-- [x] Every automated comment is prefixed with `[agent - Claude Sonnet 5]` (`AGENT_MARKER` in
-      `scripts/jira-triage.mjs`) — instantly distinguishable from a manual comment even though it posts under
+- [x] Every automated comment is prefixed with `[agent - Claude]` (`AGENT_MARKER` in
+      `scripts/jira-common.mjs`, shared by the triage and repro scripts) — instantly distinguishable from a manual comment even though it posts under
       the personal account (see personal-token note below)
 
 **Both remaining gaps closed 2026-09-29, verified end-to-end on real data:**
@@ -378,7 +378,7 @@ the same guest-only/no-destructive-action constraints the test suite already fol
 
 **Personal token + comment marker:** `JIRA_API_TOKEN`/`JIRA_EMAIL` are your own personal Atlassian credentials,
 not a service account — automated comments post under your name. Mitigated by prefixing every automated comment
-with `[agent - Claude Sonnet 5]` (see Stage 2) so it's visually unmistakable in the ticket history which
+with `[agent - Claude]` (see Stage 2) so it's visually unmistakable in the ticket history which
 comments were you and which were the agent, without needing a separate service account.
 
 ## Status

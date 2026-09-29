@@ -14,12 +14,11 @@
 
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
+import { AGENT_MARKER } from './jira-common.mjs';
 
 const JIRA_BASE_URL = requireEnv('JIRA_BASE_URL');
 const JIRA_EMAIL = requireEnv('JIRA_EMAIL');
 const JIRA_API_TOKEN = requireEnv('JIRA_API_TOKEN');
-
-const AGENT_MARKER = '[agent - Claude Sonnet 5]';
 
 // "not-reproduced" deliberately maps to needs-manual-repro, not its own "not-reproduced" label - a
 // ticket in this state still needs a human to look at it, it never becomes "not a bug" by itself
