@@ -91,10 +91,10 @@ or the POM also a full headless run (`npm test`) and `npm run verify -- --files=
 
 ### 8. Split the POM
 
-- [ ] `WallpapersListPage` (699 lines) into components: `FiltersBar` (desktop filters), `FiltersPanel` (narrow panel),
+- [x] `WallpapersListPage` (699 lines) into components: `FiltersBar` (desktop filters), `FilterDrawer` (narrow panel),
       `DownloadFlow`; the page keeps cards, search entry and scroll
-- [ ] Update call sites in tests (mechanical); no test IDs or titles change
-- [ ] Full run + `verify` x3 before and after
+- [x] Update call sites in tests (mechanical); no test IDs or titles change
+- [x] Full run + `verify` x3 before and after
 
 ## Later (separate steps, not in this batch)
 
@@ -147,3 +147,10 @@ or the POM also a full headless run (`npm test`) and `npm run verify -- --files=
   the banner handling (`addLocatorHandler`, `dismissCookieBanner`, banner wait in `open()`) stays untouched. Retry reasons of
   `gotoWallpapersWithRetry` are now test annotations (the branch was not triggered in the runs, only type-checked).
 - 2026-09-29: `closeFilter` made argument-free: Escape closes the topmost open filter dropdown or drawer, then it checks that no `dialog` remains. `verify` x3 on all 33 specs stable again.
+- 2026-09-29: step 8 done. `WallpapersListPage` 701 -> 335 lines; new `FiltersBar` (inline desktop filters, dialogs, Reset All, `closeFilter`),
+  `FilterDrawer` (narrow "Filters" chip and side panel; members renamed without the repeated prefix: `chip`, `dialog`, `backBtn`, `row`, `openTab`,
+  `applyOption`, `clearAll`, ...) and `DownloadFlow` (`verifyDownload`, `downloadFreeWallpapers`), all reachable as
+  `app.wallpapersListPage.filtersBar` / `.filterDrawer` / `.downloadFlow`. Components get the list page for card helpers
+  (`getCardsHref`, `waitForCardsToUpdate`, `selectCard`). Call sites in 6 specs updated mechanically, no test title changed. Before: full run and `verify` x3
+  stable (previous entry); after: full run 34/34, `verify` x3 on all 33 specs 3/3, `tsc` clean, lint 14 warnings (unchanged).
+- 2026-09-29: `FiltersPanel` renamed to `FilterDrawer` (`app.wallpapersListPage.filterDrawer`), as "panel" is too generic; the scroll spec no longer destructures `app`.

@@ -21,7 +21,7 @@ test.describe('Category Navigation', { tag: ['@wallpapers', '@guest'] }, () => {
     await expect(app.wallpapersListPage.cardsAll.first()).toBeVisible();
     expect(await app.wallpapersListPage.cardsAll.count()).toBeGreaterThan(0);
 
-    expect(await app.wallpapersListPage.isCategorySelected('Nature')).toBe(true);
+    expect(await app.wallpapersListPage.filtersBar.isCategorySelected('Nature')).toBe(true);
   });
 
   type CategoryExploreCase = {

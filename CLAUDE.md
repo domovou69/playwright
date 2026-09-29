@@ -38,7 +38,8 @@ Before writing or editing a test, invoke the `playwright-best-practices` skill. 
 - Import `test` and `expect` from `fixtures/test`, never from `@playwright/test`. Use the `app` fixture and call page objects
   explicitly (`app.wallpapersListPage.open()`); do not destructure them out of `app`.
 - Open any `/wallpapers` URL through `app.wallpapersListPage.open(path)`, not `page.goto()` (the cookie banner race).
-- Locators and helpers live in `pages/`. Search for an existing one before adding a new one. Assertions that belong to a
+- Locators and helpers live in `pages/`; the list page delegates to components (`app.wallpapersListPage.filtersBar`, `.filterDrawer`,
+  `.downloadFlow`). Search for an existing one before adding a new one. Assertions that belong to a
   component go in its `validate*` methods.
 - No `waitForTimeout`, no `force: true` (close an open filter dropdown with `closeFilter()`, i.e. Escape), no conditionals in a test body. Data-driven variants carry plain data only,
   never functions or branches.

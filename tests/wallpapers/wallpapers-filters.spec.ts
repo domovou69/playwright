@@ -12,15 +12,15 @@ type FilterName = 'Category' | 'Tag' | 'Color' | 'Price' | 'Sort by';
 async function applyFilter(app: AppPageObjects, filter: FilterName, option: string) {
   switch (filter) {
     case 'Category':
-      return app.wallpapersListPage.filterByCategories([option as WallpaperCategoryType]);
+      return app.wallpapersListPage.filtersBar.filterByCategories([option as WallpaperCategoryType]);
     case 'Tag':
-      return app.wallpapersListPage.filterByTag([option as TagsOptionType]);
+      return app.wallpapersListPage.filtersBar.filterByTag([option as TagsOptionType]);
     case 'Color':
-      return app.wallpapersListPage.filterByColor([option as ColorOptionType]);
+      return app.wallpapersListPage.filtersBar.filterByColor([option as ColorOptionType]);
     case 'Price':
-      return app.wallpapersListPage.filterByPrice([option as PriceOptionType]);
+      return app.wallpapersListPage.filtersBar.filterByPrice([option as PriceOptionType]);
     case 'Sort by':
-      return app.wallpapersListPage.filterBySortBy(option as SortByType);
+      return app.wallpapersListPage.filtersBar.filterBySortBy(option as SortByType);
   }
 }
 
@@ -112,19 +112,19 @@ test.describe('Filtering', { tag: ['@wallpapers', '@guest'] }, () => {
 
   test('WP-18 Reset All clears every active filter', { tag: ['@smoke'] }, async ({ app, page }) => {
     // 1. On unfiltered /wallpapers
-    await expect(app.wallpapersListPage.resetAllBtn).toBeHidden();
+    await expect(app.wallpapersListPage.filtersBar.resetAllBtn).toBeHidden();
 
     // 2. Apply Category=Nature and Price=Free
-    await app.wallpapersListPage.filterByCategories(['Nature']);
-    await app.wallpapersListPage.filterByPrice(['Free']);
-    await expect(app.wallpapersListPage.resetAllBtn).toBeVisible();
+    await app.wallpapersListPage.filtersBar.filterByCategories(['Nature']);
+    await app.wallpapersListPage.filtersBar.filterByPrice(['Free']);
+    await expect(app.wallpapersListPage.filtersBar.resetAllBtn).toBeVisible();
 
     // 3. Click "Reset All"
     const hrefsBeforeReset = await app.wallpapersListPage.getCardsHref();
-    await app.wallpapersListPage.clickResetAllFilters();
+    await app.wallpapersListPage.filtersBar.clickResetAll();
 
     await expect(page).not.toHaveURL(/categories|minPrice|maxPrice|colors|tags|sort|free=true|paid=true/);
-    await expect(app.wallpapersListPage.resetAllBtn).toBeHidden();
+    await expect(app.wallpapersListPage.filtersBar.resetAllBtn).toBeHidden();
 
     await app.wallpapersListPage.waitForCardsToUpdate(hrefsBeforeReset);
     const hrefsAfterReset = await app.wallpapersListPage.getCardsHref();
@@ -138,10 +138,10 @@ test.describe('Filtering', { tag: ['@wallpapers', '@guest'] }, () => {
     // own) was seen to occasionally drop a toggle live; one continuous session is what was verified.
     const hrefsBefore = await app.wallpapersListPage.getCardsHref();
 
-    await app.wallpapersListPage.filterColor.click();
-    await expect(app.wallpapersListPage.colorFilterDialog).toBeVisible();
-    const blackOption = app.wallpapersListPage.colorFilterDialog.getByRole('option', { name: 'Black' });
-    const whiteOption = app.wallpapersListPage.colorFilterDialog.getByRole('option', { name: 'White' });
+    await app.wallpapersListPage.filtersBar.filterColor.click();
+    await expect(app.wallpapersListPage.filtersBar.colorFilterDialog).toBeVisible();
+    const blackOption = app.wallpapersListPage.filtersBar.colorFilterDialog.getByRole('option', { name: 'Black' });
+    const whiteOption = app.wallpapersListPage.filtersBar.colorFilterDialog.getByRole('option', { name: 'White' });
 
     await blackOption.click();
     await expect(page).toHaveURL(/colors=black/);
@@ -178,7 +178,7 @@ test.describe('Filtering', { tag: ['@wallpapers', '@guest'] }, () => {
     expect(colorsAfterUncheck).toContain('white');
 
     // Close filter
-    await app.wallpapersListPage.closeFilter();
+    await app.wallpapersListPage.filtersBar.closeFilter();
   });
 
   for (const current of pairwiseFilterCases) {
@@ -211,7 +211,7 @@ test.describe('Filtering', { tag: ['@wallpapers', '@guest'] }, () => {
 
   test('WP-34 Price range From/To limits card prices', { tag: ['@regression'] }, async ({ app, page }) => {
     // 1. Open the Price filter, set From = 50, To = 500
-    await app.wallpapersListPage.setPriceRange(50, 500);
+    await app.wallpapersListPage.filtersBar.setPriceRange(50, 500);
 
     await expect(page).toHaveURL(/minPrice=50/);
     await expect(page).toHaveURL(/maxPrice=500/);
@@ -231,15 +231,15 @@ test.describe('Filtering', { tag: ['@wallpapers', '@guest'] }, () => {
     await app.wallpapersListPage.open('/wallpapers?categories=NATURE&sort=PRICE_DESC&minPrice=1');
 
     // expect: Category shows "Nature" as selected
-    expect(await app.wallpapersListPage.isCategorySelected('Nature')).toBe(true);
+    expect(await app.wallpapersListPage.filtersBar.isCategorySelected('Nature')).toBe(true);
 
     // expect: Sort by shows "Price: High to Low"
-    expect(await app.wallpapersListPage.isSortBySelected('Price: High to Low')).toBe(true);
+    expect(await app.wallpapersListPage.filtersBar.isSortBySelected('Price: High to Low')).toBe(true);
 
     // expect: Price shows Paid - a deep-linked minPrice is reflected in the Price dialog's "From" input,
     // not the Free/Paid checkbox options (those stay unchecked for a plain minPrice deep link); From=1
     // is what makes the results paid-only here, so that's the value asserted below.
-    expect(await app.wallpapersListPage.getPriceFromValue()).toBe('1');
+    expect(await app.wallpapersListPage.filtersBar.getPriceFromValue()).toBe('1');
 
     // expect: every card has a price badge
     const cards = await app.wallpapersListPage.cardsAll.all();

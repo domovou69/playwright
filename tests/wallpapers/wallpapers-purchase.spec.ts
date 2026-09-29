@@ -50,14 +50,14 @@ test.describe('Download and Purchase (Guest)', { tag: ['@wallpapers', '@guest'] 
 
   test('WP-28 Free wallpaper downloads after the ad', { tag: ['@download', '@smoke'] }, async ({ app }) => {
     await app.wallpapersListPage.open();
-    await app.wallpapersListPage.downloadFreeWallpapers('free', 1);
+    await app.wallpapersListPage.downloadFlow.downloadFreeWallpapers('free', 1);
   });
 
   for (const variant of variants) {
     test(`WP-30 ${variant.name} premium wallpaper shows its price and the purchase gate`, { tag: ['@smoke'] }, async ({ app, page }) => {
       await app.wallpapersListPage.open();
-      await app.wallpapersListPage.filterByPrice(['Paid']);
-      await app.wallpapersListPage.filterBySortBy(variant.sortBy);
+      await app.wallpapersListPage.filtersBar.filterByPrice(['Paid']);
+      await app.wallpapersListPage.filtersBar.filterBySortBy(variant.sortBy);
 
       // 1. Pick the card, record its price and that it has a crown badge; open it
       const { card, price } = await pickPaidCardSkippingTen(app);
@@ -140,8 +140,8 @@ test.describe('Download and Purchase (Guest)', { tag: ['@wallpapers', '@guest'] 
 
   test('WP-32 Opening a premium wallpaper by direct URL keeps the gate', { tag: ['@regression'] }, async ({ app, page }) => {
     await app.wallpapersListPage.open();
-    await app.wallpapersListPage.filterByPrice(['Paid']);
-    await app.wallpapersListPage.filterBySortBy('Price: High to Low');
+    await app.wallpapersListPage.filtersBar.filterByPrice(['Paid']);
+    await app.wallpapersListPage.filtersBar.filterBySortBy('Price: High to Low');
 
     // 1. Take the href of the first card from Price=Paid, Sort by=Price: High to Low; open a new page and go to that href
     const card = (await app.wallpapersListPage.cardsPremiumWithPrice.all())[0]!;
@@ -172,8 +172,8 @@ test.describe('Download and Purchase (Guest)', { tag: ['@wallpapers', '@guest'] 
     },
     async ({ app, page }) => {
       await app.wallpapersListPage.open();
-      await app.wallpapersListPage.filterByPrice(['Paid']);
-      await app.wallpapersListPage.filterBySortBy('Price: High to Low');
+      await app.wallpapersListPage.filtersBar.filterByPrice(['Paid']);
+      await app.wallpapersListPage.filtersBar.filterBySortBy('Price: High to Low');
 
       // 1. Start collecting console errors, open a premium card priced other than 10
       const { card, price } = await pickPaidCardSkippingTen(app);

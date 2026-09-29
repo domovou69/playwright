@@ -7,7 +7,7 @@ test.describe('Wallpaper Detail Page', { tag: ['@wallpapers', '@guest'] }, () =>
   test('WP-24 Free wallpaper detail page', { tag: ['@regression'] }, async ({ app, page }) => {
     // 1. On /wallpapers, apply Price=Free filter, then open the first card
     await app.wallpapersListPage.open();
-    await app.wallpapersListPage.filterByPrice(['Free']);
+    await app.wallpapersListPage.filtersBar.filterByPrice(['Free']);
     const card = app.wallpapersListPage.cardsFree.first();
     const cardHref = await app.wallpapersListPage.getCardHref(card);
     const cardTitle = await app.wallpapersListPage.getCardTitle(card);
@@ -33,7 +33,7 @@ test.describe('Wallpaper Detail Page', { tag: ['@wallpapers', '@guest'] }, () =>
   test('WP-26 Tag chip on the detail page opens a keyword search', { tag: ['@regression'] }, async ({ app, page }) => {
     // 1. Open any card's detail page (Free is simplest, reuse the same open-first-card approach as WP-24)
     await app.wallpapersListPage.open();
-    await app.wallpapersListPage.filterByPrice(['Free']);
+    await app.wallpapersListPage.filtersBar.filterByPrice(['Free']);
     const card = app.wallpapersListPage.cardsFree.first();
     await app.wallpapersListPage.selectCard(card);
 
@@ -52,7 +52,7 @@ test.describe('Wallpaper Detail Page', { tag: ['@wallpapers', '@guest'] }, () =>
   test('WP-27 Related section renders valid cards', { tag: ['@regression'] }, async ({ app }) => {
     // 1. Open any card's detail page, scroll down to a "Related" section
     await app.wallpapersListPage.open();
-    await app.wallpapersListPage.filterByPrice(['Free']);
+    await app.wallpapersListPage.filtersBar.filterByPrice(['Free']);
     const card = app.wallpapersListPage.cardsFree.first();
     await app.wallpapersListPage.selectCard(card);
 

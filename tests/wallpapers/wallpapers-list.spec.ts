@@ -16,12 +16,12 @@ test.describe('List Page', { tag: ['@wallpapers', '@guest'] }, () => {
 
     // 3. Check the filter bar: Category, Tag, Price, Color, Sort by
     // expect: all five visible; "Reset All" is not present
-    await expect(app.wallpapersListPage.filterCategory).toBeVisible();
-    await expect(app.wallpapersListPage.filterTag).toBeVisible();
-    await expect(app.wallpapersListPage.filterPrice).toBeVisible();
-    await expect(app.wallpapersListPage.filterColor).toBeVisible();
-    await expect(app.wallpapersListPage.filterSortBy).toBeVisible();
-    await expect(app.wallpapersListPage.resetAllBtn).not.toBeAttached();
+    await expect(app.wallpapersListPage.filtersBar.filterCategory).toBeVisible();
+    await expect(app.wallpapersListPage.filtersBar.filterTag).toBeVisible();
+    await expect(app.wallpapersListPage.filtersBar.filterPrice).toBeVisible();
+    await expect(app.wallpapersListPage.filtersBar.filterColor).toBeVisible();
+    await expect(app.wallpapersListPage.filtersBar.filterSortBy).toBeVisible();
+    await expect(app.wallpapersListPage.filtersBar.resetAllBtn).not.toBeAttached();
 
     // 4. Check the first 20 cards (skip "Download app" and ad tiles)
     // expect: every href matches ^/wallpapers/[a-f0-9-]{36}$
