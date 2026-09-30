@@ -1,0 +1,17 @@
+{
+  "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+  "fetched": "2026-10-01",
+  "note": "USD per million tokens, copied from the official model pricing table (the page shows no last-updated date, so this is the fetch date). Only models seen in our transcripts. Sonnet 5: the $2/$10 introductory price became the standard price (page footnote 3). No inference_geo or fast-mode multiplier is applied: the transcripts show inference_geo not_available and speed standard.",
+  "models": {
+    "claude-opus-5-5": { "input": 4, "cacheWrite5m": 5, "cacheWrite1h": 8, "cacheRead": 0.2, "output": 20 },
+    "claude-sonnet-5-5": { "input": 2, "cacheWrite5m": 2.5, "cacheWrite1h": 4, "cacheRead": 0.2, "output": 10 },
+    "claude-sonnet-5": { "input": 2, "cacheWrite5m": 2.5, "cacheWrite1h": 4, "cacheRead": 0.2, "output": 10 },
+    "claude-haiku-4-5-20251001": { "input": 1, "cacheWrite5m": 1.25, "cacheWrite1h": 2, "cacheRead": 0.1, "output": 5 }
+  },
+  "aliases": {
+    "claude-haiku-4-5": "claude-haiku-4-5-20251001"
+  },
+  "perRequest": {
+    "webSearch": 0.01
+  }
+}

@@ -2,7 +2,8 @@
 
 Source data: `specs/metrics.md` (per-step durations), `specs/agentic-qa-loop.plan.md`, `specs/explorbot-experiment.plan.md`
 and the git history (2026-09-26 to 2026-09-30). Times are wall-clock from the log and commit timestamps, not focused effort.
-Token and money cost of the Claude sessions was **not measured** (see "What was missed").
+Token and money cost of the Claude sessions was not measured at the time; it was reconstructed afterwards from the session
+transcripts (section 8).
 
 ## 1. Goal
 
@@ -135,9 +136,9 @@ Rules of thumb that held throughout:
 
 ## 7. What was missed and what is still open
 
-- **Cost was never measured for the Claude sessions.** No token, subscription or hourly figures per phase, and no baseline
-  of how long the same 34 tests would take by hand. Without them the "effort" answer is only relative (batches against each
-  other, Explorbot against nothing).
+- **Cost was not measured while working.** Section 8 reconstructs session totals from the transcripts, but there is still no
+  split per phase or task, no subscription view, and no baseline of how long the same 34 tests would take by hand. Without
+  the baseline the "effort" answer is only relative (batches against each other, Explorbot against nothing).
 - **Human review time is not logged**, only agent-side duration.
 - **Generator quality was not evaluated across runs.** Each batch was reviewed, but there is no repeated-run or
   prompt-variation check of how consistent the generator is.
@@ -150,3 +151,55 @@ Rules of thumb that held throughout:
 - **Duplicate check** stays keyword-based; an LLM judgment inside triage is postponed.
 - **Open code items:** three `waitForTimeout` warnings, agent-written selectors like `div[class*="card-footer"]`,
   only the guest wallpapers section covered, the flaky-label branch not exercised on a truly flaky test.
+
+## 8. Cost of the Claude sessions (reconstructed afterwards)
+
+Source: `scripts/session-cost.mjs` over the five session transcripts of the project (subagents included), priced from
+`metrics/prices.json` (official Anthropic pricing page, fetched 2026-10-01). Dollars are **API-equivalent**, what the same tokens
+would cost through the API, not what was paid on the subscription.
+
+**Status: validated on one session, a lower bound elsewhere.** For `ddf88944` (one model, no subagents) the script matches the
+`/cost` screen exactly on all four Sonnet token classes and on $12.20; only Haiku side calls ($0.03) are missing. Sessions with
+subagents are compared against Claude Code's own recorded totals (below) and are a lower bound by 2-5%.
+
+| Session    | Work                                                             | Started (UTC), span | Models (messages)                                      | Input | Cache-create (M) | Cache-read (M) | Output |       API $ | Active min | Human msgs | MCP calls / result tokens (est) |
+| ---------- | ---------------------------------------------------------------- | ------------------- | ------------------------------------------------------ | ----: | ---------------: | -------------: | -----: | ----------: | ---------: | ---------: | ------------------------------- |
+| `29338810` | Baseline hygiene (phase 0)                                       | 09-26, 5.5 h span   | sonnet-5 253                                           |   506 |             0.38 |          51.54 |   178k |      $13.60 |        147 |         40 | -                               |
+| `821a3a08` | Skills, planner, plan review (phases 0-1)                        | 09-26, 4.1 h span   | sonnet-5 124, opus-5-5 58                              |   366 |             0.84 |          30.39 |   105k |      $11.93 |         81 |         16 | 54 / 65k                        |
+| `27bc4505` | Generate + POM, CI environment (phases 2-3)                      | 09-26, 20.5 h span  | opus-5-5 12, sonnet-5 982                              | 1,988 |             3.02 |         194.89 |   441k |      $53.37 |        336 |         51 | 356 / 535k                      |
+| `ddf88944` | Explorbot experiment (phase 4)                                   | 09-27, 14.3 h span  | sonnet-5 186                                           |   372 |             0.59 |          41.58 |   151k |      $12.20 |        176 |         40 | 19 / 35k                        |
+| `adf577b2` | Analytics, ticket loop, cleanup (phases 5-6), v2 plan at the end | 09-28, 58.6 h span  | sonnet-5 780, sonnet-5-5 393, opus-5-5 8, haiku-4-5 20 | 2,532 |             3.74 |         270.23 |   795k |      $76.73 |        754 |        244 | 135 / 183k                      |
+| **Total**  |                                                                  |                     |                                                        | 5,764 |             8.57 |         588.64 | 1,669k | **$167.83** |       1495 |        391 |                                 |
+
+How to read it:
+
+- **This is the sum of the harness and the tests, it cannot be split by task.** A session spans several phases, holds
+  compactions and side questions. `ddf88944` is the Explorbot side experiment ($12.20 of the total). The last 40 active
+  minutes of `adf577b2` (from `/model opus`, 2026-09-30 19:47 UTC) are the planning of v2 (the plan itself on Opus, then follow-up
+  edits): $2.27, inside the total.
+- Five sessions exist in the project; the order of magnitude is the point: about $170 API-equivalent, about 25 active hours,
+  for 33 tests, the harness, the triage scripts and the experiments around them. Nothing here is a per-test cost.
+- By token class the money goes to re-reading context: cache-read 70%, cache-write 19%, output 10%, uncached input under 1%.
+- Output and dollars are a **lower bound** (see the check below). "Human msgs" are all free-form messages including the first one;
+  v1 had no `gate:` convention, so gates and interventions are not separated.
+- MCP result tokens are estimated as characters / 4 (no offline tokenizer), which undercounts on the newer tokenizer by up to
+  about 30%. Only `playwright-test` and `currents` were used.
+
+Check against Claude Code's own recorded totals (`cost-state` entries in the transcript), same time window on both sides:
+
+| Session                    | Script | Claude Code | Gap   | Explained by                                                                                                                                                                     |
+| -------------------------- | ------ | ----------- | ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ddf88944`                 | $12.20 | $12.22      | $0.03 | Haiku side calls (titles): not in transcripts. No subagents; every token class matches exactly                                                                                   |
+| `27bc4505`                 | $53.37 | $55.00      | $1.63 | Extra Sonnet output (+161k tokens, $1.61), most likely the 10 generator subagents; +2,163 input and +56k cache-read (under $0.02) unexplained. Opus main session matches exactly |
+| `821a3a08`, 18:15+         | $7.92  | $8.32       | $0.40 | Planner subagent output $0.35 + Haiku $0.05; input and cache classes match exactly                                                                                               |
+| `adf577b2`, to 09-29 19:11 | $65.75 | $67.26      | $1.51 | Extra Sonnet output (+88k tokens, $0.88) consistent with subagents, Haiku $0.28, cache-read and input about $0.3 (0.4%) unexplained                                              |
+
+- In a subagent transcript `output_tokens` is a partial snapshot: the planner's 40 messages record 2,103 output tokens, while
+  Claude Code counted 36,722 for that model in the same window and the content alone is about 9.6k tokens. Main-session
+  output matches exactly. The script therefore says "lower bound" whenever subagents ran, and does not adjust the figure. Exact only for the
+  planner case; for the other sessions "subagent output" is the explanation consistent with the numbers, not shown message by message.
+- Haiku calls (session titles, WebFetch summaries) never appear in transcripts.
+- Claude Code's own counter restarts when a session is resumed (`821a3a08`: 18:15 UTC, the file starts at 15:38) and is saved
+  only at some moments (`adf577b2`: last save 09-29 19:11, the file runs to 09-30 21:19), so the comparison uses that window;
+  the full-session figures in the table cover more than the counter does.
+- `29338810` has no `cost-state` entry, so it has no cross-check at all.

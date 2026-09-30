@@ -191,13 +191,21 @@ Typed by hand, per gate, rough: `human_review_min`; per session: `mcp_decisive` 
 
 ### Stage 6 - Measurement
 
-- [ ] `scripts/session-cost.mjs` (dedup, token classes, active minutes, interventions and gates, MCP calls), validated against `/cost`
+- [x] `scripts/session-cost.mjs` (dedup, token classes, active minutes, interventions and gates, MCP calls), validated against `/cost`
+      (validated 2026-10-01 on session `ddf88944`: all four Sonnet token classes and $12.20 match `/cost`; only Haiku side calls,
+      $0.03, are missing. Sessions with subagents are a lower bound, see `specs/retrospective.md` section 8. `--from/--until` added
+      to measure a window of a session. Custom slash commands as the start message are unverified until the Stage 7 dry run)
 - [ ] Read `effort` / `perTurnEffort` from the transcript into `sessions.csv` and compare with the pinned value
-- [ ] `metrics/prices.json` from the official pricing page, dated
-- [ ] v1 totals from the four existing sessions into `specs/retrospective.md` (closes its "cost not measured" gap)
-- [ ] `scripts/plan-coverage.mjs`
+      (the script reads both into `effort_seen`; nothing is pinned yet, so the comparison waits for Stage 7)
+- [x] `metrics/prices.json` from the official pricing page, dated (2026-10-01; Sonnet 5 $2/$10 is the standard price now)
+- [x] v1 totals from the four existing sessions into `specs/retrospective.md` (closes its "cost not measured" gap)
+      (table added as section 8 for all five sessions found; lower bound, see the validation there)
+- [x] `scripts/plan-coverage.mjs` (real plan: 24 scenarios, all implemented; negative check on a doctored plan found the missing ID, tag mismatch and removed ID)
 - [ ] `scripts/loop-metrics.mjs` (git diff between raw commit and merge, PR review comments by class, Jira label changelog)
-- [ ] `metrics/` layout: `sessions.csv`, `groups.csv`, `fixes.csv`, `stability.csv`
+      (skeleton; checked: git part on a real commit range and on a synthetic repo for the agent/human split, Jira changelog on
+      ZED-3 and ZED-4, comment classifier offline; not checked: the PR part, `gh` is not installed here and no PR exists; not
+      built: POM members reused, recurrence against earlier groups)
+- [x] `metrics/` layout: `sessions.csv`, `groups.csv`, `fixes.csv`, `stability.csv` (headers only; `sessions.csv` matches `session-cost.mjs --csv`)
 
 ### Stage 7 - Build the loop
 
