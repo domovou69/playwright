@@ -1,7 +1,12 @@
 # Playwright E2E: zedge.net wallpapers
 
 Black-box E2E tests for the guest wallpapers section of [zedge.net](https://www.zedge.net/), plus an agentic QA loop around
-them: Jira and Currents on one side, Playwright agents (planner, generator, healer) on the other, a human as the gate.
+them, built with Claude, skills and MCP as the main tools and a human as the gate.
+
+Built with [Currents.dev](https://currents.dev/): its **dashboard** and Playwright reporter for run history and flaky tests, its
+**MCP server** so the AI agent can query that data, and its **[playwright-best-practices skill](https://github.com/currents-dev/playwright-best-practices-skill)**
+that the generator and healer agents follow. Also used: Playwright and its planner / generator / healer agents, the Playwright
+MCP, Jira and GitHub Actions. Details in [Tools and credits](#tools-and-credits).
 
 ## Setup
 
@@ -36,6 +41,8 @@ Create `.env` (see [Environment](#environment)). Only the tests themselves need 
 | `pages/`, `fixtures/`, `src/`                     | Page objects, the `app` fixture (cookie banner, ad blocking), utils  |
 | `specs/wallpapers.plan.md`                        | Test plan: scenarios `WP-XX`, verified facts used as the test oracle |
 | `specs/agentic-qa-loop.plan.md`                   | The loop: stages, decisions, status                                  |
+| `specs/retrospective.md`                          | Retrospective, Explorbot experiment, playbook for other projects     |
+| `specs/summary.md`                                | Short reader-facing summary of the approach and the recommendation   |
 | `specs/review-followups.plan.md`                  | Current improvement backlog                                          |
 | `scripts/`                                        | Jira triage, Jira repro result, `verify`                             |
 | `.claude/agents/`, `.claude/skills/`, `.mcp.json` | Playwright agents, vendored best-practices skill, MCP servers        |
@@ -80,6 +87,21 @@ the Actions tab (it has a `dryRun` checkbox).
 Configured in `.mcp.json`: `playwright-test` (headless browser and test tools for the agents) and `currents` (test analytics).
 The Currents server is pinned in `devDependencies` (`@currents/mcp`), runs from `node_modules` after `npm install` and reads
 `CURRENTS_API_KEY` from `.env`.
+
+## Tools and credits
+
+| Tool                                                                                                           | Used for                                                                                       |
+| -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| [Playwright](https://playwright.dev/) + its test agents (planner, generator, healer)                           | Tests, and drafting or fixing them (`.claude/agents/`)                                         |
+| Playwright MCP (`playwright-test` server)                                                                      | A live browser for the agents: explore the site, check facts, reproduce bugs                   |
+| [Currents.dev](https://currents.dev/) dashboard and reporter (`@currents/playwright`)                          | Run history, flaky-test detection and timing for every CI run                                  |
+| Currents MCP (`@currents/mcp`)                                                                                 | Lets the AI agent query Currents run data (for example to root-cause a flaky test)             |
+| [playwright-best-practices skill](https://github.com/currents-dev/playwright-best-practices-skill) by Currents | Vendored and trimmed (see `.claude/skills/VENDORED.md`); preloaded in the generator and healer |
+| Jira REST API + GitHub Actions                                                                                 | Ticket triage, reproduction outcomes, labels and comments                                      |
+| ESLint (`eslint-plugin-playwright`), Prettier, husky                                                           | Enforce the conventions, including tags, before code reaches review                            |
+
+Currents is a paid product with a 14-day trial; the tests and `npm run verify` run without it. An optional global
+`systematic-debugging` skill (not in this repo) can be used for root-cause work.
 
 ## Environment
 

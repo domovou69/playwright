@@ -27,12 +27,12 @@ all do it). The unique part worth building ourselves is the agentic layer (auto-
 skill/POM reuse) — not stats storage. Currents.dev chosen for stage 1 because:
 
 - Native Playwright reporter (`@currents/playwright`), no self-hosted infra to run/maintain
-- Free tier available — validates the idea at $0 before committing to anything paid or self-hosted
+- A free trial (no permanent free plan) — validates the idea at $0 before committing to anything paid or self-hosted
 - Gives flaky-detection, run history, timing out of the box, with an API to pull data back into any future
   orchestration layer
 
-If the free tier's limits (test runs/month) prove too restrictive, fallback is self-hosted ReportPortal
-(more powerful, more ops overhead) — documented as a fallback, not pursued unless stage 1 hits a wall.
+If the trial ends and a paid plan is not worth it, the free alternative to try is self-hosted ReportPortal
+(more ops overhead, no per-test limits); to be tried as a separate experiment (Stage 1).
 
 ## Currents-native features that reshape this plan
 
@@ -70,20 +70,22 @@ from the doc summary alone.
 
 ## Stages
 
-### Stage 1 — Currents.dev free tier, baseline analytics (current focus)
+### Stage 1 — Currents.dev trial, baseline analytics
 
-- [x] Sign up for Currents.dev free tier, get project ID + record key (project `OOKVTP`)
+- [x] Sign up for a Currents.dev trial, get project ID + record key (project `OOKVTP`)
 - [x] Add `@currents/playwright` reporter to `playwright.config.ts` + `currents.config.ts`
 - [x] Run existing suite (`tests/wallpapers/wallpapers-filters.spec.ts`) against it, confirm results land in
       the Currents dashboard — 13/13 passed, run visible at `https://app.currents.dev/run/d01bec858c163f66`
 - [x] Run the full suite (not just one spec file) to get a real baseline — all 9 spec files, 32/32 passed,
       1m26s, run visible at `https://app.currents.dev/run/6a691674937bb140`
-- [ ] Evaluate against free-tier limits: how many runs/month we actually burn through CI + local runs.
-      **Flag:** Currents' public pricing page (checked 2026-09-28) no longer lists a free plan — only Scale
-      ($49/mo), Business ($99/mo), Enterprise. Whatever tier the signup landed on (trial vs. a real free plan,
-      and its exact limits/expiry) needs to be checked directly in the Currents dashboard's
-      Settings → Billing, not assumed from the earlier onboarding email
-- [ ] Decision gate: is free tier sufficient, or do we hit limits fast enough to need ReportPortal/paid tier
+- [x] Checked the plan terms (2026-09-30, Currents docs and the dashboard's Usage section): there is **no free plan**, only a
+      14-day trial cycle with a 10K-tests limit (929 used two days in; local runs and `verify` repeats count too). The docs
+      say the trial can be extended by contacting Currents; guest accounts are read-only, free and unlimited. What happens
+      after the trial is not documented; the suite and `verify` work without Currents (it only adds history, flaky detection
+      and the MCP)
+- [x] Decision gate: keep Currents while the trial lasts and ask Currents for an extension; nothing is dropped
+- [ ] Later, as a separate experiment: self-hosted ReportPortal as a free alternative. Compare on: Playwright reporter, run
+      history and flaky detection, access for an AI agent (MCP or API), Jira integration, and the cost of running it
 - [x] Research Currents' AI/automation features (docs checked 2026-09-28) — **significant findings, see
       `## Currents-native features that reshape this plan` below**: an official MCP server, a native Jira
       integration, and rule-based "Currents Actions" all exist and overlap with what Stage 2/4/5 planned to
@@ -394,8 +396,7 @@ comments were you and which were the agent, without needing a separate service a
 
 ## Status
 
-- [x] Stage 1: Currents.dev wired in and verified end-to-end (local + CI); only the free-tier billing/limits
-      check in the Currents dashboard itself remains open (needs manual login, can't be checked via API/MCP)
+- [x] Stage 1: Currents.dev wired in and verified end-to-end (local + CI); plan terms checked: trial only, no free plan (see Stage 1)
 - [x] Stage 2: Jira triage script built and verified end-to-end on real data (real CI run, real ticket, real
       write path, idempotency confirmed)
 - [x] Stage 3: reproduction flow (production, no staging) — mechanism built and verified end-to-end on three real
