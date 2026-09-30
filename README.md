@@ -3,10 +3,19 @@
 Black-box E2E tests for the guest wallpapers section of [zedge.net](https://www.zedge.net/), plus an agentic QA loop around
 them, built with Claude, skills and MCP as the main tools and a human as the gate.
 
-Built with [Currents.dev](https://currents.dev/): its **dashboard** and Playwright reporter for run history and flaky tests, its
-**MCP server** so the AI agent can query that data, and its **[playwright-best-practices skill](https://github.com/currents-dev/playwright-best-practices-skill)**
-that the generator and healer agents follow. Also used: Playwright and its planner / generator / healer agents, the Playwright
-MCP, Jira and GitHub Actions. Details in [Tools and credits](#tools-and-credits).
+Built with [Currents.dev](https://currents.dev/):
+
+- **Dashboard and Playwright reporter**: run history and flaky tests
+- **MCP server**: lets the AI agent query that data
+- **[playwright-best-practices skill](https://github.com/currents-dev/playwright-best-practices-skill)**: followed by the generator and healer agents
+
+Also used:
+
+- Playwright and its planner / generator / healer agents
+- Playwright MCP
+- Jira and GitHub Actions
+
+Details in [Tools and credits](#tools-and-credits).
 
 ## Setup
 
