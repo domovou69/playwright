@@ -9,6 +9,12 @@ Include the git add line with the exact paths, so the block works as a single co
 
 When I do ask for a commit, the same message rules below still apply.
 
+Exception: while running a loop command (`/implement-ticket`, `/address-review`, `/fix-test`) you may commit on that ticket's
+branch without asking. Pushing, opening a PR and merging still need my explicit request (merging is always mine).
+
+Branches: a branch name always starts with the Jira key, then a short kebab-case form of the ticket title, e.g.
+`ZED-12-ringtones-search`. The title part is a recommendation (shorten a long title); the key prefix is required.
+
 Git Commit Messages
 When asked to generate a commit message, run git diff --staged (or git diff HEAD if nothing staged) to review the actual changes, then produce the full ready-to-run command with the message already substituted, e.g.:
 

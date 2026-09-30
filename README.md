@@ -49,6 +49,7 @@ Create `.env` (see [Environment](#environment)). Only the tests themselves need 
 | `pages/`, `fixtures/`, `src/`                     | Page objects, the `app` fixture (cookie banner, ad blocking), utils  |
 | `specs/wallpapers.plan.md`                        | Test plan: scenarios `WP-XX`, verified facts used as the test oracle |
 | `specs/agentic-qa-loop.plan.md`                   | The loop: stages, decisions, status                                  |
+| `specs/agentic-qa-loop-v2.plan.md`                | Second iteration: a new feature area, with cost and tool metrics     |
 | `specs/retrospective.md`                          | Retrospective, Explorbot experiment, playbook for other projects     |
 | `specs/summary.md`                                | Short reader-facing summary of the approach and the recommendation   |
 | `specs/review-followups.plan.md`                  | Current improvement backlog                                          |

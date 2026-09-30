@@ -1,5 +1,7 @@
 # Agentic QA Loop Plan
 
+First iteration, finished. The next one (new feature area, with measurements) is `specs/agentic-qa-loop-v2.plan.md`.
+
 ## Goal — what we get at the end
 
 A closed loop connecting **Jira (signal source) ↔ test analytics (state/history) ↔ Playwright agents (execution)
