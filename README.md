@@ -11,8 +11,7 @@ Built with [Currents.dev](https://currents.dev/):
 
 Also used:
 
-- Playwright and its planner / generator / healer agents
-- Playwright MCP
+- Playwright with its planner / generator / healer agents and the Playwright MCP
 - Jira and GitHub Actions
 
 Details in [Tools and credits](#tools-and-credits).
