@@ -121,6 +121,9 @@ Story entry = start at step 2 with a human-written Story (step 2 then only norma
 
 **Review comments** go on the GitHub PR, each prefixed with its class: `[oracle]` (wrong expected behaviour), `[locator]`,
 `[convention]`, `[missing]` (scenario or check missing), `[dup-pom]` (duplicate locator or helper), `[flaky]`, `[other]`.
+Only these prefixes: anything else (`[class]`, `[assertions]`, no prefix) is counted as `unclassified` by `loop-metrics`, so
+use `[other]` when no class fits. Kept as is on purpose: `findings_unclassified` shows how often a prefix was not recognised
+(PR #1: 3 of 6).
 `/address-review` and `/group-retro` read them through `gh`, so the findings are data.
 
 **Bugs found during the work.** The agent stops, shows a draft (title, steps, evidence) and waits for `gate: file bug`. Then
