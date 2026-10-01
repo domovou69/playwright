@@ -203,9 +203,9 @@ Typed by hand, per gate, rough: `human_review_min`; per session: `mcp_decisive` 
 - [x] v1 totals from the four existing sessions into `specs/retrospective.md` (closes its "cost not measured" gap)
       (table added as section 8 for all five sessions found; lower bound, see the validation there)
 - [x] `scripts/plan-coverage.mjs` (real plan: 24 scenarios, all implemented; negative check on a doctored plan found the missing ID, tag mismatch and removed ID)
-- [ ] `scripts/loop-metrics.mjs` (git diff between raw commit and merge, PR review comments by class, Jira label changelog)
+- [x] `scripts/loop-metrics.mjs` (git diff between raw commit and merge, PR review comments by class, Jira label changelog)
       (skeleton; checked: git part on a real commit range and on a synthetic repo for the agent/human split, Jira changelog on
-      ZED-3 and ZED-4, comment classifier offline; PR part: `gh` 2.102.0 installed and authenticated 2026-10-01, call form checked on a real endpoint and on a missing PR, not yet on real review comments (no PR exists); not
+      ZED-3 and ZED-4, comment classifier offline; PR part: `gh` 2.102.0 installed and authenticated 2026-10-01, call form checked on a real endpoint and on a missing PR, real review comments checked on PR #1 (6 findings, 3 came back `unclassified`); not
       built: POM members reused, recurrence against earlier groups)
 - [x] `metrics/` layout: `sessions.csv`, `groups.csv`, `fixes.csv`, `stability.csv` (headers only; `sessions.csv` matches `session-cost.mjs --csv`)
 
@@ -216,16 +216,16 @@ Typed by hand, per gate, rough: `human_review_min`; per session: `mcp_decisive` 
       (six commands written 2026-10-01 with `model`/`effort` exactly as in the table above; shared rules in `.claude/loop-rules.md`; `allowed-tools` leaves `git push` and GitHub writes to the permission prompt. Written, not yet run: the dry run decides whether they work)
 - [x] Story template (scope, groups, reuse map, constraints, acceptance criteria, out of scope)
       (`specs/templates/story.md`, Story and Subtask)
-- [ ] `scripts/jira-create.mjs --type=Story|Subtask|Bug` on `jira-common.mjs`; new story state labels; the marker on every write
+- [x] `scripts/jira-create.mjs --type=Story|Subtask|Bug` on `jira-common.mjs`; new story state labels; the marker on every write
       (built with `Task` too, plus `scripts/jira-ticket.mjs` show/gate/label/comment; `--dry-run` payloads, error paths and the gate on
-      ZED-3 checked, the gate refuses a ticket in the wrong state; not checked: a real create, it needs the dry run's ticket)
+      ZED-3 checked, the gate refuses a ticket in the wrong state; a real create checked in the dry run: Story ZED-8, Subtasks ZED-9..12)
 - [x] Generator agent: edit access to `pages/`, viewport resize
       (`Edit`, `Write`, `browser_resize` added; the agent text restricts edits to `pages/` and its test file and drops `TODO(pom)`)
 - [x] Ringtones rules before any code: area tag `@ringtones` in `src/utils/tags.ts`, page-object location, naming
       (`## Areas` table in CLAUDE.md: tag `@ringtones` already in `tags.ts`, `pages/ringtones/`, `tests/ringtones/`, prefix `RT`, entry `app.ringtonesListPage.open()`)
 - [ ] CI: a job that runs the full suite when a PR gets the `regression` label (PR still runs `@smoke`)
       (`ci.yml` changed: the `labeled` trigger, other labels skip the run; YAML passes prettier, the expressions are untested until a PR;
-      the `regression` label does not exist in the repo yet: `gh label create regression`)
+      the `regression` label exists in the repo)
 - [x] Confirm that the pinned effort is the effort actually used, including after a follow-up message in the same session
       (2026-10-01 dry run, 7 sessions: `scout-feature` high, `create-story`/`implement-ticket`/`address-review` medium, `group-retro` high, read from the transcripts; it also held on the follow-up turn of resumed sessions)
 - [x] Dry run of every command on a trivial target before the pilot; fix what breaks, log it
