@@ -2,7 +2,7 @@
 // state label and comments; it never changes a status, never closes or resolves a ticket.
 //
 // Usage:
-//   node scripts/jira-ticket.mjs show --issue=ZED-12
+//   node scripts/jira-ticket.mjs show --issue=ZED-12 [--comments]     (type, status, labels, description, subtasks)
 //   node scripts/jira-ticket.mjs gate --issue=ZED-12 --status="In Progress" [--label=plan-approved,impl-in-progress]
 //   node scripts/jira-ticket.mjs label --issue=ZED-12 --set=impl-ready-for-review
 //   node scripts/jira-ticket.mjs comment --issue=ZED-12 --file=/tmp/comment.txt
@@ -12,14 +12,14 @@
 // Add --dry-run to `label` and `comment` to print what would be sent.
 
 import { readFile } from 'node:fs/promises';
-import { AGENT_MARKER, STATE_LABELS, jira, postComment, setStateLabel } from './jira-common.mjs';
+import { AGENT_MARKER, STATE_LABELS, adfToText, jira, postComment, setStateLabel } from './jira-common.mjs';
 
 function parseArgs(argv) {
   const [command, ...rest] = argv;
   const args = { command };
   for (const arg of rest) {
-    if (arg === '--dry-run') {
-      args.dryRun = true;
+    if (arg === '--dry-run' || arg === '--comments') {
+      args[arg === '--dry-run' ? 'dryRun' : 'comments'] = true;
       continue;
     }
     const match = /^--([^=]+)=(.*)$/s.exec(arg);
@@ -31,12 +31,14 @@ function parseArgs(argv) {
 }
 
 async function loadTicket(key) {
-  const issue = await jira(`/rest/api/3/issue/${encodeURIComponent(key)}?fields=summary,status,labels,issuetype,parent,subtasks`);
+  const issue = await jira(`/rest/api/3/issue/${encodeURIComponent(key)}?fields=summary,description,status,labels,issuetype,parent,subtasks`);
   const f = issue.fields;
   return {
     key: issue.key,
     type: f.issuetype.name,
     summary: f.summary,
+    // Plain text with the headings and bullets of the template; the Story's `## Groups` is read from here.
+    description: adfToText(f.description).replace(/\s+/g, ' ').trim(),
     status: f.status.name,
     labels: f.labels,
     stateLabels: f.labels.filter(label => STATE_LABELS.includes(label)),
@@ -49,7 +51,12 @@ async function main() {
   const args = parseArgs(process.argv.slice(2));
 
   if (args.command === 'show') {
-    console.log(JSON.stringify(await loadTicket(args.issue), null, 2));
+    const ticket = await loadTicket(args.issue);
+    if (args.comments) {
+      const page = await jira(`/rest/api/3/issue/${encodeURIComponent(args.issue)}/comment?maxResults=100`);
+      ticket.comments = page.comments.map(c => ({ created: c.created, text: adfToText(c.body).replace(/\s+/g, ' ').trim() }));
+    }
+    console.log(JSON.stringify(ticket, null, 2));
   } else if (args.command === 'gate') {
     const ticket = await loadTicket(args.issue);
     const problems = [];

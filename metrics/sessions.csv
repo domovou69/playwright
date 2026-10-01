@@ -1,3 +1,6 @@
 session_id,started,task,ticket,models,effort_seen,input_tokens,cache_creation_tokens,cache_read_tokens,output_tokens,api_usd,active_min,interventions,gates,budget_stops,mcp_calls,mcp_result_tokens_est,mcp_decisive,human_review_min
 bc1261dc-fa5b-4ac8-9627-5ab9fb13d336,2026-10-01T07:35:12.514Z,scout-feature,,claude-sonnet-5-5,high/high+medium/medium,282,304005,14392064,99401,4.87,32.6,0,0,0,124,48512,,
 dd86aed2-07e4-4a3d-b22d-e67facfdbdd2,2026-10-01T08:12:41.505Z,create-story,,claude-sonnet-5-5,medium/medium,18,40321,477539,5824,0.32,1.2,0,0,0,0,0,,
+0fc0fa52-3401-4cd3-8187-765445213fe1,2026-10-01T08:15:39.076Z,implement-ticket,ZED-8,claude-sonnet-5-5,medium/medium,8,19991,141289,1371,0.12,0.3,0,0,0,0,0,,
+c1e6f46e-f9ae-4e7a-9938-3cc8e3d7cd34,2026-10-01T08:16:38.867Z,implement-ticket,ZED-8,claude-sonnet-5-5,medium/medium,18,27040,358978,2250,0.20,0.4,0,0,0,0,0,,
+4521fec8-85d2-4a81-845c-a4b66d9a46fe,2026-10-01T08:17:26.920Z,implement-ticket,ZED-8,claude-sonnet-5-5,medium/medium,86,127755,2982252,22792,1.27,6.5,0,0,0,4,10572,,
