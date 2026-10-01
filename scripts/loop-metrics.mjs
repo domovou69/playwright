@@ -13,19 +13,10 @@
 // Not implemented yet: POM members reused, recurrence of a finding class against earlier groups (needs metrics/groups.csv).
 
 import { execFileSync } from 'node:child_process';
-import { AGENT_MARKER, STATE_LABELS, hasJiraEnv, jira } from './jira-common.mjs';
+import { AGENT_MARKER, LOOP_STATE_LABELS, STATE_LABELS, hasJiraEnv, jira } from './jira-common.mjs';
 
 const REVIEW_CLASSES = ['oracle', 'locator', 'convention', 'missing', 'dup-pom', 'flaky', 'other'];
 const DEFAULT_AGENT_PATTERN = 'Co-Authored-By:\\s*Claude|\\[agent - Claude\\]';
-
-// Story and subtask labels of the loop, and who the ticket waits for while it carries the label.
-const LOOP_STATE_LABELS = {
-  'plan-draft': 'human',
-  'plan-approved': 'human',
-  'impl-in-progress': 'agent',
-  'impl-ready-for-review': 'human',
-  'review-addressed': 'human',
-};
 
 try {
   process.loadEnvFile();
@@ -145,7 +136,7 @@ async function changelogHistories(key) {
 
 async function jiraSection(key) {
   if (!hasJiraEnv()) return { available: false, reason: 'JIRA_BASE_URL / JIRA_EMAIL / JIRA_API_TOKEN are not set' };
-  const known = new Set([...STATE_LABELS, ...Object.keys(LOOP_STATE_LABELS)]);
+  const known = new Set(STATE_LABELS);
   const issue = await jira(`/rest/api/3/issue/${key}?fields=created,labels`);
   const events = [];
   for (const history of await changelogHistories(key)) {

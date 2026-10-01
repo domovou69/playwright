@@ -77,6 +77,8 @@ Open risk: it is not documented whether a command's `effort` holds for the human
 only for the turn the command ran. The user's global setting is `effortLevel: high` with per-model overrides, so the session
 baseline is not medium. Checked in the dry run (Stage 7) from the `effort` / `perTurnEffort` fields of the transcript; if it
 does not hold, the session is started with `/effort <level>` as well and `sessions.csv` records the effort actually seen.
+The docs (checked 2026-10-01) say the override ends at the next user message, so follow-ups after a gate run at the session
+level; the `sonnet` alias now resolves to `claude-sonnet-5-5`, whose user override is `high`.
 
 ## Definitions
 
@@ -203,19 +205,27 @@ Typed by hand, per gate, rough: `human_review_min`; per session: `mcp_decisive` 
 - [x] `scripts/plan-coverage.mjs` (real plan: 24 scenarios, all implemented; negative check on a doctored plan found the missing ID, tag mismatch and removed ID)
 - [ ] `scripts/loop-metrics.mjs` (git diff between raw commit and merge, PR review comments by class, Jira label changelog)
       (skeleton; checked: git part on a real commit range and on a synthetic repo for the agent/human split, Jira changelog on
-      ZED-3 and ZED-4, comment classifier offline; not checked: the PR part, `gh` is not installed here and no PR exists; not
+      ZED-3 and ZED-4, comment classifier offline; PR part: `gh` 2.102.0 installed and authenticated 2026-10-01, call form checked on a real endpoint and on a missing PR, not yet on real review comments (no PR exists); not
       built: POM members reused, recurrence against earlier groups)
 - [x] `metrics/` layout: `sessions.csv`, `groups.csv`, `fixes.csv`, `stability.csv` (headers only; `sessions.csv` matches `session-cost.mjs --csv`)
 
 ### Stage 7 - Build the loop
 
-- [ ] Commands in `.claude/commands/`: `scout-feature`, `create-story`, `implement-ticket`, `address-review`, `group-retro`, `fix-test`;
+- [x] Commands in `.claude/commands/`: `scout-feature`, `create-story`, `implement-ticket`, `address-review`, `group-retro`, `fix-test`;
       each states its input, output, stop rules and constraints, ends at its gate, and pins `model` and `effort` per `## Model and effort`
-- [ ] Story template (scope, groups, reuse map, constraints, acceptance criteria, out of scope)
+      (six commands written 2026-10-01 with `model`/`effort` exactly as in the table above; shared rules in `.claude/loop-rules.md`; `allowed-tools` leaves `git push` and GitHub writes to the permission prompt. Written, not yet run: the dry run decides whether they work)
+- [x] Story template (scope, groups, reuse map, constraints, acceptance criteria, out of scope)
+      (`specs/templates/story.md`, Story and Subtask)
 - [ ] `scripts/jira-create.mjs --type=Story|Subtask|Bug` on `jira-common.mjs`; new story state labels; the marker on every write
-- [ ] Generator agent: edit access to `pages/`, viewport resize
-- [ ] Ringtones rules before any code: area tag `@ringtones` in `src/utils/tags.ts`, page-object location, naming
+      (built with `Task` too, plus `scripts/jira-ticket.mjs` show/gate/label/comment; `--dry-run` payloads, error paths and the gate on
+      ZED-3 checked, the gate refuses a ticket in the wrong state; not checked: a real create, it needs the dry run's ticket)
+- [x] Generator agent: edit access to `pages/`, viewport resize
+      (`Edit`, `Write`, `browser_resize` added; the agent text restricts edits to `pages/` and its test file and drops `TODO(pom)`)
+- [x] Ringtones rules before any code: area tag `@ringtones` in `src/utils/tags.ts`, page-object location, naming
+      (`## Areas` table in CLAUDE.md: tag `@ringtones` already in `tags.ts`, `pages/ringtones/`, `tests/ringtones/`, prefix `RT`, entry `app.ringtonesListPage.open()`)
 - [ ] CI: a job that runs the full suite when a PR gets the `regression` label (PR still runs `@smoke`)
+      (`ci.yml` changed: the `labeled` trigger, other labels skip the run; YAML passes prettier, the expressions are untested until a PR;
+      the `regression` label does not exist in the repo yet: `gh label create regression`)
 - [ ] Confirm that the pinned effort is the effort actually used, including after a follow-up message in the same session
 - [ ] Dry run of every command on a trivial target before the pilot; fix what breaks, log it
 

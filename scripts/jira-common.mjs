@@ -60,12 +60,15 @@ function inline(text) {
     });
 }
 
-// One line per paragraph (a blank line is an empty paragraph); consecutive "- " lines become a real bullet list.
+// One line per paragraph (a blank line is an empty paragraph); "## " lines become headings; consecutive "- " lines become a
+// real bullet list.
 export function toAdf(text) {
   const paragraph = value => ({ type: 'paragraph', content: inline(value) });
   const content = [];
   for (const line of text.split('\n')) {
-    if (line.startsWith('- ')) {
+    if (line.startsWith('## ')) {
+      content.push({ type: 'heading', attrs: { level: 3 }, content: inline(line.slice(3)) });
+    } else if (line.startsWith('- ')) {
       const item = { type: 'listItem', content: [paragraph(line.slice(2))] };
       const last = content.at(-1);
       if (last?.type === 'bulletList') last.content.push(item);
@@ -79,6 +82,15 @@ export function toAdf(text) {
 
 // Where a ticket is in the pipeline; exactly one at a time, so setting a new one removes the others.
 // Any other label (added by a human, or a project label) is never touched.
+// Story and Subtask labels of the agent loop (specs/agentic-qa-loop-v2.plan.md) and who the ticket waits for under each one.
+export const LOOP_STATE_LABELS = {
+  'plan-draft': 'human',
+  'plan-approved': 'human',
+  'impl-in-progress': 'agent',
+  'impl-ready-for-review': 'human',
+  'review-addressed': 'human',
+};
+
 export const STATE_LABELS = [
   'needs-repro',
   'repro-confirmed',
@@ -87,6 +99,7 @@ export const STATE_LABELS = [
   'duplicate-suspected',
   'auto-fix-proposed',
   'needs-human-review',
+  ...Object.keys(LOOP_STATE_LABELS),
 ];
 
 async function updateLabels(issueKey, operations) {

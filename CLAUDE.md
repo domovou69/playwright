@@ -11,6 +11,8 @@ When I do ask for a commit, the same message rules below still apply.
 
 Exception: while running a loop command (`/implement-ticket`, `/address-review`, `/fix-test`) you may commit on that ticket's
 branch without asking. Pushing, opening a PR and merging still need my explicit request (merging is always mine).
+Every commit a loop command makes ends with a body line `[agent - Claude]` (`scripts/loop-metrics.mjs` uses it to tell agent
+commits from human edits), and its message still follows the rules below.
 
 Branches: a branch name always starts with the Jira key, then a short kebab-case form of the ticket title, e.g.
 `ZED-12-ringtones-search`. The title part is a recommendation (shorten a long title); the key prefix is required.
@@ -28,8 +30,22 @@ Do not include "Co-Authored-By" unless the user asks
 
 # Project Conventions
 
-Black-box E2E suite for the zedge.net wallpapers section (guest only). Scenarios live in `specs/wallpapers.plan.md` as
-`WP-XX`; the automation loop is described in `specs/agentic-qa-loop.plan.md`.
+Black-box E2E suite for the zedge.net sections (guest only), one area at a time. Scenarios live in `specs/<area>.plan.md` as
+`<PREFIX>-XX`; the first loop is described in `specs/agentic-qa-loop.plan.md`, the working one in `specs/agentic-qa-loop-v2.plan.md`.
+
+## Areas
+
+| Area       | Tag           | ID prefix | Plan                       | Tests               | Page objects             | Entry point                     |
+| ---------- | ------------- | --------- | -------------------------- | ------------------- | ------------------------ | ------------------------------- |
+| wallpapers | `@wallpapers` | `WP`      | `specs/wallpapers.plan.md` | `tests/wallpapers/` | `pages/` (flat, from v1) | `app.wallpapersListPage.open()` |
+| ringtones  | `@ringtones`  | `RT`      | `specs/ringtones.plan.md`  | `tests/ringtones/`  | `pages/ringtones/`       | `app.ringtonesListPage.open()`  |
+
+- A new area gets its own `pages/<area>/` folder, `tests/<area>/` folder, plan file and ID prefix. IDs are never reused.
+- Shared components (`HeaderPage`, `FooterPage`, `MainHeaderPage`, `BuyModalPage`) stay in `pages/` and are reused by the new
+  area, not copied. Before adding a locator or helper search `pages/` for it (a duplicate is a `[dup-pom]` review finding).
+- `AppPageObjects` gets one property per area entry page. The entry page's `open(path)` keeps the wallpapers contract: navigate,
+  wait for the list heading, then `dismissCookieBanner` (`src/utils/helper.ts`).
+- The area tag is registered in `src/utils/tags.ts` before the first test uses it.
 
 ## Language
 
@@ -43,19 +59,20 @@ Before writing or editing a test, invoke the `playwright-best-practices` skill. 
 
 - Import `test` and `expect` from `fixtures/test`, never from `@playwright/test`. Use the `app` fixture and call page objects
   explicitly (`app.wallpapersListPage.open()`); do not destructure them out of `app`.
-- Open any `/wallpapers` URL through `app.wallpapersListPage.open(path)`, not `page.goto()` (the cookie banner race).
+- Open any area URL (`/wallpapers/...`, `/ringtones/...`) through the entry page's `open(path)` (see `## Areas`), not `page.goto()`
+  (the cookie banner race).
 - Locators and helpers live in `pages/`; the list page delegates to components (`app.wallpapersListPage.filtersBar`, `.filterDrawer`,
   `.downloadFlow`). Search for an existing one before adding a new one. Assertions that belong to a
   component go in its `validate*` methods.
 - No `waitForTimeout`, no `force: true` (close an open filter dropdown with `closeFilter()`, i.e. Escape), no conditionals in a test body. Data-driven variants carry plain data only,
   never functions or branches.
 - A test ID and title (`WP-XX ...`) is never renamed; only tags are added or changed.
-- Tags (`src/utils/tags.ts`): `@wallpapers` and `@guest` go on the `describe`, never on a test. `@smoke` marks a P1 scenario
-  from `specs/wallpapers.plan.md` (runs on every PR), `@regression` the rest; push to main runs everything. `@download` and
+- Tags (`src/utils/tags.ts`): the area tag (`@wallpapers`, `@ringtones`) and `@guest` go on the `describe`, never on a test. `@smoke` marks a P1 scenario
+  from the area plan (runs on every PR), `@regression` the rest; push to main runs everything. `@download` and
   `@BUG:<KEY>` are added on top. ESLint (`require-tags`, `valid-test-tags`) enforces that a test has tags and only known ones.
 - Bug tests assert the current (buggy) behavior and stay green: tag `@BUG:<JIRA-KEY>` plus an annotation
   `{ type: 'bug', description }`. When the site is fixed the test fails and is reviewed.
-- Do not create per-ticket plan files. New scenarios go into `specs/wallpapers.plan.md`.
+- Do not create per-ticket plan files. New scenarios go into the plan of their area.
 - Comments only for a non-obvious "why", one or two lines, never a block.
 
 ## Running tests

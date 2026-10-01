@@ -3,8 +3,15 @@
 // <session>/subagents/*.jsonl): models and effort, four token classes, API-equivalent dollars, active minutes,
 // human messages (gates vs interventions) and MCP calls per server.
 //
-//   node scripts/session-cost.mjs <session-id-prefix | path.jsonl> [...] [--all] [--json | --csv]
-//        [--from <iso>] [--until <iso>] [--project-dir <dir>] [--prices metrics/prices.json]
+//   node scripts/session-cost.mjs <session-id-prefix | path.jsonl> [...] [--all | --current] [--json | --csv]
+//        [--from <iso>] [--until <iso>] [--skip-known <sessions.csv>] [--skip-newest]
+//        [--project-dir <dir>] [--prices metrics/prices.json]
+//
+// --current is the most recently written transcript (the running session): a command reads `activeMin` from it for the
+// 60-minute stop rule. --skip-known leaves out sessions already in a sessions.csv; --skip-newest leaves out the running one.
+//
+// task / ticket come from the start command (`/implement-ticket ZED-12`); budget_stops counts assistant messages that begin
+// with `BUDGET STOP:` (the marker every loop command uses when a stop rule fires).
 //
 // --from / --until limit everything (tokens, active time, messages, MCP) to a time window, for a session that holds
 // several tasks or to compare with a cost snapshot taken at a known moment.
@@ -17,7 +24,7 @@
 //    subagents ran (main-session output matches exactly);
 //  - Haiku side calls (titles, WebFetch summaries) are not in transcripts at all.
 
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { basename, join, resolve } from 'node:path';
 
@@ -48,10 +55,25 @@ const CSV_COLUMNS = [
 ];
 
 function parseArgs(argv) {
-  const opts = { sessions: [], all: false, json: false, csv: false, projectDir: null, prices: null, from: -Infinity, until: Infinity };
+  const opts = {
+    sessions: [],
+    all: false,
+    current: false,
+    skipKnown: null,
+    skipNewest: false,
+    json: false,
+    csv: false,
+    projectDir: null,
+    prices: null,
+    from: -Infinity,
+    until: Infinity,
+  };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === '--all') opts.all = true;
+    else if (arg === '--current') opts.current = true;
+    else if (arg === '--skip-known') opts.skipKnown = argv[++i];
+    else if (arg === '--skip-newest') opts.skipNewest = true;
     else if (arg === '--json') opts.json = true;
     else if (arg === '--csv') opts.csv = true;
     else if (arg === '--project-dir') opts.projectDir = argv[++i];
@@ -61,7 +83,9 @@ function parseArgs(argv) {
     else if (arg.startsWith('--')) throw new Error(`Unknown option: ${arg}`);
     else opts.sessions.push(arg);
   }
-  if (!opts.all && opts.sessions.length === 0) throw new Error('Usage: session-cost.mjs <session-id | path.jsonl> [...] [--all] [--json | --csv]');
+  if (!opts.all && !opts.current && opts.sessions.length === 0) {
+    throw new Error('Usage: session-cost.mjs <session-id | path.jsonl> [...] [--all | --current] [--json | --csv]');
+  }
   return opts;
 }
 
@@ -71,7 +95,22 @@ function defaultProjectDir() {
 
 function resolveSessionFiles(opts, projectDir) {
   const inDir = readdirSync(projectDir).filter(name => name.endsWith('.jsonl'));
-  if (opts.all) return inDir.sort().map(name => join(projectDir, name));
+  const newest = () => [...inDir].sort((a, b) => statSync(join(projectDir, b)).mtimeMs - statSync(join(projectDir, a)).mtimeMs)[0];
+  if (opts.current) return [join(projectDir, newest())];
+  if (opts.all) {
+    const known = new Set(
+      opts.skipKnown && existsSync(opts.skipKnown)
+        ? readFileSync(opts.skipKnown, 'utf8')
+            .split('\n')
+            .map(line => line.split(',')[0])
+        : []
+    );
+    const skipped = opts.skipNewest ? newest() : null;
+    return inDir
+      .sort()
+      .filter(name => name !== skipped && !known.has(basename(name, '.jsonl')))
+      .map(name => join(projectDir, name));
+  }
   return opts.sessions.map(ref => {
     if (ref.endsWith('.jsonl') && existsSync(ref)) return resolve(ref);
     const matches = inDir.filter(name => name.startsWith(ref));
@@ -188,6 +227,8 @@ function analyzeSession(mainFile, prices, window) {
   const toolUses = new Map();
   const toolResults = new Map();
   const humans = [];
+  const commandEntries = [];
+  const budgetStopTexts = new Set();
   const timestamps = [];
   let badLines = 0;
 
@@ -214,6 +255,7 @@ function analyzeSession(mainFile, prices, window) {
         }
         for (const block of entry.message.content ?? []) {
           if (block.type === 'tool_use' && !toolUses.has(block.id)) toolUses.set(block.id, block.name);
+          if (source.isMain && block.type === 'text' && /^\s*BUDGET STOP:/.test(block.text)) budgetStopTexts.add(`${id}:${block.text.length}`);
         }
       } else if (entry.type === 'user' && Array.isArray(entry.message?.content)) {
         for (const block of entry.message.content) {
@@ -221,6 +263,9 @@ function analyzeSession(mainFile, prices, window) {
         }
       }
 
+      if (source.isMain && entry.type === 'user' && !entry.isMeta && textOf(entry.message?.content).includes('<command-name>')) {
+        commandEntries.push({ ts, text: typedText(entry.message.content) });
+      }
       if (source.isMain) {
         const isHumanEntry = entry.type === 'user' && !entry.isMeta && entry.origin?.kind === 'human';
         const queued = entry.type === 'attachment' && entry.attachment?.type === 'queued_command' && entry.attachment.origin?.kind === 'human';
@@ -263,9 +308,15 @@ function analyzeSession(mainFile, prices, window) {
   }
   warnings.push('Haiku side calls (titles, WebFetch summaries) are not in transcripts and are not counted');
 
+  const command = text => text.match(/<command-name>(\/[^<]+)<\/command-name>/)?.[1] ?? null;
+  // A slash command may not carry a human origin in the transcript; the first non-housekeeping one is still the start message.
+  const startCommand = commandEntries.find(entry => !HOUSEKEEPING_COMMANDS.has(command(entry.text)));
+  if (startCommand && !humans.some(human => human.ts === startCommand.ts)) humans.push(startCommand);
   humans.sort((a, b) => a.ts - b.ts);
   const followUps = humans.slice(1);
-  const command = text => text.match(/<command-name>(\/[^<]+)<\/command-name>/)?.[1] ?? null;
+  const startText = humans[0]?.text ?? '';
+  const task = startCommand ? command(startCommand.text).slice(1) : (startText.match(/^\/([\w:-]+)/)?.[1] ?? null);
+  const ticket = task ? (startText.match(/\b[A-Z][A-Z0-9]+-\d+\b/)?.[0] ?? null) : null;
   const housekeeping = followUps.filter(m => HOUSEKEEPING_COMMANDS.has(command(m.text)));
   const counted = followUps.filter(m => !HOUSEKEEPING_COMMANDS.has(command(m.text)));
   const gates = counted.filter(m => /^gate:/i.test(m.text)).length;
@@ -293,6 +344,9 @@ function analyzeSession(mainFile, prices, window) {
   return {
     sessionId,
     started,
+    task,
+    ticket,
+    budgetStops: budgetStopTexts.size,
     models: byModel,
     effortPairs,
     tokens: totals,
@@ -329,6 +383,7 @@ function table(rows) {
 function render(s) {
   const out = [];
   out.push(`Session ${s.sessionId}  started ${s.started}  (${s.subagentFiles} subagent files)`);
+  if (s.task) out.push(`start command: /${s.task}${s.ticket ? ` ${s.ticket}` : ''}   budget stops: ${s.budgetStops}`);
   out.push('');
   const header = ['model', 'msgs', 'input', 'cache-create (5m+1h)', 'cache-read', 'output (thinking)', 'API $'];
   const rows = [header];
@@ -379,6 +434,9 @@ function csvRow(s) {
   const values = {
     session_id: s.sessionId,
     started: s.started,
+    task: s.task,
+    ticket: s.ticket,
+    budget_stops: s.budgetStops,
     models: Object.keys(s.models).join('+'),
     effort_seen: Object.keys(s.effortPairs).join('+'),
     input_tokens: s.tokens.input,
