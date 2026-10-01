@@ -223,8 +223,9 @@ Data-driven: `piano` and `love song`. The "Ringtones" scope is selected through 
 1. On /ringtones scroll to "Explore different ringtone categories" and click the "Blues" link
    - expect: the block heading is "Explore different ringtone categories" and has category links (209 observed) [verified-live]
    - expect: URL is `/category/ringtones/blues`, H1 "Blues Ringtones Free Download" and cards (count > 0) [verified-live]
-2. Record H1 and card hrefs, then click a sub-filter chip that is not a link back to the current page (`main h1 + div a`)
-   - expect: URL, H1 and card hrefs change [verified-live: `/category/ringtones/blue`, "Blue Ringtones Free Download"]
+2. Record the URL and H1, then click a sub-filter chip that is not a link back to the current page (`main h1 + div a`)
+   - expect: URL and H1 change [verified-live: `/category/ringtones/blue`, "Blue Ringtones Free Download"], and the page lists valid cards
+   - Do not assert that the card hrefs change: Blue can return the same 24 cards as Blues (2 of 3 live runs, ZED-10)
    - Do not assert the heading of the Explore block on the category page itself (see bug candidate 1).
 
 ### 5. Filtering

@@ -7,6 +7,8 @@ import { validateCardLink } from './CardLinkValidator';
 import { FiltersBar } from './FiltersBar';
 import { FilterDrawer } from './FilterDrawer';
 import { DownloadFlow } from './DownloadFlow';
+import { CardListScroller } from './CardListScroller';
+import { ExploreCategories } from './ExploreCategories';
 import { PriceOptionType, SearchOptionType, CardsTypes } from '../src/types/types';
 
 export class WallpapersListPage extends HeaderPage {
@@ -14,6 +16,9 @@ export class WallpapersListPage extends HeaderPage {
   readonly filtersBar: FiltersBar;
   readonly filterDrawer: FilterDrawer;
   readonly downloadFlow: DownloadFlow;
+
+  readonly scroller: CardListScroller;
+  readonly explore: ExploreCategories;
 
   readonly main: Locator;
   readonly wallpaperTitle: Locator;
@@ -48,8 +53,9 @@ export class WallpapersListPage extends HeaderPage {
     // <main> (a separate page section), so this is scoped to the page, not `this.main`. The row of
     // sub-filter chip links rendered right after the H1 on the /category/wallpapers/<slug> pages it
     // links to does live inside main - see subFilterLinks below.
-    this.exploreCategoriesHeading = this.page.getByRole('heading', { name: 'Explore different wallpaper categories' });
-    this.subFilterLinks = this.main.locator('h1 + div a');
+    this.explore = new ExploreCategories(page, this.main, 'wallpaper');
+    this.exploreCategoriesHeading = this.explore.heading;
+    this.subFilterLinks = this.explore.subFilterLinks;
 
     this.cardsContainer = this.main.locator('div[class*="CardsContainer"]').last();
     this.cardsAll = this.cardsContainer.locator(':scope > a[class*="A_link"]');
@@ -57,7 +63,8 @@ export class WallpapersListPage extends HeaderPage {
     this.cardsPremiumWithPrice = this.cardsPremium.filter({ has: this.page.locator('div[class*="card-footer"]') });
     this.cardsAiGenerated = this.cardsAll.filter({ has: this.page.locator('div[class*="card-header"] svg[aria-label="AI generated"]') });
     this.cardsFree = this.cardsAll.filter({ hasNot: this.page.locator('div[class*="card-footer"]') });
-    this.loadMoreBtn = this.main.getByRole('button', { name: 'Load more' });
+    this.scroller = new CardListScroller(page, this.cardsAll, this.main);
+    this.loadMoreBtn = this.scroller.loadMoreBtn;
   }
 
   // Any /wallpapers URL (deep link, detail page): the cookie banner shows up a moment after load, and if a
@@ -236,22 +243,16 @@ export class WallpapersListPage extends HeaderPage {
     return href;
   }
 
-  // One atomic read: per-card waits hung until the test timeout when the list re-rendered to fewer cards mid-loop.
-  async getCardsHref(): Promise<string[]> {
-    const hrefs = await this.cardsAll.evaluateAll(cards => cards.map(card => card.getAttribute('href') || ''));
-    return hrefs.filter(Boolean);
+  getCardsHref() {
+    return this.scroller.getCardsHref();
   }
 
   compareCardsHrefArrays(currentHrefArr: string[], previousHrefArr: string[]) {
-    if (currentHrefArr.length < previousHrefArr.length) throw new Error('Current href array is shorter than previous one');
-
-    for (let i = 0; i < previousHrefArr.length; i++) {
-      if (currentHrefArr[i] !== previousHrefArr[i]) throw new Error('Order of hrefs does not match between previous and current arrays');
-    }
+    this.scroller.compareCardsHrefArrays(currentHrefArr, previousHrefArr);
   }
 
-  async waitForCardsToUpdate(hrefsBefore: string[]) {
-    await expect.poll(() => this.getCardsHref(), { timeout: TIMEOUTS.expect, intervals: [500] }).not.toEqual(hrefsBefore);
+  waitForCardsToUpdate(hrefsBefore: string[]) {
+    return this.scroller.waitForCardsToUpdate(hrefsBefore);
   }
 
   async searchAndWaitForUpdate(value: string, filter: SearchOptionType = 'All') {
@@ -260,54 +261,11 @@ export class WallpapersListPage extends HeaderPage {
     await this.waitForCardsToUpdate(hrefsBefore);
   }
 
-  async scrollDownGradually(step = 200, delay = 300, extraTicksAtBottom = 1) {
-    const viewport = this.page.viewportSize();
-    if (viewport) await this.page.mouse.move(viewport.width / 2, viewport.height / 2);
-
-    let previousScrollY = -1;
-    let ticksAtBottom = 0;
-    // Keep nudging a few extra ticks after reaching the bottom - some lazy-load triggers
-    // need lingering scroll/wheel events near the bottom, not just the final position.
-    while (ticksAtBottom <= extraTicksAtBottom) {
-      const currentScrollY = await this.page.evaluate(() => window.scrollY);
-      ticksAtBottom = currentScrollY === previousScrollY ? ticksAtBottom + 1 : 0;
-      previousScrollY = currentScrollY;
-      await this.page.mouse.wheel(0, step);
-      await this.page.waitForTimeout(delay);
-    }
-  }
-
   async validateAutoLoadImagesOnScrollDown(checkLabel?: string[]) {
-    const loadBtn = this.loadMoreBtn;
-    await expect(loadBtn).toBeAttached({ attached: false });
-    let cardsCount = await this.cardsAll.count();
-    let cardsHrefArr = await this.getCardsHref();
-
-    const maxAttempts = 6;
-    let attempts = 0;
-    while (!(await loadBtn.isVisible()) && attempts < maxAttempts) {
-      // Scroll down gradually, like a real user, so scroll/intersection listeners fire correctly
-      await this.scrollDownGradually();
-
-      // New cards first render as skeletons, then swap in a few seconds later - poll instead of a fixed wait
-      await expect.poll(() => this.cardsAll.count(), { timeout: 10000, intervals: [500] }).toBeGreaterThan(cardsCount);
-
-      // Check new cards are loaded and previous cards are preserved
-      cardsCount = await this.cardsAll.count();
-      const cardsHrefNew = await this.getCardsHref();
-      this.compareCardsHrefArrays(cardsHrefNew, cardsHrefArr);
-      cardsHrefArr = cardsHrefNew;
-
-      // Check if 'Load More' button is visible and enabled
-      if ((await loadBtn.isVisible()) && (await loadBtn.isEnabled())) {
-        await loadBtn.scrollIntoViewIfNeeded();
-        await loadBtn.hover();
-        if (checkLabel) await this.validateWallpapersToHaveLabels(checkLabel);
-        break;
-      }
-
-      attempts++;
-    }
+    await this.scroller.validateAutoLoadUntilLoadMore();
+    await this.loadMoreBtn.scrollIntoViewIfNeeded();
+    await this.loadMoreBtn.hover();
+    if (checkLabel) await this.validateWallpapersToHaveLabels(checkLabel);
   }
 
   async getCardPriceBadgeText(card: Locator): Promise<string> {
@@ -331,15 +289,10 @@ export class WallpapersListPage extends HeaderPage {
   }
 
   exploreCategoryLink(category: string): Locator {
-    return this.exploreCategoriesHeading.locator('..').getByRole('link', { name: category, exact: true });
+    return this.explore.link(category);
   }
 
-  // Picks a sub-filter chip link on a /category/wallpapers/<slug> page that isn't a link back to the
-  // current page - the current category's own chip can appear anywhere in that row.
-  async selectDifferentSubFilter() {
-    const currentPath = new URL(this.page.url()).pathname;
-    const firstHref = await this.subFilterLinks.first().getAttribute('href');
-    const link = firstHref === currentPath ? this.subFilterLinks.nth(1) : this.subFilterLinks.first();
-    await link.click();
+  selectDifferentSubFilter() {
+    return this.explore.selectDifferentSubFilter();
   }
 }

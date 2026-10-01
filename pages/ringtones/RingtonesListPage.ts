@@ -2,11 +2,15 @@ import { expect, Locator, Page } from '@playwright/test';
 import { HeaderPage } from '../HeaderPage';
 import { RingtonesFiltersBar } from './RingtonesFiltersBar';
 import { RingtoneCards } from './RingtoneCards';
+import { CardListScroller } from '../CardListScroller';
+import { ExploreCategories } from '../ExploreCategories';
 import { dismissCookieBanner } from '../../src/utils/helper';
 
 export class RingtonesListPage extends HeaderPage {
   readonly filtersBar: RingtonesFiltersBar;
   readonly cards: RingtoneCards;
+  readonly scroll: CardListScroller;
+  readonly explore: ExploreCategories;
 
   readonly main: Locator;
   readonly ringtonesTitle: Locator;
@@ -26,6 +30,8 @@ export class RingtonesListPage extends HeaderPage {
     this.cardsContainer = this.main.locator('div[class*="CardsContainer"]').last();
     this.cards = new RingtoneCards(this);
     this.cardsAll = this.cards.all;
+    this.scroll = new CardListScroller(page, this.cardsAll, this.main);
+    this.explore = new ExploreCategories(page, this.main, 'ringtone');
   }
 
   // Any /ringtones URL: dismiss the cookie banner before a test interacts (same contract as WallpapersListPage.open).

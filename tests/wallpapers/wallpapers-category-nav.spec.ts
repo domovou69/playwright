@@ -9,10 +9,7 @@ test.describe('Category Navigation', { tag: ['@wallpapers', '@guest'] }, () => {
 
     // 1. Click the header "Categories" button
     await app.wallpapersListPage.categories.click();
-    await expect(app.wallpapersListPage.categoriesDialog).toBeVisible();
-    await expect(app.wallpapersListPage.categoriesDialog.getByText('Wallpapers', { exact: true })).toBeVisible();
-    await expect(app.wallpapersListPage.categoriesDialog.getByText('Ringtones', { exact: true })).toBeVisible();
-    await expect(app.wallpapersListPage.categoriesDialog.getByText('Notification Sounds', { exact: true })).toBeVisible();
+    await app.wallpapersListPage.validateCategoriesDialog();
 
     // 2. In the Wallpapers group click "Nature"
     await app.wallpapersListPage.selectCategory('Wallpapers', 'Nature');

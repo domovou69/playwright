@@ -46,6 +46,13 @@ export class HeaderPage {
     await this.page.waitForLoadState();
   }
 
+  async validateCategoriesDialog() {
+    await expect(this.categoriesDialog).toBeVisible();
+    for (const group of ['Wallpapers', 'Ringtones', 'Notification Sounds']) {
+      await expect(this.categoriesDialog.getByText(group, { exact: true })).toBeVisible();
+    }
+  }
+
   async validateHeader() {
     await expect(this.header).toBeVisible();
     await expect(this.logo).toBeVisible();
