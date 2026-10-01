@@ -32,8 +32,8 @@ export class CardListScroller {
     await expect.poll(() => this.getCardsHref(), { timeout: TIMEOUTS.expect, intervals: [500] }).not.toEqual(hrefsBefore);
   }
 
-  // Appended cards keep the previous ones in order and add no duplicates. Polled: the list can re-render with fewer cards for a
-  // moment after "Load more". Returns the settled hrefs.
+  // Appended cards keep the previous ones in order and add no duplicates. Polled: right after "Load more" the cards locator can
+  // briefly match nothing (the last CardsContainer is the one with the skeletons). Returns the settled hrefs.
   private async validateOrderedAppend(hrefsBefore: string[]): Promise<string[]> {
     let hrefsAfter: string[] = [];
     await expect
