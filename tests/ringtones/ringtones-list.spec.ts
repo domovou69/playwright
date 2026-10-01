@@ -16,16 +16,9 @@ test.describe('List Page', { tag: ['@ringtones', '@guest'] }, () => {
 
     // 3. Check the filter bar: Category, Tag, Price, Duration, Sort by
     // expect: all visible; "Reset All" is not present
-    const filtersBar = app.ringtonesListPage.filtersBar;
-    await expect(filtersBar.labelChip).toBeVisible();
-    await expect(filtersBar.filterCategory).toBeVisible();
-    await expect(filtersBar.filterTag).toBeVisible();
-    await expect(filtersBar.filterPrice).toBeVisible();
-    await expect(filtersBar.filterDuration).toBeVisible();
-    await expect(filtersBar.filterSortBy).toBeVisible();
-    await expect(filtersBar.resetAllBtn).not.toBeAttached();
+    await app.ringtonesListPage.filtersBar.validateVisible();
 
-    // 4. Check the first 24 cards
-    await app.ringtonesListPage.validateFirstCards(24);
+    // 4. Check the first cards (up to 24, as many as are loaded)
+    await app.ringtonesListPage.cards.validateFirst(24);
   });
 });

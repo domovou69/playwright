@@ -1,4 +1,4 @@
-import { Locator } from '@playwright/test';
+import { expect, Locator } from '@playwright/test';
 import type { RingtonesListPage } from './RingtonesListPage';
 
 // The inline filter bar above the ringtone cards. Same shape as the wallpapers FiltersBar, but with Duration instead of
@@ -22,5 +22,13 @@ export class RingtonesFiltersBar {
     this.filterDuration = main.locator('button', { hasText: /^Duration$/ });
     this.filterSortBy = main.locator('button', { hasText: /^Sort by$/ });
     this.resetAllBtn = main.locator('button', { hasText: 'Reset All' });
+  }
+
+  // Every filter is shown; "Reset All" appears only once a filter is applied, so the expectation is a parameter.
+  async validateVisible({ resetAll = false }: { resetAll?: boolean } = {}) {
+    for (const filter of [this.labelChip, this.filterCategory, this.filterTag, this.filterPrice, this.filterDuration, this.filterSortBy]) {
+      await expect(filter).toBeVisible();
+    }
+    await (resetAll ? expect(this.resetAllBtn).toBeVisible() : expect(this.resetAllBtn).not.toBeAttached());
   }
 }
