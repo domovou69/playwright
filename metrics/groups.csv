@@ -1,1 +1,2 @@
 group_id,ticket,area,iteration,tests_added,pom_members_new,pom_members_reused,human_edits,findings_oracle,findings_locator,findings_convention,findings_missing,findings_dup_pom,findings_flaky,findings_other,findings_unclassified,findings_recurred,verify_verdict,ci_after_merge,min_plan_draft,min_plan_approved,min_impl_in_progress,min_impl_ready_for_review,min_review_addressed,human_review_min
+ringtones-g1,ZED-9,ringtones,v2,3,17,5,0,0,1,1,0,1,0,0,3,0,stable,,,,6,65,6,

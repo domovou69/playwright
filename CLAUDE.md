@@ -42,7 +42,9 @@ Black-box E2E suite for the zedge.net sections (guest only), one area at a time.
 
 - A new area gets its own `pages/<area>/` folder, `tests/<area>/` folder, plan file and ID prefix. IDs are never reused.
 - Shared components (`HeaderPage`, `FooterPage`, `MainHeaderPage`, `BuyModalPage`) stay in `pages/` and are reused by the new
-  area, not copied. Before adding a locator or helper search `pages/` for it (a duplicate is a `[dup-pom]` review finding).
+  area, not copied. Before adding a locator or helper search `pages/` for it (a duplicate is a `[dup-pom]` review finding). A helper
+  with the same shape as one for another area (a card or list validator) is not copied and not deferred to a later group: extract
+  one shared helper parameterised by the difference (`pages/CardLinkValidator.ts`), switch the old code to it and re-run that area's smoke tests.
 - `AppPageObjects` gets one property per area entry page. The entry page's `open(path)` keeps the wallpapers contract: navigate,
   wait for the list heading, then `dismissCookieBanner` (`src/utils/helper.ts`).
 - The area tag is registered in `src/utils/tags.ts` before the first test uses it.
@@ -64,8 +66,16 @@ Before writing or editing a test, invoke the `playwright-best-practices` skill. 
 - Locators and helpers live in `pages/`; the list page delegates to components (`app.wallpapersListPage.filtersBar`, `.filterDrawer`,
   `.downloadFlow`). Search for an existing one before adding a new one. Assertions that belong to a
   component go in its `validate*` methods.
+- Every repeating part of an area page (filter bar, card grid, drawer) is its own component class in `pages/<area>/`, held by the
+  list page as one property (`app.ringtonesListPage.cards`, `.filtersBar`). Its locators, per-item validators and settled count
+  live there, not on the list page. Tests reach components only through the area entry page: no top-level `app.filterBar`, no
+  `const bar = app.x.filtersBar` alias, no `expect(app.x.component.locator)` (ESLint `no-restricted-syntax` in `tests/<area>/`,
+  every area after wallpapers).
+- A live list has no fixed size and may still be rendering: never take a one-shot `await locator.count()` as the number to check.
+  Read it once it stops changing (`app.ringtonesListPage.cards.validateFirst(limit)`), or use `expect.poll` / `toHaveCount`.
 - No `waitForTimeout`, no `force: true` (close an open filter dropdown with `closeFilter()`, i.e. Escape), no conditionals in a test body. Data-driven variants carry plain data only,
-  never functions or branches.
+  never functions or branches. In `pages/<area>/` no `if (...) return` guard either (a check that skips itself in another state
+  is silent; ESLint enforces it): assert the expected state and pick the branch from data.
 - A test ID and title (`WP-XX ...`) is never renamed; only tags are added or changed.
 - Tags (`src/utils/tags.ts`): the area tag (`@wallpapers`, `@ringtones`) and `@guest` go on the `describe`, never on a test. `@smoke` marks a P1 scenario
   from the area plan (runs on every PR), `@regression` the rest; push to main runs everything. `@download` and

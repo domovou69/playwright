@@ -226,10 +226,22 @@ Typed by hand, per gate, rough: `human_review_min`; per session: `mcp_decisive` 
 - [ ] CI: a job that runs the full suite when a PR gets the `regression` label (PR still runs `@smoke`)
       (`ci.yml` changed: the `labeled` trigger, other labels skip the run; YAML passes prettier, the expressions are untested until a PR;
       the `regression` label does not exist in the repo yet: `gh label create regression`)
-- [ ] Confirm that the pinned effort is the effort actually used, including after a follow-up message in the same session
-- [ ] Dry run of every command on a trivial target before the pilot; fix what breaks, log it
+- [x] Confirm that the pinned effort is the effort actually used, including after a follow-up message in the same session
+      (2026-10-01 dry run, 7 sessions: `scout-feature` high, `create-story`/`implement-ticket`/`address-review` medium, `group-retro` high, read from the transcripts; it also held on the follow-up turn of resumed sessions)
+- [x] Dry run of every command on a trivial target before the pilot; fix what breaks, log it
 
 ### Stage 8 - v2 pilot (ringtones)
+
+      (done 2026-10-01 on ringtones list + search: Story ZED-8, Subtasks ZED-9..12, PR #1 merged; 7 sessions, 50 active min, $8.68 API-equivalent, 0 budget stops.
+      Log of what broke or was learned:
+      1. `jira-ticket.mjs show` had no description, so `/implement-ticket` could not read the groups: fixed (`show` returns it, `--comments` too).
+      2. `allowed-tools` in a command applies to its own turn only; a follow-up turn needs the tools passed again (headless: `--allowedTools`).
+      3. `/implement-ticket` refused a dirty tree and stopped without touching Jira: the refusal works as designed.
+      4. The generator agent has no shell, so it cannot run the spec it writes; the main session ran lint, tsc and `verify` and rewrote one spec (recorded: main session took over).
+      5. `/group-retro` turned 6 findings into 3 CLAUDE.md lines and 2 ESLint rules; for a real merge commit `loop-metrics` needs `<merge>^2`; `ci_after_merge`, `min_plan_*` and label times stay empty (no `gh run` permission, no label history on the Story).
+      6. Follow-ups sent with `claude -p --resume` are not tagged as human messages, so gates and interventions read 0 in this dry run; real windows tag them.
+      7. `/group-retro` could not edit `.claude/commands/*`: command changes need the human.
+      Not covered by the dry run: a bug through `gate: file bug` (L-08, L-09), `/fix-test` (L-12), a stop rule firing (L-05).)
 
 - [ ] Steps 1-5 for 3-4 groups; metrics row per session and per group
 - [ ] Go/no-go after scouting: if guest ringtones have no free download or preview does not play headless, narrow the scope
