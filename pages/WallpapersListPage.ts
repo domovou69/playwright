@@ -3,6 +3,7 @@ import { HeaderPage } from './HeaderPage';
 import { BodyHeaderPage } from './MainHeaderPage';
 import { dismissCookieBanner } from '../src/utils/helper';
 import { TIMEOUTS } from '../src/config/timeouts';
+import { validateCardLink } from './CardLinkValidator';
 import { FiltersBar } from './FiltersBar';
 import { FilterDrawer } from './FilterDrawer';
 import { DownloadFlow } from './DownloadFlow';
@@ -122,20 +123,7 @@ export class WallpapersListPage extends HeaderPage {
   }
 
   async validateCommonWallpaper(card: Locator) {
-    await expect(card).toHaveAttribute('href');
-    await expect(card).toHaveAttribute('aria-label');
-    await expect(card).toHaveAttribute('title');
-
-    const titleAttribute = await card.getAttribute('title');
-    const ariaLabelAttribute = await card.getAttribute('aria-label');
-    // eslint-disable-next-line playwright/prefer-web-first-assertions -- comparing two dynamic attributes to each other has no single toHaveAttribute equivalent
-    expect(titleAttribute).toBe(ariaLabelAttribute);
-    await expect(card).not.toHaveAttribute('title', '');
-    await expect(card).not.toHaveAttribute('aria-label', '');
-
-    const hrefValue = (await card.getAttribute('href')) || '';
-    const regex = /^\/wallpapers\/[a-f0-9\-]{36}$/; // check GUID (Globally Unique Identifier)
-    if (!regex.test(hrefValue)) throw new Error('Wallpaper contains invalid href value');
+    await validateCardLink(card, 'wallpapers', title => title);
   }
 
   async validatePremiumWallpaper(element: Locator) {
