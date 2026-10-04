@@ -15,6 +15,9 @@ always mine, and so is anything else on GitHub (closing a PR, deleting a branch,
 Every commit a loop command makes ends with a body line `[agent - Claude]` (`scripts/loop-metrics.mjs` uses it to tell agent
 commits from human edits), and its message still follows the rules below.
 
+Merge: every PR is merged with Squash and merge, never a merge commit or rebase; the squash subject follows the commit rules
+below and keeps the `[agent - Claude]` body line when the branch has agent commits.
+
 Branches: a branch name always starts with the Jira key, then a short kebab-case form of the ticket title, e.g.
 `ZED-12-ringtones-search`. The title part is a recommendation (shorten a long title); the key prefix is required.
 

@@ -12,7 +12,7 @@ export class RingtonesFiltersBar {
   readonly filterSortBy: Locator;
   readonly resetAllBtn: Locator;
 
-  constructor(list: RingtonesListPage) {
+  constructor(private readonly list: RingtonesListPage) {
     const main = list.main;
     // Exact-match regexes: an applied-value chip sits in the same `main button` pool as the filter button.
     this.labelChip = main.getByText('Ringtones', { exact: true }).first();
@@ -30,5 +30,11 @@ export class RingtonesFiltersBar {
       await expect(filter).toBeVisible();
     }
     await (resetAll ? expect(this.resetAllBtn).toBeVisible() : expect(this.resetAllBtn).not.toBeAttached());
+  }
+
+  // An applied category shows as a chip next to "Reset All".
+  async validateCategoryApplied(category: string) {
+    await expect(this.list.main.getByText(category, { exact: true }).first()).toBeVisible();
+    await expect(this.resetAllBtn).toBeVisible();
   }
 }

@@ -17,7 +17,7 @@ for review, `Blocked`, `Done`, `BUDGET STOP:`), never for `In Progress` or a lab
 
 **Git.** Follow CLAUDE.md. Commit only on the ticket branch (`<KEY>-<short-kebab-title>`) and only when the command says so; end
 every commit message with a body line `[agent - Claude]`. You may push the ticket branch and open its PR against `main`
-(`gh pr create`); never merge, never push `main`, never close a PR. Finish with a ready-to-paste `git add` + `git commit` block for
+(`gh pr create`); never merge (the human squash-merges), never push `main`, never close a PR. Finish with a ready-to-paste `git add` + `git commit` block for
 anything you did not commit.
 
 **Before writing or editing a test** invoke the `playwright-best-practices` skill. The rules in CLAUDE.md win over the skill.
