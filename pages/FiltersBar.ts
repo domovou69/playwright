@@ -1,5 +1,6 @@
 import { expect, Locator, Page } from '@playwright/test';
 import type { WallpapersListPage } from './WallpapersListPage';
+import { commitRangeValue } from './RangeInput';
 import { ColorOptionType, PriceOptionType, SortByType, TagsOptionType, WallpaperCategoryType } from '../src/types/types';
 
 // The inline filter bar above the cards (desktop layout). The narrow layout uses FilterDrawer instead.
@@ -131,17 +132,9 @@ export class FiltersBar {
     await this.filterPrice.click();
     await expect(this.priceFilterDialog).toBeVisible();
 
-    // From/To are numeric inputs, not the Free/Paid checkbox options filterByPrice handles above;
-    // each value only commits to the URL once the field is blurred, and blurring both in a row
-    // races the two commits (seen live as `minPrice=NaN`) - wait for each to land before the next.
-    const fromInput = this.priceFilterDialog.getByRole('menuitem', { name: 'From' });
-    const toInput = this.priceFilterDialog.getByRole('menuitem', { name: 'To' });
-    await fromInput.fill(String(from));
-    await fromInput.press('Tab');
-    await expect(this.page).toHaveURL(new RegExp(`minPrice=${from}`));
-    await toInput.fill(String(to));
-    await toInput.press('Tab');
-    await expect(this.page).toHaveURL(new RegExp(`maxPrice=${to}`));
+    // From/To are numeric inputs, not the Free/Paid checkbox options filterByPrice handles above.
+    await commitRangeValue(this.priceFilterDialog.getByRole('menuitem', { name: 'From' }), from, 'minPrice');
+    await commitRangeValue(this.priceFilterDialog.getByRole('menuitem', { name: 'To' }), to, 'maxPrice');
 
     // Close filter
     await this.closeFilter();
