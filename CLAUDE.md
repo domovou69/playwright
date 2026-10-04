@@ -108,3 +108,5 @@ Before writing or editing a test, invoke the `playwright-best-practices` skill. 
   self-reviewed (ready for my review), a Subtask `Blocked`, a Subtask `Done`, a `BUDGET STOP:`. No mention for
   `To Do` > `In Progress`, `Blocked` > `In Progress` or a routine label change.
 - Repro runs against production without destructive actions (no login, no purchase).
+
+Changed the control logic of the loop (steps, gates, statuses, who acts)? Update specs/loop-map.md (diagram and a log line) in the same commit.
