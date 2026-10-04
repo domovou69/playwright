@@ -11,3 +11,5 @@ c1e6f46e-f9ae-4e7a-9938-3cc8e3d7cd34,2026-10-01T08:16:38.867Z,implement-ticket,Z
 adf577b2-eaba-40ad-88aa-f90f55b956d7,2026-09-28T10:45:25.957Z,,,claude-sonnet-5+claude-sonnet-5-5+claude-opus-5-5+claude-haiku-4-5-20251001,medium/-+medium/medium+high/high+-/-,2532,3738033,270231080,794939,76.73,753.6,243,0,0,135,183039,,
 b4b2b555-24e8-4a46-a600-f2bf4236bdbc,2026-09-30T21:19:36.437Z,,,claude-sonnet-5-5,high/high+medium/medium,380,620669,43736839,184929,13.08,126.5,29,0,0,0,0,,
 ddf88944-2ffc-4171-9565-70727889dc2e,2026-09-27T20:04:42.608Z,,,claude-sonnet-5,medium/-,372,592454,41582125,150951,12.20,181.5,39,0,0,19,35396,,
+13d1faff-c73e-4735-9ee2-7322c4d69a3c,2026-10-01T09:35:22.734Z,group-retro,ZED-9,claude-sonnet-5-5,high/high,80,84877,2822778,35829,1.26,5.4,0,0,0,0,0,,
+df86f094-bc37-4899-8eb4-7efdaf6cdd23,2026-10-01T18:29:51.371Z,implement-ticket,ZED-9,claude-sonnet-5-5,medium/medium,160,289019,7485156,65959,3.31,61.5,10,0,0,0,0,,
