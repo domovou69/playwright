@@ -118,9 +118,31 @@ export function stateLabelOperations(label) {
 
 export const setStateLabel = (issueKey, label) => updateLabels(issueKey, stateLabelOperations(label));
 
-export async function postComment(issueKey, text) {
-  await jira(`/rest/api/3/issue/${issueKey}/comment`, {
-    method: 'POST',
-    body: JSON.stringify({ body: toAdf(`${AGENT_MARKER}\n${text}`) }),
-  });
+// The person the loop hands work to: assignee and @mention. The scripts run on that person's own token, so by default it is
+// the token's account; JIRA_REVIEWER_ACCOUNT_ID points it at someone else (needed once the loop has its own account, because
+// Jira sends no notification for something a user does to themselves).
+export async function reviewer() {
+  const accountId = process.env.JIRA_REVIEWER_ACCOUNT_ID;
+  const user = await jira(accountId ? `/rest/api/3/user?accountId=${encodeURIComponent(accountId)}` : '/rest/api/3/myself');
+  return { id: user.accountId, name: user.displayName };
+}
+
+export async function assignIssue(issueKey, accountId) {
+  await jira(`/rest/api/3/issue/${issueKey}/assignee`, { method: 'PUT', body: JSON.stringify({ accountId }) });
+}
+
+export async function transitionIssue(issueKey, statusName) {
+  const { transitions } = await jira(`/rest/api/3/issue/${issueKey}/transitions`);
+  const transition = transitions.find(t => t.to.name.toLowerCase() === statusName.toLowerCase());
+  if (!transition) throw new Error(`${issueKey} has no transition to "${statusName}" (available: ${transitions.map(t => t.to.name).join(', ')})`);
+  await jira(`/rest/api/3/issue/${issueKey}/transitions`, { method: 'POST', body: JSON.stringify({ transition: { id: transition.id } }) });
+}
+
+// `mention` (the reviewer from reviewer()) becomes its own paragraph right after the marker.
+export async function postComment(issueKey, text, mention = null) {
+  const body = toAdf(`${AGENT_MARKER}\n${text}`);
+  if (mention) {
+    body.content.splice(1, 0, { type: 'paragraph', content: [{ type: 'mention', attrs: { id: mention.id, text: `@${mention.name}` } }] });
+  }
+  await jira(`/rest/api/3/issue/${issueKey}/comment`, { method: 'POST', body: JSON.stringify({ body }) });
 }

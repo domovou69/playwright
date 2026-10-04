@@ -26,4 +26,6 @@ next group. You change files but do not commit (the human reviews the diff); end
 5. Append the group's row to `metrics/groups.csv` (leave `human_review_min` empty). Append session rows:
    `node scripts/session-cost.mjs --all --skip-known metrics/sessions.csv --skip-newest --csv >> metrics/sessions.csv` (the running
    session is picked up by the next retro), and fill nothing else by hand.
-6. Run lint, tsc and format check. Stop with the diff summary, the recurrence verdict and the `git add` + `git commit` block.
+6. Move the Subtask to `Done` (`jira-ticket.mjs transition --issue=<KEY> --to=Done`). If every Subtask of its Story is now `Done`,
+   move the Story to `Done` too and comment on it with `--mention`.
+7. Run lint, tsc and format check. Stop with the diff summary, the recurrence verdict and the `git add` + `git commit` block.

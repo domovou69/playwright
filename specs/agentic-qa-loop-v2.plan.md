@@ -101,21 +101,27 @@ State lives in Jira and git, never in chat: each session reads its input from th
 
 **Jira.** One Story per area; one Subtask per group, created after the Story is approved. State labels, one at a time, set by
 the agent through the same `setStateLabel` mechanism as bugs: `plan-draft` -> `plan-approved` -> `impl-in-progress` ->
-`impl-ready-for-review` -> `review-addressed`. Statuses are moved only by the human. Nothing is triggered by a status change:
-the human runs the next command, and the command refuses to start when the ticket is not in the expected state (the gate is
-enforced by the command, not by trust).
+`impl-ready-for-review` -> `review-addressed`. Changed 2026-10-01 (more autonomy inside the steps, same goal): the agent also
+assigns the human and moves a Subtask (`In Progress` on start, `Blocked` on a stop or bug gate, `Done` in `/group-retro` after the
+merge); a Story goes to `Done` only when all its Subtasks are `Done`. The Story's `In Progress` (the plan gate) and every Bug status
+stay with the human, and `jira-ticket.mjs transition` refuses them. The agent @mentions the human only when needed or finished (PR
+ready for review, `Blocked`, `Done`, `BUDGET STOP:`). Caveat: the scripts run on the human's own token, and Jira does not notify a
+user about their own actions, so the mention shows in the ticket but sends nothing until the loop has its own account
+(`JIRA_REVIEWER_ACCOUNT_ID` is already read). Nothing is triggered by a status change: the human runs the next command, and the
+command refuses to start when the ticket is not in the expected state (the gate is enforced by the command, not by trust).
 
 **Branches.** Every branch starts with the ticket key, then a short kebab-case form of the title: `ZED-12-ringtones-search`.
-The agent may commit on its ticket branch; it pushes and opens a PR only when asked; the human merges.
+The agent commits on its ticket branch, pushes it and opens the PR (changed 2026-10-01: the human reviews in the PR, not in the
+working tree); the human merges.
 
-| Step | Command                   | Input                        | Output                                                                                             | Gate after           |
-| ---- | ------------------------- | ---------------------------- | -------------------------------------------------------------------------------------------------- | -------------------- |
-| 1    | `/scout-feature <area>`   | area name                    | feature inventory, reuse map, `specs/<area>.plan.md` (scenarios `RT-XX`, verified facts), go/no-go | plan approved        |
-| 2    | `/create-story <plan>`    | approved plan                | Story in To Do (scope, groups, reuse map, constraints, acceptance criteria), label `plan-approved` | Story -> In Progress |
-| 3    | `/implement-ticket <KEY>` | Story or Subtask in progress | Subtasks (first run), branch, POM + tests for one group, raw commit, `verify` report               | code review          |
-| 4    | `/address-review <KEY>`   | PR review comments           | fix commits, one reply per comment, `verify` again                                                 | merge                |
-| 5    | `/group-retro <KEY>`      | merged PR, its comments      | findings by class, each turned into a rule, lint check or command change; recurrence check         | next group           |
-| M    | `/fix-test <test>`        | flaky or failing test        | root cause and class, fix on a `ZED-N` branch (healer, Currents data, systematic debugging)        | code review          |
+| Step | Command                   | Input                        | Output                                                                                                | Gate after           |
+| ---- | ------------------------- | ---------------------------- | ----------------------------------------------------------------------------------------------------- | -------------------- |
+| 1    | `/scout-feature <area>`   | area name                    | feature inventory, reuse map, `specs/<area>.plan.md` (scenarios `RT-XX`, verified facts), go/no-go    | plan approved        |
+| 2    | `/create-story <plan>`    | approved plan                | Story in To Do (scope, groups, reuse map, constraints, acceptance criteria), label `plan-approved`    | Story -> In Progress |
+| 3    | `/implement-ticket <KEY>` | Story or Subtask in progress | Subtasks (first run), branch, POM + tests for one group, raw commit, PR, self-review, `verify` report | review in the PR     |
+| 4    | `/address-review <KEY>`   | PR review comments           | fix commits, pushed; one reply per comment, `verify` again                                            | merge                |
+| 5    | `/group-retro <KEY>`      | merged PR, its comments      | findings by class, each turned into a rule, lint check or command change; recurrence check            | next group           |
+| M    | `/fix-test <test>`        | flaky or failing test        | root cause and class, fix on a `ZED-N` branch (healer, Currents data, systematic debugging)           | code review          |
 
 Story entry = start at step 2 with a human-written Story (step 2 then only normalises it into the template).
 
