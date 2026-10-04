@@ -17,7 +17,7 @@ next group. You change files but do not commit (the human reviews the diff); end
 
 1. Refuse unless the PR is merged: `gh pr list --head <branch> --state merged --json number,mergeCommit,url`. The raw commit is
    the `Raw commit:` line in the Subtask comments (`jira-ticket.mjs show` and the comments).
-2. Measure: `node --env-file-if-exists=.env scripts/loop-metrics.mjs --raw <raw> --merge <merge> --pr <n> --ticket <KEY>`.
+2. Measure (PRs are squash-merged, so `--merge` is the branch tip, `gh pr view <n> --json headRefOid`, not the merge commit): `node --env-file-if-exists=.env scripts/loop-metrics.mjs --raw <raw> --merge <branch tip> --pr <n> --ticket <KEY>`.
 3. Compare the finding classes with earlier rows of `metrics/groups.csv` (recurrence: a class that an earlier retro turned into
    a rule and that appeared again is a failed rule; say so and strengthen it, ideally as an ESLint check).
 4. For each class with findings, produce exactly one of: a line in CLAUDE.md, an ESLint rule or config change, a change in a
