@@ -1,25 +1,30 @@
-// Stage 7 of specs/agentic-qa-loop-v2.plan.md: what the loop commands do with an existing ticket. It only reads, sets the
-// state label and comments; it never changes a status, never closes or resolves a ticket.
+// Stage 7 of specs/agentic-qa-loop-v2.plan.md: what the loop commands do with an existing ticket. It reads, sets the state
+// label, comments (optionally @mentioning the reviewer), assigns the reviewer and moves a Subtask between statuses. A Story
+// can only be moved to Done once every Subtask is Done; any other issue type (a Bug) is never moved.
 //
 // Usage:
 //   node scripts/jira-ticket.mjs show --issue=ZED-12 [--comments]     (type, status, labels, description, subtasks)
 //   node scripts/jira-ticket.mjs gate --issue=ZED-12 --status="In Progress" [--label=plan-approved,impl-in-progress]
 //   node scripts/jira-ticket.mjs label --issue=ZED-12 --set=impl-ready-for-review
-//   node scripts/jira-ticket.mjs comment --issue=ZED-12 --file=/tmp/comment.txt
+//   node scripts/jira-ticket.mjs comment --issue=ZED-12 --file=/tmp/comment.txt [--mention]
+//   node scripts/jira-ticket.mjs assign --issue=ZED-12                (the reviewer: the token's account, or JIRA_REVIEWER_ACCOUNT_ID)
+//   node scripts/jira-ticket.mjs transition --issue=ZED-12 --to="In Progress"|Blocked|Done
 //
 // `gate` exits 1 with the reason when the ticket is not in the expected status (and, if given, does not carry one of the
 // expected state labels): this is how a command refuses to start on a ticket that has not passed its human gate.
-// Add --dry-run to `label` and `comment` to print what would be sent.
+// Add --dry-run to `label`, `comment`, `assign` and `transition` to print what would be sent.
 
 import { readFile } from 'node:fs/promises';
-import { AGENT_MARKER, STATE_LABELS, adfToText, jira, postComment, setStateLabel } from './jira-common.mjs';
+import { AGENT_MARKER, STATE_LABELS, adfToText, assignIssue, jira, postComment, reviewer, setStateLabel, transitionIssue } from './jira-common.mjs';
+
+const SUBTASK_STATUSES = ['In Progress', 'Blocked', 'Done'];
 
 function parseArgs(argv) {
   const [command, ...rest] = argv;
   const args = { command };
   for (const arg of rest) {
-    if (arg === '--dry-run' || arg === '--comments') {
-      args[arg === '--dry-run' ? 'dryRun' : 'comments'] = true;
+    if (arg === '--dry-run' || arg === '--comments' || arg === '--mention') {
+      args[{ '--dry-run': 'dryRun', '--comments': 'comments', '--mention': 'mention' }[arg]] = true;
       continue;
     }
     const match = /^--([^=]+)=(.*)$/s.exec(arg);
@@ -82,13 +87,39 @@ async function main() {
   } else if (args.command === 'comment') {
     if (!args.file) throw new Error('--file=<path> is required');
     const text = (await readFile(args.file, 'utf8')).trimEnd();
-    if (args.dryRun) console.log(`DRY RUN: would comment on ${args.issue}:\n${AGENT_MARKER}\n${text}`);
+    const mention = args.mention ? await reviewer() : null;
+    if (args.dryRun) console.log(`DRY RUN: would comment on ${args.issue}:\n${AGENT_MARKER}\n${mention ? `@${mention.name}\n` : ''}${text}`);
     else {
-      await postComment(args.issue, text);
-      console.log(`${args.issue}: comment posted`);
+      await postComment(args.issue, text, mention);
+      console.log(`${args.issue}: comment posted${mention ? `, mentioning ${mention.name}` : ''}`);
+    }
+  } else if (args.command === 'assign') {
+    const person = await reviewer();
+    if (args.dryRun) console.log(`DRY RUN: would assign ${args.issue} to ${person.name}`);
+    else {
+      await assignIssue(args.issue, person.id);
+      console.log(`${args.issue}: assigned to ${person.name}`);
+    }
+  } else if (args.command === 'transition') {
+    if (!args.to) throw new Error('--to=<status> is required');
+    const ticket = await loadTicket(args.issue);
+    if (ticket.type === 'Subtask') {
+      if (!SUBTASK_STATUSES.some(status => status.toLowerCase() === args.to.toLowerCase()))
+        throw new Error(`A Subtask moves only to: ${SUBTASK_STATUSES.join(', ')}`);
+    } else if (ticket.type === 'Story') {
+      const open = ticket.subtasks.filter(sub => sub.status !== 'Done').map(sub => sub.key);
+      if (args.to.toLowerCase() !== 'done') throw new Error('A Story status other than Done is the human gate: the automation does not set it');
+      if (open.length) throw new Error(`${ticket.key} cannot be Done: Subtasks not Done: ${open.join(', ')}`);
+    } else {
+      throw new Error(`${ticket.key} is a ${ticket.type}: the automation does not change its status`);
+    }
+    if (args.dryRun) console.log(`DRY RUN: would move ${args.issue} from "${ticket.status}" to "${args.to}"`);
+    else {
+      await transitionIssue(args.issue, args.to);
+      console.log(`${args.issue}: status is now ${args.to} (was "${ticket.status}")`);
     }
   } else {
-    throw new Error('Usage: jira-ticket.mjs show|gate|label|comment --issue=<KEY> ...');
+    throw new Error('Usage: jira-ticket.mjs show|gate|label|comment|assign|transition --issue=<KEY> ...');
   }
 }
 
