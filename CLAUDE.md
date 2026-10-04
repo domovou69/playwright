@@ -10,7 +10,8 @@ Include the git add line with the exact paths, so the block works as a single co
 When I do ask for a commit, the same message rules below still apply.
 
 Exception: while running a loop command (`/implement-ticket`, `/address-review`, `/fix-test`) you may commit on that ticket's
-branch without asking. Pushing, opening a PR and merging still need my explicit request (merging is always mine).
+branch, push that branch and open its PR against `main` without asking (I review in the PR, not in the working tree). Merging is
+always mine, and so is anything else on GitHub (closing a PR, deleting a branch, pushing `main`).
 Every commit a loop command makes ends with a body line `[agent - Claude]` (`scripts/loop-metrics.mjs` uses it to tell agent
 commits from human edits), and its message still follows the rules below.
 
@@ -98,6 +99,12 @@ Before writing or editing a test, invoke the `playwright-best-practices` skill. 
 
 - Every comment the automation posts starts with the marker `[agent - Claude]` on its own line (`AGENT_MARKER` in
   `scripts/jira-common.mjs`).
-- Automation only comments and labels. It never changes a ticket status, never closes or resolves a ticket. A bug that
-  was not reproduced becomes `needs-manual-repro`, never "not a bug".
+- The automation comments, sets the one state label, assigns me and moves a Subtask: `To Do` > `In Progress` when
+  `/implement-ticket` starts, `Blocked` on a `BUDGET STOP:` or a bug gate, back to `In Progress` when work resumes, `Done` in
+  `/group-retro` once its PR is merged. A Story goes to `Done` only when every Subtask is `Done`; the Story's other statuses
+  (including `In Progress`, the plan gate) are mine, and a Bug's status is always mine (`jira-ticket.mjs transition` refuses both).
+  A bug that was not reproduced becomes `needs-manual-repro`, never "not a bug".
+- It @mentions me (`jira-ticket.mjs comment --mention`) only when I am needed or the work is finished: PR opened and
+  self-reviewed (ready for my review), a Subtask `Blocked`, a Subtask `Done`, a `BUDGET STOP:`. No mention for
+  `To Do` > `In Progress`, `Blocked` > `In Progress` or a routine label change.
 - Repro runs against production without destructive actions (no login, no purchase).
