@@ -1,28 +1,48 @@
-import { expect, Locator } from '@playwright/test';
-import type { RingtonesListPage } from './RingtonesListPage';
+import { expect, Locator, Page } from '@playwright/test';
 import { validateCardLink } from '../CardLinkValidator';
+import { AudioPlayer } from './AudioPlayer';
 
 const BADGE = 'div[class*="card-footer"] [class*="badge"]';
 const DURATION = 'p[data-size="sm"]';
 
-// The grid of ringtone cards: locators per card kind and the card validators.
+// A grid of ringtone cards (the list page or the detail page's Related block): locators per card kind and the card validators.
 export class RingtoneCards {
   readonly all: Locator;
   readonly priced: Locator;
   readonly free: Locator;
+  // A free card can still carry a crown (a "Premium" badge on its detail page), so "no crown" is the clean free case.
+  readonly uncrowned: Locator;
 
-  constructor(list: RingtonesListPage) {
-    this.all = list.cardsContainer.locator(':scope > a[class*="A_link"]');
-    this.priced = this.all.filter({ has: list.page.locator('div[class*="card-footer"]') });
-    this.free = this.all.filter({ hasNot: list.page.locator('div[class*="card-footer"]') });
+  constructor(grid: { cardsContainer: Locator; page: Page }) {
+    this.all = grid.cardsContainer.locator(':scope > a[class*="A_link"]');
+    this.priced = this.all.filter({ has: grid.page.locator('div[class*="card-footer"]') });
+    this.free = this.all.filter({ hasNot: grid.page.locator('div[class*="card-footer"]') });
+    this.uncrowned = this.all.filter({ hasNot: grid.page.locator('div[class*="card-header"]') });
+  }
+
+  player(card: Locator): AudioPlayer {
+    return new AudioPlayer(card);
+  }
+
+  async href(card: Locator): Promise<string> {
+    return (await card.getAttribute('href')) ?? '';
+  }
+
+  async title(card: Locator): Promise<string> {
+    return (await card.getAttribute('title')) ?? '';
+  }
+
+  async open(card: Locator) {
+    await card.click();
+  }
+
+  // The digits of a priced card's badge.
+  async price(card: Locator): Promise<string> {
+    return (await this.badge(card).textContent())?.trim() ?? '';
   }
 
   badge(card: Locator): Locator {
     return card.locator(BADGE);
-  }
-
-  playButton(card: Locator): Locator {
-    return card.locator('button[title="Play audio"]');
   }
 
   duration(card: Locator): Locator {
@@ -31,7 +51,7 @@ export class RingtoneCards {
 
   async validateCommon(card: Locator) {
     await validateCardLink(card, 'ringtones', title => `Ringtone: ${title}`);
-    await expect(this.playButton(card)).toBeVisible();
+    await expect(this.player(card).button).toBeVisible();
     await expect(this.duration(card)).toHaveText(/^\d+ s$/);
   }
 

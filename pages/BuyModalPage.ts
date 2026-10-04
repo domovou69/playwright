@@ -42,12 +42,26 @@ export class ModalBuyPage {
     return this.modal.getByRole('heading', { name: `To buy this item you need ${price} Zedge Credits` });
   }
 
-  async validatePurchaseModalDialog(price: string) {
+  // The part of the purchase modal every area shows; the credits-package selector is not always there (absent on some ringtones).
+  async validatePurchaseGate(price: string) {
     await expect(this.purchaseTitle(price)).toBeVisible();
-    await expect(this.creditsPackageBtn).toBeVisible();
     await expect(this.loginLink).toBeVisible();
     await expect(this.cancelBtn).toBeVisible();
     await expect(this.buyCreditsBtn).toBeVisible();
+  }
+
+  async validatePurchaseModalDialog(price: string) {
+    await this.validatePurchaseGate(price);
+    await expect(this.creditsPackageBtn).toBeVisible();
+  }
+
+  async closeByEscape() {
+    await this.page.keyboard.press('Escape');
+    await expect(this.cancelBtn).not.toBeAttached();
+  }
+
+  async close(method: 'Cancel' | 'Escape') {
+    await (method === 'Cancel' ? this.clickCancel() : this.closeByEscape());
   }
 
   async clickCancel() {
