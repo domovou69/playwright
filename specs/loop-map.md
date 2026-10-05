@@ -18,6 +18,7 @@ flowchart TB
         HB{{"gate: file bug"}}
         HE{{"gate: extend"}}
         HF["code review of the fix"]
+        HG{{"gate: fix flaky KEY"}}
     end
 
     subgraph Agent["Agent"]
@@ -27,6 +28,7 @@ flowchart TB
         A3["3. /implement-ticket KEY<br/>artifacts: Subtasks, branch KEY-title, raw commit,<br/>pushed branch, open PR, Subtask comment, label impl-ready-for-review"]
         A4["4. /address-review KEY<br/>artifacts: fix commits, one reply per comment,<br/>label review-addressed"]
         A5["5. /group-retro KEY<br/>artifacts: rules, lint checks, metrics/groups.csv,<br/>metrics/sessions.csv, Subtask Done"]
+        AF["/flaky-triage<br/>artifacts: one Task per new cause (labels flaky, fp-hash),<br/>comments on known ones, recheck run in Currents"]
         AM["/fix-test test KEY<br/>artifacts: root cause class first, branch KEY-fix-title,<br/>raw commit, metrics/fixes.csv, label impl-ready-for-review"]
 
         subgraph Inner["Autonomous inner cycle (inside step 3, and in step 4 from verify on)"]
@@ -64,19 +66,23 @@ flowchart TB
 
     HF
     AM --> HF
-    FT["flaky or failing test"] --> AM
+    FT["flaky or failing test"] --> AF
+    AF --> HG
+    HG -- "gate: fix flaky" --> AM
+    FT -. "known test" .-> AM
 ```
 
 What each step leaves behind:
 
-| Step | Command             | Artifacts                                                                                                | Human gate after      |
-| ---- | ------------------- | -------------------------------------------------------------------------------------------------------- | --------------------- |
-| 1    | `/scout-feature`    | `specs/<area>.plan.md` (`Status: draft`, then `approved <date>`), feature inventory, reuse map, go/no-go | `gate: plan approved` |
-| 2    | `/create-story`     | Story in To Do (template `specs/templates/story.md`), label `plan-approved`                              | Story to In Progress  |
-| 3    | `/implement-ticket` | Subtasks (first run), branch `<KEY>-<title>`, raw commit, PR, self-review, `verify` report               | review in the PR      |
-| 4    | `/address-review`   | fix commits, replies, label `review-addressed`                                                           | merge                 |
-| 5    | `/group-retro`      | rules, ESLint checks, `metrics/groups.csv` row, `metrics/sessions.csv` rows, Subtask `Done`              | next group            |
-| M    | `/fix-test`         | root cause class, fix on a `ZED-N` branch, `metrics/fixes.csv` row                                       | code review           |
+| Step | Command             | Artifacts                                                                                                      | Human gate after      |
+| ---- | ------------------- | -------------------------------------------------------------------------------------------------------------- | --------------------- |
+| 1    | `/scout-feature`    | `specs/<area>.plan.md` (`Status: draft`, then `approved <date>`), feature inventory, reuse map, go/no-go       | `gate: plan approved` |
+| 2    | `/create-story`     | Story in To Do (template `specs/templates/story.md`), label `plan-approved`                                    | Story to In Progress  |
+| 3    | `/implement-ticket` | Subtasks (first run), branch `<KEY>-<title>`, raw commit, PR, self-review, `verify` report                     | review in the PR      |
+| 4    | `/address-review`   | fix commits, replies, label `review-addressed`                                                                 | merge                 |
+| 5    | `/group-retro`      | rules, ESLint checks, `metrics/groups.csv` row, `metrics/sessions.csv` rows, Subtask `Done`                    | next group            |
+| F    | `/flaky-triage`     | Task per root cause (labels `flaky`, `fp-<hash>`), comments on known causes, recheck run (`flaky-recheck.yml`) | `gate: fix flaky`     |
+| M    | `/fix-test`         | root cause class, fix on a `ZED-N` branch, `metrics/fixes.csv` row                                             | code review           |
 
 Notes:
 
@@ -138,6 +144,8 @@ One line per decision. Dates are commit dates on `main` unless noted.
 | 2026-10-01                         | Review comment prefixes: only the seven classes count, anything else is `unclassified`; use `[other]` when none fits                                  | PR #1: 3 of 6 findings came back `unclassified`                                                                                 | `specs/agentic-qa-loop-v2.plan.md` (`034773f`), `.claude/loop-rules.md`                                                                                                               |
 | 2026-10-04 (plan text: 2026-10-01) | Autonomy: the agent pushes the branch and opens the PR, self-reviews it (2 rounds), assigns the human, moves Subtasks, and @mentions only when needed | The human reviews in the PR, not in the working tree; fewer manual steps between gates; Story and Bug statuses stay human       | `.claude/commands/implement-ticket.md`, `address-review.md`, `group-retro.md`, `.claude/loop-rules.md`, `CLAUDE.md`, `scripts/jira-common.mjs`, `scripts/jira-ticket.mjs` (`e4f3647`) |
 | 2026-10-04                         | Every PR is squash-merged; `/group-retro` measures up to the branch tip, not the merge commit                                                         | One commit per group on `main`; a squash hides the branch commits, so `loop-metrics` needs the tip (its header already says so) | `CLAUDE.md`, `.claude/loop-rules.md`, `.claude/commands/group-retro.md`                                                                                                               |
+
+| 2026-10-05 | `/flaky-triage` and `flaky-recheck.yml` (draft): Currents failures grouped by cause, rechecked, one Task per cause, `gate: fix flaky` before `/fix-test`; `@FLAKY:<KEY>` tag | Two CI failures (WP-07, WP-08) showed the need; Currents shows no flaky with `retries: 0` |
 
 ## Not confirmed and out of sync
 
