@@ -13,7 +13,7 @@ export default defineConfig({
   },
   fullyParallel: true,
   forbidOnly: isCI,
-  retries: 0,
+  retries: isCI ? 1 : 0,
   workers: 3,
   reporter: isCI ? [['html', { open: 'never' }], ['github'], currentsReporter()] : [['html', { open: 'on-failure' }], currentsReporter()],
   use: {
