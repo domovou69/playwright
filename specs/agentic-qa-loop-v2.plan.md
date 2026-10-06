@@ -17,21 +17,21 @@ Two ways into the loop, the same loop after that:
 
 ## Iterations
 
-| Iteration | Scope                             | What it gives                                                                                             |
-| --------- | --------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| v1        | Wallpapers (done)                 | Totals only: tokens and active time from the four existing session transcripts. Not comparable per task   |
-| v2        | Ringtones, 3-4 groups (~15 tests) | The loop built and run once, every task measured; plus one small Story entry run on a human-written Story |
-| v3        | Ringtones again, from scratch     | Same scope, improved harness, isolated from v2's output: v2 vs v3 shows whether the harness got better    |
+| Iteration | Scope                             | What it gives                                                                                                                                                                                  |
+| --------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| v1        | Wallpapers (done)                 | Totals only: tokens and active time from the four existing session transcripts. Not comparable per task                                                                                        |
+| v2        | Ringtones, 3-4 groups (~15 tests) | The loop built and run once, every task measured; plus one small Story entry run on a human-written Story                                                                                      |
+| v3        | Notification Sounds, small slice  | Replaces the ringtones replay (decided 2026-10-06: the harness barely changed since v2, so a replay would measure noise). A new area on a human-written Story shows whether the loop transfers |
 
-No manual-writing baseline: the comparison is the same scope under different harness versions (v2 vs v3).
+No manual-writing baseline: the comparison is a new area against ringtones (v3 vs v2 per group: interventions, findings by class, cost per accepted test).
 
 ## Hypotheses and decision
 
 - **H1 (the loop runs itself between gates).** Each group needs at most 2 interventions outside the gates.
 - **H2 (the loop learns).** A review-finding class fixed by the group retro does not recur in the next group; v3 has fewer
   findings and interventions than v2.
-- **H3 (it is reproducible).** v3 on the same scope reaches the same or better coverage, finds the bugs v2 found, and the
-  Story entry works without changes to the commands.
+- **H3 (it is reproducible).** v3 on a new area (Notification Sounds) reaches its planned coverage with the same or fewer
+  interventions and findings per group than v2, and the Story entry works without changes to the commands.
 - **H4 (each tool pays).** Every tool (Playwright MCP, Currents dashboard and MCP, the skill) has at least one decisive use
   per iteration, at a context cost we record.
 
@@ -252,7 +252,7 @@ Typed by hand, per gate, rough: `human_review_min`; per session: `mcp_decisive` 
 - [x] Go/no-go after scouting: if guest ringtones have no free download or preview does not play headless, narrow the scope
       before the Story
       (go: free download RT-18 and audio preview RT-17 run headless)
-- [ ] Story entry: one human-written Story for a small ringtones slice through steps 2-5 (L-11)
+- [ ] Story entry: one human-written Story for a small slice through steps 2-5 (L-11); run as Stage 10 on Notification Sounds
 - [ ] Experiment A, Currents MCP value: a seeded flake that fails only in CI (no trace in git history or docs, neutral commit
       messages), CI run several times so Currents has history, then two fresh sessions of `/fix-test`: with the Currents MCP and
       without. Compare tokens, minutes, tool calls, correct root cause. 2-3 runs per arm is an anecdote; the report says so
@@ -266,14 +266,15 @@ Typed by hand, per gate, rough: `human_review_min`; per session: `mcp_decisive` 
 - [ ] Update `specs/retrospective.md` (v2 section, playbook corrections) and `specs/summary.md`
 - [ ] Friction log for Currents (below) and the write-up link to the Currents contact
 
-### Stage 10 - v3 replay
+### Stage 10 - v3 (Notification Sounds, Story entry)
 
-- [ ] Isolation: a fresh clone in a different path (no Claude memory or transcripts of v2), `--depth 1` from a `v3-base` branch
-      without the ringtones plan, pages and tests; the agent must not fetch other branches or search Jira for ringtones
-      before its own repro. Audited afterwards from the transcripts (`git log` / `fetch` / Jira searches)
-- [ ] Steps 1-5 on the same scope with the improved harness; the same metrics
-- [ ] Optional: experiment B, the skill's value (one group with and without the preloaded skill, same base)
-- [ ] Compare v2 vs v3: coverage, bugs re-found, interventions, findings by class, cost per accepted test, active minutes
+Replaces the ringtones replay. The Story entry of Stage 8 and this stage are one run: a human-written Story for a small
+Notification Sounds slice goes through steps 2-5. The area tag `@notification-sounds` is already in `src/utils/tags.ts`; the
+rest of `## Areas` in CLAUDE.md (prefix, `pages/notification-sounds/`, plan, entry page) is added by the first group.
+
+- [ ] Story for the slice written by the human (L-11); steps 2-5 with no command changes
+- [ ] Compare v3 with v2 per group: interventions, findings by class, cost per accepted test, active minutes; recurrence of the
+      classes that `/group-retro` fixed in v2 (H2)
 - [ ] Decision (see Hypotheses); extract the reusable kit (commands, scripts, `CLAUDE.md` template, one project config with the
       Jira project, area tags and constraints)
 
@@ -291,4 +292,4 @@ Dated, one line each, what got in the way of the loop:
 - [ ] Stage 7: loop built, commands dry-run (only the optional `regression`-label CI job is unchecked)
 - [ ] Stage 8: v2 pilot (4 groups done); open: Story entry, experiment A, bare control
 - [ ] Stage 9: v2 report, L-XX results
-- [ ] Stage 10: v3 replay, comparison, decision, reusable kit
+- [ ] Stage 10: v3 on Notification Sounds (Story entry), comparison, decision, reusable kit
