@@ -1,8 +1,7 @@
 // spec: specs/wallpapers.plan.md
 // seed: tests/seed.spec.ts
 
-import { test, expect } from '../../fixtures/test';
-import { hasUniqueValues } from '../../src/utils/helper';
+import { test } from '../../fixtures/test';
 
 test.describe('Infinite Scroll and Load More', { tag: ['@wallpapers', '@guest'] }, () => {
   test.beforeEach('Open unfiltered /wallpapers', async ({ app }) => {
@@ -16,20 +15,8 @@ test.describe('Infinite Scroll and Load More', { tag: ['@wallpapers', '@guest'] 
   test('WP-08 "Load more" loads more cards', { tag: ['@regression'] }, async ({ app }) => {
     // 1. Scroll until "Load more" is visible and enabled
     await app.wallpapersListPage.validateAutoLoadImagesOnScrollDown();
-    await expect(app.wallpapersListPage.loadMoreBtn).toBeVisible();
-    await expect(app.wallpapersListPage.loadMoreBtn).toBeEnabled();
 
-    // 2. Record card hrefs and click "Load more"
-    const hrefsBeforeLoadMore = await app.wallpapersListPage.getCardsHref();
-    const countBeforeLoadMore = hrefsBeforeLoadMore.length;
-    await app.wallpapersListPage.loadMoreBtn.click();
-
-    // expect: card count increases - stop here, loading is infinite past this point
-    await expect.poll(() => app.wallpapersListPage.cardsAll.count(), { timeout: 10000, intervals: [500] }).toBeGreaterThan(countBeforeLoadMore);
-
-    // expect: all previously recorded hrefs are still present, in the same order, no duplicates
-    const hrefsAfterLoadMore = await app.wallpapersListPage.getCardsHref();
-    app.wallpapersListPage.compareCardsHrefArrays(hrefsAfterLoadMore, hrefsBeforeLoadMore);
-    expect(hasUniqueValues(hrefsAfterLoadMore)).toBe(true);
+    // 2. Click "Load more": more cards, previous hrefs preserved in order, no duplicates. Stop here, loading is infinite past this point
+    await app.wallpapersListPage.validateLoadMoreAppends(await app.wallpapersListPage.getCardsHref());
   });
 });

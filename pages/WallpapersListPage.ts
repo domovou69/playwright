@@ -63,7 +63,7 @@ export class WallpapersListPage extends HeaderPage {
     this.cardsPremiumWithPrice = this.cardsPremium.filter({ has: this.page.locator('div[class*="card-footer"]') });
     this.cardsAiGenerated = this.cardsAll.filter({ has: this.page.locator('div[class*="card-header"] svg[aria-label="AI generated"]') });
     this.cardsFree = this.cardsAll.filter({ hasNot: this.page.locator('div[class*="card-footer"]') });
-    this.scroller = new CardListScroller(page, this.cardsAll, this.main);
+    this.scroller = new CardListScroller(this.cardsAll, this.main);
     this.loadMoreBtn = this.scroller.loadMoreBtn;
   }
 
@@ -247,8 +247,8 @@ export class WallpapersListPage extends HeaderPage {
     return this.scroller.getCardsHref();
   }
 
-  compareCardsHrefArrays(currentHrefArr: string[], previousHrefArr: string[]) {
-    this.scroller.compareCardsHrefArrays(currentHrefArr, previousHrefArr);
+  validateLoadMoreAppends(hrefsBefore: string[]) {
+    return this.scroller.validateLoadMoreAppends(hrefsBefore);
   }
 
   waitForCardsToUpdate(hrefsBefore: string[]) {

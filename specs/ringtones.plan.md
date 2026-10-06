@@ -194,8 +194,8 @@ Data-driven: `piano` and `love song`. The "Ringtones" scope is selected through 
 1. Scroll until "Load more" is visible; record hrefs; click it
    - expect: card count increases (72 -> 96 observed) [verified-live]
    - expect: previous hrefs preserved in order, no duplicates [verified-live]
-2. Scroll down gradually once more
-   - expect: card count increases again (96 -> 168 observed), previous hrefs preserved, no duplicates [verified-live]
+2. Scroll to the last card 3 times
+   - expect: each scroll appends cards (96 -> 168 observed after the first), previous hrefs preserved, no duplicates [verified-live]
    - Stop here; do not test for an end of results.
 
 ### 4. Category Navigation

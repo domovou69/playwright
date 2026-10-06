@@ -30,7 +30,7 @@ export class RingtonesListPage extends HeaderPage {
     this.cardsContainer = this.main.locator('div[class*="CardsContainer"]').last();
     this.cards = new RingtoneCards(this);
     this.cardsAll = this.cards.all;
-    this.scroll = new CardListScroller(page, this.cardsAll, this.main);
+    this.scroll = new CardListScroller(this.cardsAll, this.main);
     this.explore = new ExploreCategories(page, this.main, 'ringtone');
   }
 

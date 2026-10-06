@@ -18,7 +18,7 @@ test.describe('Infinite Scroll and Load More', { tag: ['@ringtones', '@guest'] }
     const hrefsBeforeLoadMore = await app.ringtonesListPage.scroll.validateAutoLoadUntilLoadMore();
     const hrefsAfterLoadMore = await app.ringtonesListPage.scroll.validateLoadMoreAppends(hrefsBeforeLoadMore);
 
-    // 2. Scroll once more: auto-loading works again. Stop here, do not test for an end of results.
-    await app.ringtonesListPage.scroll.validateScrollAppends(hrefsAfterLoadMore);
+    // 2. Scroll a few more times: auto-loading works again, every round appends. Stop here, do not test for an end of results.
+    await app.ringtonesListPage.scroll.validateScrollAppends(hrefsAfterLoadMore, 3);
   });
 });
