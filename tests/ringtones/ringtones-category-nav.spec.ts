@@ -26,20 +26,20 @@ test.describe('Category Navigation', { tag: ['@ringtones', '@guest'] }, () => {
     await app.ringtonesListPage.explore.link('Blues').click();
 
     await expect(page).toHaveURL(/\/category\/ringtones\/blues$/);
-    await expect(app.ringtonesListPage.ringtonesTitle).toBeVisible();
+    await expect(app.ringtonesListPage.title).toBeVisible();
     await expect(app.ringtonesListPage.cardsAll.first()).toBeVisible();
 
     // 2. Record the URL and H1, then select a different sub-filter: both change and the page lists valid cards.
     // Not asserted: that the cards differ (a related category such as Blue can return the same list as Blues) and the Explore
     // block on the category page itself (bug candidate 1 in the plan).
     const urlBefore = page.url();
-    const h1Before = await app.ringtonesListPage.ringtonesTitle.innerText();
+    const h1Before = await app.ringtonesListPage.title.innerText();
 
     await app.ringtonesListPage.explore.selectDifferentSubFilter();
 
     await expect(page).not.toHaveURL(urlBefore);
     await expect(page).toHaveURL(/\/category\/ringtones\/[a-z0-9-]+$/);
-    await expect(app.ringtonesListPage.ringtonesTitle).not.toHaveText(h1Before);
+    await expect(app.ringtonesListPage.title).not.toHaveText(h1Before);
     await app.ringtonesListPage.cards.validateFirst(24);
   });
 });

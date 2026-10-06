@@ -12,7 +12,7 @@ export type TagsOptionType = 'fall' | 'fall season' | 'fall wall paper' | 'hallo
 export type PriceOptionType = 'Free' | 'Paid';
 export type SortByType = 'Relevance' | 'Newest first' | 'Price: Low to High' | 'Price: High to Low' | 'Most popular';
 
-export type SearchOptionType = 'All' | 'Wallpapers' | 'Ringtones' | 'Artists' | 'Notification sounds';
+export type SearchOptionType = 'All' | 'Wallpapers' | 'Ringtones' | 'Artists' | 'Notification Sounds';
 export type CategoriesMainType = 'Wallpapers' | 'Ringtones' | 'Notification sounds';
 export type WallpaperCategoryType =
   | 'Funny'
