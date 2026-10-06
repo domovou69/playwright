@@ -79,8 +79,8 @@ export abstract class AudioDetailPage {
   // Related renders only after a scroll: wheel inside the poll until its heading shows.
   async scrollToRelated() {
     await expect(this.relatedHeading).not.toBeAttached();
-    const viewport = this.page.viewportSize();
-    if (viewport) await this.page.mouse.move(viewport.width / 2, viewport.height / 2);
+    // The wheel scrolls what is under the pointer.
+    await this.title.hover();
     await expect
       .poll(
         async () => {
