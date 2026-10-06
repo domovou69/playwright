@@ -1,6 +1,6 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { RingtoneCards } from './RingtoneCards';
-import { AudioPlayer } from './AudioPlayer';
+import { AudioPlayer } from '../AudioPlayer';
 import { RingtoneDownloadFlow } from './RingtoneDownloadFlow';
 
 // /ringtones/<GUID>. Share/Download/Buy are rendered twice (mobile and desktop): role queries skip the hidden copy.

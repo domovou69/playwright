@@ -1,8 +1,8 @@
 import { Locator, Page } from '@playwright/test';
 import { AudioFiltersBar } from '../AudioFiltersBar';
 
-export class RingtonesFiltersBar extends AudioFiltersBar {
+export class NotificationSoundsFiltersBar extends AudioFiltersBar {
   constructor(list: { main: Locator; page: Page }) {
-    super(list, 'Ringtones');
+    super(list, 'Notification Sounds');
   }
 }

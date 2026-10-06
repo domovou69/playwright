@@ -7,8 +7,8 @@ test.describe('List Page', { tag: ['@ringtones', '@guest'] }, () => {
   test('RT-01 List page loads with header, filter bar and valid cards', { tag: ['@regression'] }, async ({ app, page }) => {
     // 1. Open /ringtones
     await app.ringtonesListPage.open();
-    await expect(app.ringtonesListPage.ringtonesTitle).toBeVisible();
-    await expect(app.ringtonesListPage.ringtonesTitle).toContainText('Ringtones');
+    await expect(app.ringtonesListPage.title).toBeVisible();
+    await expect(app.ringtonesListPage.title).toContainText('Ringtones');
     await expect(page).toHaveURL(/\/ringtones$/);
 
     // 2. Check the header
