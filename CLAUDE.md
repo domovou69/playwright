@@ -39,10 +39,11 @@ Black-box E2E suite for the zedge.net sections (guest only), one area at a time.
 
 ## Areas
 
-| Area       | Tag           | ID prefix | Plan                       | Tests               | Page objects             | Entry point                     |
-| ---------- | ------------- | --------- | -------------------------- | ------------------- | ------------------------ | ------------------------------- |
-| wallpapers | `@wallpapers` | `WP`      | `specs/wallpapers.plan.md` | `tests/wallpapers/` | `pages/` (flat, from v1) | `app.wallpapersListPage.open()` |
-| ringtones  | `@ringtones`  | `RT`      | `specs/ringtones.plan.md`  | `tests/ringtones/`  | `pages/ringtones/`       | `app.ringtonesListPage.open()`  |
+| Area                | Tag                    | ID prefix | Plan                                | Tests                        | Page objects                 | Entry point                             |
+| ------------------- | ---------------------- | --------- | ----------------------------------- | ---------------------------- | ---------------------------- | --------------------------------------- |
+| wallpapers          | `@wallpapers`          | `WP`      | `specs/wallpapers.plan.md`          | `tests/wallpapers/`          | `pages/` (flat, from v1)     | `app.wallpapersListPage.open()`         |
+| ringtones           | `@ringtones`           | `RT`      | `specs/ringtones.plan.md`           | `tests/ringtones/`           | `pages/ringtones/`           | `app.ringtonesListPage.open()`          |
+| notification sounds | `@notification-sounds` | `NS`      | `specs/notification-sounds.plan.md` | `tests/notification-sounds/` | `pages/notification-sounds/` | `app.notificationSoundsListPage.open()` |
 
 - A new area gets its own `pages/<area>/` folder, `tests/<area>/` folder, plan file and ID prefix. IDs are never reused.
 - Shared components (`HeaderPage`, `FooterPage`, `MainHeaderPage`, `BuyModalPage`) stay in `pages/` and are reused by the new
