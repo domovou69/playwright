@@ -33,5 +33,6 @@ test.describe('Search', { tag: ['@notification-sounds', '@guest'] }, () => {
     await expect(page).toHaveURL(new RegExp(`/notification-sounds\\?keyword=${nonsenseTerm}`));
     await expect(app.notificationSoundsListPage.noResultsHeading).toBeVisible();
     await expect(app.notificationSoundsListPage.cardsAll).toHaveCount(0);
+    await expect(app.notificationSoundsListPage.main.locator('a[href^="/notification-sounds?keyword="]')).toHaveCount(0);
   });
 });
