@@ -36,6 +36,7 @@ export default defineConfig(
       // checks `instanceof RegExp` at runtime - a plain object silently never matches.
       'playwright/valid-test-tags': ['error', { allowedTags: [...allowedTagValues, /^@[A-Z]+-\d+$/] }],
       'playwright/require-tags': 'error',
+      'playwright/no-conditional-in-test': 'error',
     },
   },
   // Area folders created after wallpapers (pages/<area>/, tests/<area>/). Wallpapers predates these rules and is left alone.

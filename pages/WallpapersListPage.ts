@@ -223,9 +223,7 @@ export class WallpapersListPage extends HeaderPage {
 
       // Check if any expected label exists in this card label
       for (const expectedLabel of EXPECTED_LABELS_ARR) {
-        if (cardLabel.includes(expectedLabel)) {
-          foundLabels.add(expectedLabel);
-        }
+        if (cardLabel.includes(expectedLabel)) foundLabels.add(expectedLabel);
 
         // Stop early if all labels are found
         if (foundLabels.size === EXPECTED_LABELS_ARR.length) return;
