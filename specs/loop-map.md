@@ -153,5 +153,4 @@ One line per decision. Dates are commit dates on `main` unless noted.
   No command lists the `Blocked` to `In Progress` move as a numbered step; only `loop-rules.md` says it. `plan-draft` is in
   `LOOP_STATE_LABELS` but no command sets it. The step-4 loop (fix, lint/tsc/verify) is drawn from `/address-review` step 5 and
   has no self-review round in the file.
-- Out of sync: the autonomy decision is dated 2026-10-01 in the plan text, but `e4f3647` is from 2026-10-04. The plan's `## Status`
-  checklist has every stage unchecked while most Stage 6-8 bullets are checked.
+- Out of sync: none known. Fixed 2026-10-06: the autonomy decision is dated 2026-10-04 in the plan text, and the plan's `## Status` matches the stage checkboxes.

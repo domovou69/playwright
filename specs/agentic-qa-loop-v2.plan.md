@@ -101,7 +101,7 @@ State lives in Jira and git, never in chat: each session reads its input from th
 
 **Jira.** One Story per area; one Subtask per group, created after the Story is approved. State labels, one at a time, set by
 the agent through the same `setStateLabel` mechanism as bugs: `plan-draft` -> `plan-approved` -> `impl-in-progress` ->
-`impl-ready-for-review` -> `review-addressed`. Changed 2026-10-01 (more autonomy inside the steps, same goal): the agent also
+`impl-ready-for-review` -> `review-addressed`. Changed 2026-10-04 (more autonomy inside the steps, same goal): the agent also
 assigns the human and moves a Subtask (`In Progress` on start, `Blocked` on a stop or bug gate, `Done` in `/group-retro` after the
 merge); a Story goes to `Done` only when all its Subtasks are `Done`. The Story's `In Progress` (the plan gate) and every Bug status
 stay with the human, and `jira-ticket.mjs transition` refuses them. The agent @mentions the human only when needed or finished (PR
@@ -111,7 +111,7 @@ user about their own actions, so the mention shows in the ticket but sends nothi
 command refuses to start when the ticket is not in the expected state (the gate is enforced by the command, not by trust).
 
 **Branches.** Every branch starts with the ticket key, then a short kebab-case form of the title: `ZED-12-ringtones-search`.
-The agent commits on its ticket branch, pushes it and opens the PR (changed 2026-10-01: the human reviews in the PR, not in the
+The agent commits on its ticket branch, pushes it and opens the PR (changed 2026-10-04: the human reviews in the PR, not in the
 working tree); the human merges.
 
 | Step | Command                   | Input                        | Output                                                                                                | Gate after           |
@@ -206,8 +206,8 @@ Typed by hand, per gate, rough: `human_review_min`; per session: `mcp_decisive` 
       (validated 2026-10-01 on session `ddf88944`: all four Sonnet token classes and $12.20 match `/cost`; only Haiku side calls,
       $0.03, are missing. Sessions with subagents are a lower bound, see `specs/retrospective.md` section 8. `--from/--until` added
       to measure a window of a session. Custom slash commands as the start message are unverified until the Stage 7 dry run)
-- [ ] Read `effort` / `perTurnEffort` from the transcript into `sessions.csv` and compare with the pinned value
-      (the script reads both into `effort_seen`; nothing is pinned yet, so the comparison waits for Stage 7)
+- [x] Read `effort` / `perTurnEffort` from the transcript into `sessions.csv` and compare with the pinned value
+      (the script reads both into `effort_seen`; compared with the pinned values in the Stage 7 dry run, see the effort item there)
 - [x] `metrics/prices.json` from the official pricing page, dated (2026-10-01; Sonnet 5 $2/$10 is the standard price now)
 - [x] v1 totals from the four existing sessions into `specs/retrospective.md` (closes its "cost not measured" gap)
       (table added as section 8 for all five sessions found; lower bound, see the validation there)
@@ -233,7 +233,7 @@ Typed by hand, per gate, rough: `human_review_min`; per session: `mcp_decisive` 
 - [x] Ringtones rules before any code: area tag `@ringtones` in `src/utils/tags.ts`, page-object location, naming
       (`## Areas` table in CLAUDE.md: tag `@ringtones` already in `tags.ts`, `pages/ringtones/`, `tests/ringtones/`, prefix `RT`, entry `app.ringtonesListPage.open()`)
 - [ ] CI: a job that runs the full suite when a PR gets the `regression` label (PR still runs `@smoke`)
-      (`ci.yml` changed: the `labeled` trigger, other labels skip the run; YAML passes prettier, the expressions are untested until a PR;
+      (optional convenience, not a gate: push to `main` already runs the full suite after every merge, which is what "accepted test" needs. Tick it after the first PR that gets the label; `ci.yml` changed: the `labeled` trigger, other labels skip the run; YAML passes prettier, the expressions are untested until a PR;
       the `regression` label exists in the repo)
 - [x] Confirm that the pinned effort is the effort actually used, including after a follow-up message in the same session
       (2026-10-01 dry run, 7 sessions: `scout-feature` high, `create-story`/`implement-ticket`/`address-review` medium, `group-retro` high, read from the transcripts; it also held on the follow-up turn of resumed sessions)
@@ -241,20 +241,17 @@ Typed by hand, per gate, rough: `human_review_min`; per session: `mcp_decisive` 
 
 ### Stage 8 - v2 pilot (ringtones)
 
+- [x] Dry-run slice of the pilot
       (done 2026-10-01 on ringtones list + search: Story ZED-8, Subtasks ZED-9..12, PR #1 merged; 7 sessions, 50 active min, $8.68 API-equivalent, 0 budget stops.
-      Log of what broke or was learned:
-      1. `jira-ticket.mjs show` had no description, so `/implement-ticket` could not read the groups: fixed (`show` returns it, `--comments` too).
-      2. `allowed-tools` in a command applies to its own turn only; a follow-up turn needs the tools passed again (headless: `--allowedTools`).
-      3. `/implement-ticket` refused a dirty tree and stopped without touching Jira: the refusal works as designed.
-      4. The generator agent has no shell, so it cannot run the spec it writes; the main session ran lint, tsc and `verify` and rewrote one spec (recorded: main session took over).
-      5. `/group-retro` turned 6 findings into 3 CLAUDE.md lines and 2 ESLint rules; for a real merge commit `loop-metrics` needs `<merge>^2`; `ci_after_merge`, `min_plan_*` and label times stay empty (no `gh run` permission, no label history on the Story).
-      6. Follow-ups sent with `claude -p --resume` are not tagged as human messages, so gates and interventions read 0 in this dry run; real windows tag them.
-      7. `/group-retro` could not edit `.claude/commands/*`: command changes need the human.
+      Log of what broke or was learned: 1. `jira-ticket.mjs show` had no description, so `/implement-ticket` could not read the groups: fixed (`show` returns it, `--comments` too). 2. `allowed-tools` in a command applies to its own turn only; a follow-up turn needs the tools passed again (headless: `--allowedTools`). 3. `/implement-ticket` refused a dirty tree and stopped without touching Jira: the refusal works as designed. 4. The generator agent has no shell, so it cannot run the spec it writes; the main session ran lint, tsc and `verify` and rewrote one spec (recorded: main session took over). 5. `/group-retro` turned 6 findings into 3 CLAUDE.md lines and 2 ESLint rules; for a real merge commit `loop-metrics` needs `<merge>^2`; `ci_after_merge`, `min_plan_*` and label times stay empty (no `gh run` permission, no label history on the Story). 6. Follow-ups sent with `claude -p --resume` are not tagged as human messages, so gates and interventions read 0 in this dry run; real windows tag them. 7. `/group-retro` could not edit `.claude/commands/*`: command changes need the human.
       Not covered by the dry run: a bug through `gate: file bug` (L-08, L-09), `/fix-test` (L-12), a stop rule firing (L-05).)
 
-- [ ] Steps 1-5 for 3-4 groups; metrics row per session and per group
-- [ ] Go/no-go after scouting: if guest ringtones have no free download or preview does not play headless, narrow the scope
+- [x] Steps 1-5 for 3-4 groups; metrics row per session and per group
+      (4 groups merged: ZED-9 list and search #1, ZED-10 scroll and categories #3, ZED-11 filters #4, ZED-12 detail, audio, download, purchase #5;
+      21 `RT-XX` implemented, 4 rows in `metrics/groups.csv`, a `/group-retro` after each)
+- [x] Go/no-go after scouting: if guest ringtones have no free download or preview does not play headless, narrow the scope
       before the Story
+      (go: free download RT-18 and audio preview RT-17 run headless)
 - [ ] Story entry: one human-written Story for a small ringtones slice through steps 2-5 (L-11)
 - [ ] Experiment A, Currents MCP value: a seeded flake that fails only in CI (no trace in git history or docs, neutral commit
       messages), CI run several times so Currents has history, then two fresh sessions of `/fix-test`: with the Currents MCP and
@@ -290,8 +287,8 @@ Dated, one line each, what got in the way of the loop:
 
 ## Status
 
-- [ ] Stage 6: measurement
-- [ ] Stage 7: loop built, commands dry-run
-- [ ] Stage 8: v2 pilot, Story entry, experiment A, bare control
+- [x] Stage 6: measurement
+- [ ] Stage 7: loop built, commands dry-run (only the optional `regression`-label CI job is unchecked)
+- [ ] Stage 8: v2 pilot (4 groups done); open: Story entry, experiment A, bare control
 - [ ] Stage 9: v2 report, L-XX results
 - [ ] Stage 10: v3 replay, comparison, decision, reusable kit
