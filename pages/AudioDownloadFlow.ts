@@ -1,9 +1,9 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { stat } from 'fs/promises';
 
-// A free ringtone download: the "Preparing your download" countdown dialog, then a real .mp3. The countdown length varies, so
+// A free audio download (ringtone or notification sound): the "Preparing your download" countdown dialog, then a real .mp3. The countdown length varies, so
 // the wait for the download event is long and the number is never asserted.
-export class RingtoneDownloadFlow {
+export class AudioDownloadFlow {
   readonly downloadBtn: Locator;
   readonly preparingDialog: Locator;
   readonly unlockDialog: Locator;
