@@ -15,6 +15,18 @@ export class AudioDownloadFlow {
     this.unlockDialog = page.getByRole('dialog').filter({ hasText: 'Unlock and Support the Artist' });
   }
 
+  // The ad-unlock gate a guest gets from "Download" on a premium item priced 10 (ZED-3, ZED-18).
+  async validateUnlockGate() {
+    await expect(this.unlockDialog).toBeVisible();
+    await expect(this.unlockDialog.getByRole('button', { name: 'Login & Watch Ad' })).toBeVisible();
+    await expect(this.unlockDialog.getByRole('button', { name: 'Buy Credits' })).toBeVisible();
+  }
+
+  async closeUnlockGate() {
+    await this.page.keyboard.press('Escape');
+    await expect(this.unlockDialog).not.toBeAttached();
+  }
+
   // Returns the saved file path.
   async downloadFree(savePath: string): Promise<string> {
     const downloadPromise = this.page.waitForEvent('download', { timeout: 40_000 });
