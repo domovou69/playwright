@@ -1,0 +1,32 @@
+// spec: specs/wallpapers.plan.md
+// seed: tests/seed.spec.ts
+
+import { test, expect } from '../../fixtures/test';
+
+test.describe('List Page', { tag: ['@wallpapers', '@guest'] }, () => {
+  test('WP-01 List page loads with header, filter bar and valid cards', { tag: ['@regression'] }, async ({ app, page }) => {
+    // 1. Open /wallpapers
+    await app.wallpapersListPage.open();
+    await expect(app.wallpapersListPage.wallpaperTitle).toBeVisible();
+    await expect(page).toHaveURL(/\/wallpapers$/);
+
+    // 2. Check the header: logo, Categories, search filter chip + input + Search button, Sign in
+    // expect: all visible and enabled; the search cancel control is not present while the input is empty
+    await app.wallpapersListPage.validateHeader();
+
+    // 3. Check the filter bar: Category, Tag, Price, Color, Sort by
+    // expect: all five visible; "Reset All" is not present
+    await expect(app.wallpapersListPage.filtersBar.filterCategory).toBeVisible();
+    await expect(app.wallpapersListPage.filtersBar.filterTag).toBeVisible();
+    await expect(app.wallpapersListPage.filtersBar.filterPrice).toBeVisible();
+    await expect(app.wallpapersListPage.filtersBar.filterColor).toBeVisible();
+    await expect(app.wallpapersListPage.filtersBar.filterSortBy).toBeVisible();
+    await expect(app.wallpapersListPage.filtersBar.resetAllBtn).not.toBeAttached();
+
+    // 4. Check the first 20 cards (skip "Download app" and ad tiles)
+    // expect: every href matches ^/wallpapers/[a-f0-9-]{36}$
+    // expect: every title is non-empty and equals the aria-label
+    // expect: every premium card (crown badge) has a digits-only price badge; free cards have no price badge
+    await app.wallpapersListPage.validateFirstCards(20);
+  });
+});

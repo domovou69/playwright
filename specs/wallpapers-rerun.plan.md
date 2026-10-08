@@ -11,11 +11,12 @@ plan: `specs/explorbot-experiment.plan.md`.
 - [x] Run directories built and isolation checked (canary: bare sees no skills, commands or CLAUDE.md; harness sees the project ones only)
 - [x] Jira stand-in and driver scripts written
 - [x] Evaluation scripts written (`experiments/wallpapers-rerun/eval.sh`: `eval/prepare-original.sh`, `metrics.mjs`, `blind-pack.mjs`, `run-judge.sh`)
-- [ ] Run 1 (bare) done
-- [ ] Run 2 (harness) done
-- [ ] Objective metrics collected
-- [ ] Blinded expert review done
-- [ ] Results saved, report and `specs/summary.md` updated
+- [x] Run 1 (bare) done
+- [x] Run 2 (harness) done
+- [x] Objective metrics collected
+- [x] Blinded expert review done
+- [x] Results saved (`experiments/wallpapers-rerun/runs/`, `eval/final.md`)
+- [ ] Report and `specs/summary.md` updated
 
 ## Question
 
@@ -238,6 +239,15 @@ violations are counted the same way for everyone:
 One row per case in `eval/final.md`: cost, active minutes, interventions, tests, stable share, rule violations, coverage
 score, known bugs found of 2, new confirmed bugs, false positives, review scores. Then the conclusion in the report.
 
+### 4. How each arm explored the site
+
+Neither arm is told how to drive the browser. In the bare arm the agent skipped the Playwright MCP (it needs a
+`planner_setup_page` step) and explored with its own throwaway Playwright scripts through Bash (63 Bash calls, 1 MCP call in
+the first 85 minutes); in the harness arm the commands and the planner agent use the MCP. This is an observation, not a fault:
+`session-cost.mjs` records MCP calls per arm, and the report compares MCP against console scripts on tokens, time, coverage and
+quality. A `playwright-cli` skill as a third way (token-lean, installed as a skill) is a possible later experiment, not part of
+these two runs.
+
 ## Risks and confounds
 
 - One run per arm: an example, not statistics.
@@ -260,4 +270,6 @@ score, known bugs found of 2, new confirmed bugs, false positives, review scores
 ## Progress log
 
 - 2026-10-07: plan written from the agreed decisions; defaults proposed.
+- 2026-10-08 12:31 (local): harness attempt 0 stopped at about T+01:25 (one session chained scout, story and implementation because the whole task text was passed to /scout-feature; kept separately, $9, 66 active min); the harness driver now passes each command only its own slice of the task text (`brief-explore.md`, `brief-story.md`, `brief-implement.md`, `brief-summary.md`) and answers a `BUDGET STOP` with `gate: extend`. Bare run was stopped by the owner at about T+01:25 without a summary and resumed; harness restarted from a fresh copy.
 - 2026-10-07 22:53 (local): both runs started in the background from `run-bare.sh` and `run-harness.sh`. Start times are in `logs/<arm>/started.txt`; canary sessions before that are not counted (`session-cost --from`).
+- 2026-10-08 15:30 (local): both runs finished (bare 5.6 USD, harness 9.4 USD), objective metrics and the blinded judge done, mapping revealed (X bare, Y harness, Z original). Results in `experiments/wallpapers-rerun/eval/final.md`; snapshots in `runs/{original,bare,harness}`.

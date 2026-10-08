@@ -1,0 +1,295 @@
+# Agentic QA Loop v2: a reusable agent loop, measured
+
+`specs/agentic-qa-loop.plan.md` (stages 1-5) is the record of the first iteration and is not rewritten; `specs/retrospective.md`
+is its evaluation. This plan is the working plan from now on.
+
+## Purpose
+
+The product of this plan is **a system**, not a test suite: AI agents that take a QA task from intake to merged, stable tests,
+with a human only at the gates, and numbers for what it costs and what each tool adds. The tests are the evidence that the
+system works. Success means the loop passes its own acceptance criteria (`## Loop acceptance criteria`) and can be reused on
+another project by analogy.
+
+Two ways into the loop, the same loop after that:
+
+- **Discovery entry** (black box, like this project): an agent explores a site area and drafts the Story.
+- **Story entry** (a normal project): a human writes the Story or Task; the loop starts from it.
+
+## Iterations
+
+| Iteration | Scope                             | What it gives                                                                                                                                                                                  |
+| --------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| v1        | Wallpapers (done)                 | Totals only: tokens and active time from the four existing session transcripts. Not comparable per task                                                                                        |
+| v2        | Ringtones, 3-4 groups (~15 tests) | The loop built and run once, every task measured; plus one small Story entry run on a human-written Story                                                                                      |
+| v3        | Notification Sounds, small slice  | Replaces the ringtones replay (decided 2026-10-06: the harness barely changed since v2, so a replay would measure noise). A new area on a human-written Story shows whether the loop transfers |
+
+No manual-writing baseline: the comparison is a new area against ringtones (v3 vs v2 per group: interventions, findings by class, cost per accepted test).
+
+## Hypotheses and decision
+
+- **H1 (the loop runs itself between gates).** Each group needs at most 2 interventions outside the gates.
+- **H2 (the loop learns).** A review-finding class fixed by the group retro does not recur in the next group; v3 has fewer
+  findings and interventions than v2.
+- **H3 (it is reproducible).** v3 on a new area (Notification Sounds) reaches its planned coverage with the same or fewer
+  interventions and findings per group than v2, and the Story entry works without changes to the commands.
+- **H4 (each tool pays).** Every tool (Playwright MCP, Currents dashboard and MCP, the skill) has at least one decisive use
+  per iteration, at a context cost we record.
+
+Decision after v3: reuse the loop on other projects as is / with named changes / not worth it. Written in the report with the
+numbers behind it.
+
+## Fixed conditions
+
+- Model and effort are fixed in git, not chosen in the editor that day: see `## Model and effort`. Opus was used only to
+  write this plan.
+- The site has not changed for about 1.5 years, so v2 and v3 run against the same product. The run date is recorded anyway.
+- Currents trial until 2026-11-11. v3 is expected to fit before it; if not, deal with it then (extension or ReportPortal).
+- Constraints for every agent task, in the Story template and in every command: guest only, free content only, no load,
+  no security probing, no login, no purchase, production without destructive actions; a download test checks that a free
+  item really downloads.
+
+## Model and effort
+
+Pinned in the frontmatter of each command, agent and skill, so v2 and v3 run with the same settings and the setting lives in
+git. Documented behaviour (Claude Code docs, checked 2026-10-01): `effort` in frontmatter overrides the session level while that
+command or subagent is active; `CLAUDE_CODE_EFFORT_LEVEL` (env var) beats everything, including frontmatter, so it must not be
+set anywhere (not set now in `~/.zshrc`, `~/.zprofile`, `~/.zshenv`, user or project settings). The `model` field of a command
+applies for the current turn only.
+
+| Unit                              | Model  | Effort | Why                                                                         |
+| --------------------------------- | ------ | ------ | --------------------------------------------------------------------------- |
+| `/scout-feature`                  | sonnet | high   | judgement on what matters; the plan is the test oracle                      |
+| `/create-story`                   | sonnet | medium | restructures an approved plan into a template                               |
+| `/implement-ticket`               | sonnet | medium | clear spec, checked by `verify`, lint, tsc                                  |
+| `/address-review`                 | sonnet | medium | concrete comments with classes                                              |
+| `/group-retro`                    | sonnet | high   | classification and generalisation into rules                                |
+| `/fix-test` (Task M)              | sonnet | high   | root cause before any fix                                                   |
+| agent `playwright-test-planner`   | sonnet | high   | set now                                                                     |
+| agent `playwright-test-generator` | sonnet | medium | set now                                                                     |
+| agent `playwright-test-healer`    | sonnet | high   | set now                                                                     |
+| skill `playwright-best-practices` | -      | -      | a reference skill, no `effort`: it would override the session whenever used |
+
+Planning sessions like the one that wrote this plan are run on Opus by hand and are not part of the pilot metrics.
+The values are a starting point; changing one is a recorded decision (what, why, which iteration), never a tweak between v2 and v3
+without a note. Whether medium is enough for the medium units is a result of the pilot.
+
+Open risk: it is not documented whether a command's `effort` holds for the human's follow-up messages in the same session or
+only for the turn the command ran. The user's global setting is `effortLevel: high` with per-model overrides, so the session
+baseline is not medium. Checked in the dry run (Stage 7) from the `effort` / `perTurnEffort` fields of the transcript; if it
+does not hold, the session is started with `/effort <level>` as well and `sessions.csv` records the effort actually seen.
+The docs (checked 2026-10-01) say the override ends at the next user message, so follow-ups after a gate run at the session
+level; the `sonnet` alias now resolves to `claude-sonnet-5-5`, whose user override is `high`.
+
+## Definitions
+
+- **Task / session.** One command in one fresh Claude Code window. A session ends at a gate, so the next step is a new session;
+  one session = one row of metrics.
+- **Gate.** A human decision the loop waits for: plan approved, Story approved (status moved to In Progress), bug approved
+  for filing, budget extension, PR merged. In chat a gate decision starts with `gate:`, so the metrics script can tell it
+  from an intervention.
+- **Intervention.** Any other human message in a session after the start command: a correction, a decision the agent should
+  have made, code written by hand. Changes during code review are not interventions, they are `human_edits`.
+- **Budget stop.** The agent hit a stop rule and asked. It is counted separately; what the human does next is either a gate
+  (`gate: extend`) or an intervention.
+- **Accepted test.** Written, passed `npm run verify`, merged, and passed in CI after the merge. A flake that appears later is
+  maintenance (Task M), not part of the writing cost.
+- **Group.** A slice of the area (list, search, detail, download, ...) = one Subtask = one branch = one PR.
+
+## The loop
+
+State lives in Jira and git, never in chat: each session reads its input from them.
+
+**Jira.** One Story per area; one Subtask per group, created after the Story is approved. State labels, one at a time, set by
+the agent through the same `setStateLabel` mechanism as bugs: `plan-draft` -> `plan-approved` -> `impl-in-progress` ->
+`impl-ready-for-review` -> `review-addressed`. Changed 2026-10-04 (more autonomy inside the steps, same goal): the agent also
+assigns the human and moves a Subtask (`In Progress` on start, `Blocked` on a stop or bug gate, `Done` in `/group-retro` after the
+merge); a Story goes to `Done` only when all its Subtasks are `Done`. The Story's `In Progress` (the plan gate) and every Bug status
+stay with the human, and `jira-ticket.mjs transition` refuses them. The agent @mentions the human only when needed or finished (PR
+ready for review, `Blocked`, `Done`, `BUDGET STOP:`). Caveat: the scripts run on the human's own token, and Jira does not notify a
+user about their own actions, so the mention shows in the ticket but sends nothing until the loop has its own account
+(`JIRA_REVIEWER_ACCOUNT_ID` is already read). Nothing is triggered by a status change: the human runs the next command, and the
+command refuses to start when the ticket is not in the expected state (the gate is enforced by the command, not by trust).
+
+**Branches.** Every branch starts with the ticket key, then a short kebab-case form of the title: `ZED-12-ringtones-search`.
+The agent commits on its ticket branch, pushes it and opens the PR (changed 2026-10-04: the human reviews in the PR, not in the
+working tree); the human merges.
+
+| Step | Command                   | Input                        | Output                                                                                                | Gate after           |
+| ---- | ------------------------- | ---------------------------- | ----------------------------------------------------------------------------------------------------- | -------------------- |
+| 1    | `/scout-feature <area>`   | area name                    | feature inventory, reuse map, `specs/<area>.plan.md` (scenarios `RT-XX`, verified facts), go/no-go    | plan approved        |
+| 2    | `/create-story <plan>`    | approved plan                | Story in To Do (scope, groups, reuse map, constraints, acceptance criteria), label `plan-approved`    | Story -> In Progress |
+| 3    | `/implement-ticket <KEY>` | Story or Subtask in progress | Subtasks (first run), branch, POM + tests for one group, raw commit, PR, self-review, `verify` report | review in the PR     |
+| 4    | `/address-review <KEY>`   | PR review comments           | fix commits, pushed; one reply per comment, `verify` again                                            | merge                |
+| 5    | `/group-retro <KEY>`      | merged PR, its comments      | findings by class, each turned into a rule, lint check or command change; recurrence check            | next group           |
+| M    | `/fix-test <test>`        | flaky or failing test        | root cause and class, fix on a `ZED-N` branch (healer, Currents data, systematic debugging)           | code review          |
+
+Story entry = start at step 2 with a human-written Story (step 2 then only normalises it into the template).
+
+**Review comments** go on the GitHub PR, each prefixed with its class: `[oracle]` (wrong expected behaviour), `[locator]`,
+`[convention]`, `[missing]` (scenario or check missing), `[dup-pom]` (duplicate locator or helper), `[flaky]`, `[other]`.
+Only these prefixes: anything else (`[class]`, `[assertions]`, no prefix) is counted as `unclassified` by `loop-metrics`, so
+use `[other]` when no class fits. Kept as is on purpose: `findings_unclassified` shows how often a prefix was not recognised
+(PR #1: 3 of 6).
+`/address-review` and `/group-retro` read them through `gh`, so the findings are data.
+
+**Bugs found during the work.** The agent stops, shows a draft (title, steps, evidence) and waits for `gate: file bug`. Then
+a script creates the Bug, the normal triage runs on it, the repro outcome is posted by `jira-repro.mjs`, and the test gets
+`@BUG:<KEY>`. The test never silently asserts buggy behaviour without a ticket. A bug met twice under different wording is
+a test of triage (does it list the first ticket as possibly related).
+
+**Stop rules.** 60 active minutes per session; the healer gets at most 3 attempts per failing test; `verify` that stays
+flaky after its 3 runs goes to the human. On any stop the agent writes what it tried and asks.
+
+**Who writes the POM.** The generator agent gets edit access to `pages/` and viewport resize (in v1 it had neither and left
+`TODO(pom)` locators for the main session to move). If it still fails, the main session takes over and that is recorded as a
+result.
+
+## Loop acceptance criteria
+
+The loop is considered set up when all of these pass in v2, and reproducible when they pass again in v3.
+
+- **L-01** `/scout-feature` produces a plan whose every fact is marked verified-live or assumed, plus a go/no-go.
+- **L-02** `/create-story` produces a Story in the template, with groups and acceptance criteria, and changes no status.
+- **L-03** `/implement-ticket` refuses a ticket that is not In Progress.
+- **L-04** For an approved group, `/implement-ticket` produces a branch `ZED-N-...` with a raw commit, tests that pass `verify`,
+  lint, tsc and format check, with at most 2 interventions.
+- **L-05** A stop rule fires and the agent asks instead of continuing.
+- **L-06** `/address-review` answers every classified review comment, with a fix or a reason.
+- **L-07** `/group-retro` turns each finding class into a rule, lint check or command change; that class does not recur in the
+  next group.
+- **L-08** A bug found during the work reaches Jira only after `gate: file bug`, goes through triage and repro, and gets a
+  `@BUG:<KEY>` test.
+- **L-09** The same bug reported twice under different wording: triage lists the first ticket as possibly related (or the
+  miss is recorded as a triage finding).
+- **L-10** Every session gets its metrics row without manual input except `human_review_min`.
+- **L-11** A human-written Story goes through steps 2-5 with no command changes.
+- **L-12** `/fix-test` names a root cause class for a failing test before changing code.
+
+## Metrics
+
+Per session (automatic, `scripts/session-cost.mjs` over `~/.claude/projects/<project>/<session>.jsonl` and
+`<session>/subagents/*.jsonl`):
+
+- model and effort actually used (read from the transcript, not from the plan); input, cache-creation, cache-read and output tokens (kept separate: they are priced differently);
+  API-equivalent dollars from `metrics/prices.json` (official prices with the date copied; on a subscription this is "what it would
+  cost through the API", not what was paid)
+- active minutes (gaps between events, each capped at 5 minutes)
+- interventions and gates (user messages after the start command; `gate:` ones are gates), budget stops
+- MCP calls per server and the tokens their results took
+
+The transcript repeats streamed messages (checked: 3193 lines with `usage`, 1065 unique message ids in one session), so the script
+deduplicates by message id. It is validated once against Claude Code's `/cost` before being trusted.
+
+Per group (automatic, `scripts/loop-metrics.mjs` from git, `gh` and the Jira changelog):
+
+- tests added; POM members new vs reused
+- `human_edits`: lines changed by the human between the raw commit and the merge (agent fix commits excluded)
+- review findings by class; recurrence against earlier groups
+- `verify` verdict; CI result after merge
+- lead time per phase from the Jira label changelog (where waiting happens: agent or human)
+
+Per area and iteration: plan coverage (`scripts/plan-coverage.mjs`: planned / implemented / missing by priority), accepted tests,
+cost per accepted test, oracle error rate (plan facts marked verified that later proved wrong in implementation or review),
+bugs found and whether triage linked the duplicates.
+
+Maintenance: `metrics/fixes.csv` per fixed test (class, root cause found, attempts, minutes, Currents data used, systematic
+debugging used). Stability: weekly Currents snapshot per area tag in `metrics/stability.csv` (flaky rate, failure rate, p95
+duration, test executions used of the 10K cycle).
+
+Typed by hand, per gate, rough: `human_review_min`; per session: `mcp_decisive` (did an MCP result change a decision, one line).
+
+## Stages
+
+### Stage 6 - Measurement
+
+- [x] `scripts/session-cost.mjs` (dedup, token classes, active minutes, interventions and gates, MCP calls), validated against `/cost`
+      (validated 2026-10-01 on session `ddf88944`: all four Sonnet token classes and $12.20 match `/cost`; only Haiku side calls,
+      $0.03, are missing. Sessions with subagents are a lower bound, see `specs/retrospective.md` section 8. `--from/--until` added
+      to measure a window of a session. Custom slash commands as the start message are unverified until the Stage 7 dry run)
+- [x] Read `effort` / `perTurnEffort` from the transcript into `sessions.csv` and compare with the pinned value
+      (the script reads both into `effort_seen`; compared with the pinned values in the Stage 7 dry run, see the effort item there)
+- [x] `metrics/prices.json` from the official pricing page, dated (2026-10-01; Sonnet 5 $2/$10 is the standard price now)
+- [x] v1 totals from the four existing sessions into `specs/retrospective.md` (closes its "cost not measured" gap)
+      (table added as section 8 for all five sessions found; lower bound, see the validation there)
+- [x] `scripts/plan-coverage.mjs` (real plan: 24 scenarios, all implemented; negative check on a doctored plan found the missing ID, tag mismatch and removed ID)
+- [x] `scripts/loop-metrics.mjs` (git diff between raw commit and merge, PR review comments by class, Jira label changelog)
+      (skeleton; checked: git part on a real commit range and on a synthetic repo for the agent/human split, Jira changelog on
+      ZED-3 and ZED-4, comment classifier offline; PR part: `gh` 2.102.0 installed and authenticated 2026-10-01, call form checked on a real endpoint and on a missing PR, real review comments checked on PR #1 (6 findings, 3 came back `unclassified`); not
+      built: POM members reused, recurrence against earlier groups)
+- [x] `metrics/` layout: `sessions.csv`, `groups.csv`, `fixes.csv`, `stability.csv` (headers only; `sessions.csv` matches `session-cost.mjs --csv`)
+
+### Stage 7 - Build the loop
+
+- [x] Commands in `.claude/commands/`: `scout-feature`, `create-story`, `implement-ticket`, `address-review`, `group-retro`, `fix-test`;
+      each states its input, output, stop rules and constraints, ends at its gate, and pins `model` and `effort` per `## Model and effort`
+      (six commands written 2026-10-01 with `model`/`effort` exactly as in the table above; shared rules in `.claude/loop-rules.md`; `allowed-tools` leaves `git push` and GitHub writes to the permission prompt. Written, not yet run: the dry run decides whether they work)
+- [x] Story template (scope, groups, reuse map, constraints, acceptance criteria, out of scope)
+      (`specs/templates/story.md`, Story and Subtask)
+- [x] `scripts/jira-create.mjs --type=Story|Subtask|Bug` on `jira-common.mjs`; new story state labels; the marker on every write
+      (built with `Task` too, plus `scripts/jira-ticket.mjs` show/gate/label/comment; `--dry-run` payloads, error paths and the gate on
+      ZED-3 checked, the gate refuses a ticket in the wrong state; a real create checked in the dry run: Story ZED-8, Subtasks ZED-9..12)
+- [x] Generator agent: edit access to `pages/`, viewport resize
+      (`Edit`, `Write`, `browser_resize` added; the agent text restricts edits to `pages/` and its test file and drops `TODO(pom)`)
+- [x] Ringtones rules before any code: area tag `@ringtones` in `src/utils/tags.ts`, page-object location, naming
+      (`## Areas` table in CLAUDE.md: tag `@ringtones` already in `tags.ts`, `pages/ringtones/`, `tests/ringtones/`, prefix `RT`, entry `app.ringtonesListPage.open()`)
+- [ ] CI: a job that runs the full suite when a PR gets the `regression` label (PR still runs `@smoke`)
+      (optional convenience, not a gate: push to `main` already runs the full suite after every merge, which is what "accepted test" needs. Tick it after the first PR that gets the label; `ci.yml` changed: the `labeled` trigger, other labels skip the run; YAML passes prettier, the expressions are untested until a PR;
+      the `regression` label exists in the repo)
+- [x] Confirm that the pinned effort is the effort actually used, including after a follow-up message in the same session
+      (2026-10-01 dry run, 7 sessions: `scout-feature` high, `create-story`/`implement-ticket`/`address-review` medium, `group-retro` high, read from the transcripts; it also held on the follow-up turn of resumed sessions)
+- [x] Dry run of every command on a trivial target before the pilot; fix what breaks, log it
+
+### Stage 8 - v2 pilot (ringtones)
+
+- [x] Dry-run slice of the pilot
+      (done 2026-10-01 on ringtones list + search: Story ZED-8, Subtasks ZED-9..12, PR #1 merged; 7 sessions, 50 active min, $8.68 API-equivalent, 0 budget stops.
+      Log of what broke or was learned: 1. `jira-ticket.mjs show` had no description, so `/implement-ticket` could not read the groups: fixed (`show` returns it, `--comments` too). 2. `allowed-tools` in a command applies to its own turn only; a follow-up turn needs the tools passed again (headless: `--allowedTools`). 3. `/implement-ticket` refused a dirty tree and stopped without touching Jira: the refusal works as designed. 4. The generator agent has no shell, so it cannot run the spec it writes; the main session ran lint, tsc and `verify` and rewrote one spec (recorded: main session took over). 5. `/group-retro` turned 6 findings into 3 CLAUDE.md lines and 2 ESLint rules; for a real merge commit `loop-metrics` needs `<merge>^2`; `ci_after_merge`, `min_plan_*` and label times stay empty (no `gh run` permission, no label history on the Story). 6. Follow-ups sent with `claude -p --resume` are not tagged as human messages, so gates and interventions read 0 in this dry run; real windows tag them. 7. `/group-retro` could not edit `.claude/commands/*`: command changes need the human.
+      Not covered by the dry run: a bug through `gate: file bug` (L-08, L-09), `/fix-test` (L-12), a stop rule firing (L-05).)
+
+- [x] Steps 1-5 for 3-4 groups; metrics row per session and per group
+      (4 groups merged: ZED-9 list and search #1, ZED-10 scroll and categories #3, ZED-11 filters #4, ZED-12 detail, audio, download, purchase #5;
+      21 `RT-XX` implemented, 4 rows in `metrics/groups.csv`, a `/group-retro` after each)
+- [x] Go/no-go after scouting: if guest ringtones have no free download or preview does not play headless, narrow the scope
+      before the Story
+      (go: free download RT-18 and audio preview RT-17 run headless)
+- [ ] Story entry: one human-written Story for a small slice through steps 2-5 (L-11); run as Stage 10 on Notification Sounds
+- [ ] Experiment A, Currents MCP value: a seeded flake that fails only in CI (no trace in git history or docs, neutral commit
+      messages), CI run several times so Currents has history, then two fresh sessions of `/fix-test`: with the Currents MCP and
+      without. Compare tokens, minutes, tool calls, correct root cause. 2-3 runs per arm is an anecdote; the report says so
+- [ ] Bare control: one group done by Claude with the Story text only, in a worktree without `CLAUDE.md`, `.claude/` and
+      `specs/` (Playwright MCP kept). Same metrics. Answers "is the harness needed at all"
+
+### Stage 9 - v2 report
+
+- [ ] Loop acceptance criteria: pass / fail per `L-XX`, with evidence
+- [ ] H1-H4 with the numbers; what each tool gave and what had to be changed in it and why
+- [ ] Update `specs/retrospective.md` (v2 section, playbook corrections) and `specs/summary.md`
+- [ ] Friction log for Currents (below) and the write-up link to the Currents contact
+
+### Stage 10 - v3 (Notification Sounds, Story entry)
+
+Replaces the ringtones replay. The Story entry of Stage 8 and this stage are one run: a human-written Story for a small
+Notification Sounds slice goes through steps 2-5. The area tag `@notification-sounds` is already in `src/utils/tags.ts`; the
+rest of `## Areas` in CLAUDE.md (prefix, `pages/notification-sounds/`, plan, entry page) is added by the first group.
+
+- [ ] Story for the slice written by the human (L-11); steps 2-5 with no command changes
+- [ ] Compare v3 with v2 per group: interventions, findings by class, cost per accepted test, active minutes; recurrence of the
+      classes that `/group-retro` fixed in v2 (H2)
+- [ ] Decision (see Hypotheses); extract the reusable kit (commands, scripts, `CLAUDE.md` template, one project config with the
+      Jira project, area tags and constraints)
+
+## Friction log for Currents
+
+Dated, one line each, what got in the way of the loop:
+
+- 2026-09-28: `CURRENTS_API_KEY` (MCP) and `CURRENTS_RECORD_KEY` (reporter) are two different keys.
+- 2026-09-28: `${VAR}` in `.mcp.json` only expands from the real OS environment, not from a project settings file.
+- 2026-09-30: guest accounts are read-only; the usage counter includes local runs and `verify` repeats.
+
+## Status
+
+- [x] Stage 6: measurement
+- [ ] Stage 7: loop built, commands dry-run (only the optional `regression`-label CI job is unchecked)
+- [ ] Stage 8: v2 pilot (4 groups done); open: Story entry, experiment A, bare control
+- [ ] Stage 9: v2 report, L-XX results
+- [ ] Stage 10: v3 on Notification Sounds (Story entry), comparison, decision, reusable kit

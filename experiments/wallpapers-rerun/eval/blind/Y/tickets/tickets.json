@@ -1,0 +1,102 @@
+{
+  "next": 7,
+  "issues": {
+    "TKT-1": {
+      "key": "TKT-1",
+      "type": "Story",
+      "summary": "Wallpapers: guest list, search, filters, detail, download and purchase-gate coverage",
+      "description": "\n## Scope\nThe Wallpapers section of zedge.net as a guest: list page, header search (Wallpapers and default scope), infinite scroll and Load more, category navigation, list filters (Category / Tag / Price / Color / Sort by / Reset All), the wallpaper detail page, free download and the premium purchase gate. \"Covered\" means every in-scope scenario of the plan has a stable test that asserts invariants only.\nThe repository has no page objects, no app fixture and no tests yet, so group 1 also builds the wiring and the shared components.\n\n## Groups\n- List, search and scroll: WP-01, WP-02, WP-03, WP-04, WP-05, WP-06: wiring (app fixture, entry page), header search, cards component, infinite scroll and Load more. WP-02 and WP-05 are P1.\n- Category navigation and core filters: WP-07, WP-08, WP-09, WP-10, WP-11, WP-12: header Categories menu, Explore block and category page, filtersBar component, Reset All, multi-select, Sort by. WP-07, WP-09 and WP-10 are P1.\n- Filter combinations and detail page: WP-13, WP-14, WP-15, WP-16, WP-17, WP-18: pairwise filters, price range, deep link, then the detail page (WallpaperDetailPage first needed here).\n- Share, download, purchase gate and 404: WP-19, WP-20, WP-21, WP-23, WP-25: share dialog, free download, premium gate (BuyModalPage), direct-URL gate, not-found page. WP-20 and WP-21 are P1.\n\n## Reuse map\n- Page objects and helpers to reuse: fixtures/test.ts (rejectCookieConsent, blockAds), src/utils/helper.ts (dismissCookieBanner, clearDownloadFolder, TIMEOUTS), src/utils/tags.ts (@wallpapers is registered). Nothing under pages/ exists today; CLAUDE.md names it as if it did.\n- New page objects needed: app fixture and AppPageObjects (wallpapersListPage), WallpapersListPage with open(path), shared HeaderPage (search(value, scope), categories dialog), FooterPage and MainHeaderPage, shared CardLinkValidator and a cards component parameterised by href prefix (group 1); filtersBar component, filterDrawer, Explore-block component and CategoryPage (group 2); WallpaperDetailPage (group 3); downloadFlow component, shared BuyModalPage and a heading-agnostic not-found check (group 4). ESLint area rules for tests/wallpapers/ go in group 1.\n- Shared components (header, footer, buy modal): created in pages/ by this Story, parameterised from the start (href prefix, scope names) so ringtones and notification sounds reuse them.\n\n## Constraints\n- Guest only, free content only; no login, no purchase, no load, no security probing.\n- Production site, no destructive actions; content is live: assert invariants, never a title or an exact count.\n- A download test checks that a free item really downloads (JPEG, not empty, magic ff d8 ff). Do not assert the countdown value, \"Downloads left today\" or \"Get the App\": they depend on an A/B variant.\n- Conventions: CLAUDE.md (area table, tags, no waitForTimeout, no force, no conditionals, fixtures/test, explicit page objects).\n- Headless browsers only. Free items are picked at run time as the first card without a crown under Price=Free.\n\n## Acceptance criteria\n- Every scenario of the plan that is in a group has a test with its ID in the title and the tags from the plan.\n- npm run verify reports stable for every new test; lint, tsc and format:check are clean.\n- Every bug found has a ticket (after a human approves it) and a @BUG:<KEY> test.\n- Plan coverage (scripts/plan-coverage.mjs) shows no missing scenario of the groups.\n\n## Out of scope\n- WP-22 (premium item priced 10 shows Download instead of Buy): bug candidate, no test until the bug is filed; it follows the bug flow and gets a @BUG:<KEY> test then.\n- WP-24 (Premium item without a price downloads like a free one): bug candidate, data-dependent; would need a test pinned to a GUID and a conditional-free way to find the item. Kept as a ticket and a note.\n- Plan bug candidates 2, 3, 5, 6, 7, 8, 9, 10 get tests only after a human approves a ticket for them.\n- Ringtones, Notification Sounds, Artists search, /profiles pages, Live Wallpapers, AI Wallpaper Maker, header Upload / Sign in / credits, \"Download app\" and \"AD\" tiles, narrow viewport, audio preview (wallpapers have none).\n\n## Links\n- Plan: specs/wallpapers.plan.md",
+      "status": "To Do",
+      "labels": [
+        "plan-approved"
+      ],
+      "parent": null,
+      "comments": []
+    },
+    "TKT-2": {
+      "key": "TKT-2",
+      "type": "Subtask",
+      "summary": "Wallpapers: List, search and scroll",
+      "description": "\n## Scenarios\n- WP-01 List page loads with header, filter bar and valid cards [P2] [@regression]\n- WP-02 Search by single and multi-word keywords [P1] [@smoke]\n- WP-03 Search with no matches shows the empty state [P2] [@regression]\n- WP-04 Search with the default All scope opens the global results page [P2] [@regression]\n- WP-05 Auto-load on scroll preserves previous results [P1] [@smoke]\n- WP-06 Load more loads more cards and re-enables auto-loading [P2] [@regression]\n\n## Files\n- Tests: tests/wallpapers/wallpapers-list.spec.ts, wallpapers-search.spec.ts, wallpapers-scroll.spec.ts\n- Page objects: fixtures/test.ts (app fixture), pages/AppPageObjects.ts, pages/WallpapersListPage.ts, pages/HeaderPage.ts, pages/FooterPage.ts, pages/MainHeaderPage.ts, pages/CardLinkValidator.ts, pages/CardsComponent.ts\n\n## Branch\n<KEY>-list-search-scroll (the key of this Subtask)\n\n## Done when\n- The raw commit exists on the branch; the npm run verify report is in the ticket comments; the PR is open for review.",
+      "status": "In Progress",
+      "labels": [
+        "impl-ready-for-review"
+      ],
+      "parent": "TKT-1",
+      "comments": [
+        {
+          "created": "2026-10-08T10:01:56.990Z",
+          "text": "\nRaw commit: 29c50f0 (branch TKT-2-list-search-scroll)\nPR: none (no remote in this run; push and gh pr create skipped)\n\nverify (3 runs each): all stable\n- 3/3 stable WP-01 List page loads with header, filter bar and valid cards\n- 3/3 stable WP-02 ... (Wallpapers scope): dragon\n- 3/3 stable WP-02 ... (Wallpapers scope): dark forest\n- 3/3 stable WP-03 Search with no matches shows the empty state\n- 3/3 stable WP-04 Search with the default \"All\" scope opens the global results page\n- 3/3 stable WP-05 Auto-load on scroll preserves previous results\n- 3/3 stable WP-06 \"Load more\" loads more cards and re-enables auto-loading\n\nplan-coverage: WP-01..WP-06 implemented, no tag mismatch, 7 of 7 tests matched to a scenario. The rest of the plan is the other groups.\nlint: 0 errors (1 existing warning, waitForTimeout in src/utils/helper.ts). tsc clean. format:check: clean for my files; CLAUDE.md and .mcp.json were already unformatted and are untouched.\n\nReused: fixtures/test.ts (rejectCookieConsent, blockAds), dismissCookieBanner, hasUniqueValues, TIMEOUTS area.\nAdded in pages/ (flat, per Areas table): AppPageObjects, WallpapersListPage (open, validateUrl, validateNoResults), HeaderPage (shared, scope-parameterised), FooterPage, MainHeaderPage, FiltersBar (default-state only; group 2 extends it), CardGrid (href-prefix parameter, settled count, scroll, Load more), CardLinkValidator (shared card checks incl. price/crown invariant). Also: `app` fixture in fixtures/test.ts, and tests/wallpapers/ now falls under the area ESLint rules (the wallpapers ignore was removed, as the Story asks).\n\nDeviations: the playwright-test-generator agent was not used; I wrote the page objects and tests myself, because the wiring and shared components had to be designed first. Locators were taken from a headless probe of production. WP-04: Enter and the Search button both end at /find/anime (a transient ?search=anime URL appears first, so the test waits on the final URL).\nNo bugs found in this group, so no Bug tickets.\n\nSelf-review: no findings (checked CLAUDE.md rules, [dup-pom] against empty pages/, live-content invariants, each test against its plan scenario)."
+        }
+      ]
+    },
+    "TKT-3": {
+      "key": "TKT-3",
+      "type": "Subtask",
+      "summary": "Wallpapers: Category navigation and core filters",
+      "description": "\n## Scenarios\n- WP-07 [P1] [@smoke], WP-08 [P2], WP-09 [P1] [@smoke], WP-10 [P1] [@smoke], WP-11 [P2], WP-12 [P2]\n\n## Files\n- Tests: tests/wallpapers/wallpapers-category-nav.spec.ts, wallpapers-filters.spec.ts\n- Page objects: filtersBar, filterDrawer, Explore block, CategoryPage\n\n## Branch\n<KEY>-category-filters (the key of this Subtask)\n\n## Done when\n- The raw commit exists on the branch; the npm run verify report is in the ticket comments; the PR is open for review.",
+      "status": "In Progress",
+      "labels": [
+        "impl-ready-for-review"
+      ],
+      "parent": "TKT-1",
+      "comments": [
+        {
+          "created": "2026-10-08T11:16:52.364Z",
+          "text": "\nRaw commit: 98ce7c07\nPR: none (no remote in this run); local diff reviewed with git diff main...HEAD on branch TKT-3-category-filters\nScenarios: WP-07, WP-08, WP-09 (6 tests), WP-10 (2), WP-11 (3), WP-12 (5): 18 tests.\nverify (3 runs each): all 18 stable, 3/3.\nplan-coverage: WP-07..WP-12 implemented, none missing, no tag mismatch (WP-13..25 belong to other groups).\nlint, tsc clean; format:check only flags .mcp.json and CLAUDE.md, which are unchanged on main.\nReused: HeaderPage (added categories dialog methods), CardGrid (added price/href-diff validators), MainHeaderPage, FiltersBar (extended), WallpapersListPage. Added: FilterDrawer, ExploreCategories, CategoryPage (app.wallpapersCategoryPage, not an entry page).\nSelf-review: 2 findings fixed in 6a793cd4 and the next commit (unused FilterDrawer.validateOptionsInclude and setMinPrice removed). No other findings.\nNotes: WP-12 price rows start from a deep link (/wallpapers?paid=true, ?minPrice=11) to keep rows plain data. Multi-select waits for each selection to apply: a second click before the first lands drops it (seen live; not filed, needs a human-speed repro).\nBug found: TKT-6 (maxPrice=NaN with only From), repro-confirmed headless; its @BUG test goes with WP-14 in TKT-4.\nRun went past 60 active minutes (gate: extend pre-approved); the machine was under heavy load."
+        }
+      ]
+    },
+    "TKT-4": {
+      "key": "TKT-4",
+      "type": "Subtask",
+      "summary": "Wallpapers: Filter combinations and detail page",
+      "description": "\n## Scenarios\n- WP-13 [P2], WP-14 [P2], WP-15 [P3], WP-16 [P2], WP-17 [P3], WP-18 [P3] (all @regression)\n\n## Files\n- Tests: tests/wallpapers/wallpapers-filters.spec.ts, wallpaper-detail.spec.ts\n- Page objects: WallpaperDetailPage\n\n## Branch\n<KEY>-filter-combos-detail (the key of this Subtask)\n\n## Done when\n- The raw commit exists on the branch; the npm run verify report is in the ticket comments; the PR is open for review.",
+      "status": "In Progress",
+      "labels": [
+        "impl-ready-for-review"
+      ],
+      "parent": "TKT-1",
+      "comments": [
+        {
+          "created": "2026-10-08T11:34:50.272Z",
+          "text": "\nRaw commit: 56e01fc3. Branch TKT-4-filter-combos-detail (no remote in this run: no push, no PR; reviewed locally with git diff main...HEAD).\nverify (3 runs each): all 24 filters/detail tests 3/3 stable, incl. WP-13 (3 pairs), WP-14, WP-15, WP-16, WP-17, WP-18.\nplan-coverage: WP-13..WP-18 implemented, none missing, 33/33 tests matched; WP-19..25 missing belong to other groups.\nReused: CardGrid, CardLinkValidator, FiltersBar, FilterDrawer, WallpapersListPage, HeaderPage. Added: pages/WallpaperDetailPage.ts (app.wallpaperDetailPage); CardGrid firstWithoutCrown/open/openFirst/validateNotLinkedTo and atMost in validatePriced; FiltersBar.applyPriceRange; FilterDrawer.priceInput/validatePriceValue; WallpapersListPage.validateKeywordSearch.\nSelf-review: no findings (lint 0 errors, tsc clean; format:check flags only pre-existing .mcp.json and CLAUDE.md). The playwright-test-generator agent was not used: tests written directly from a live DOM probe.\nBugs: none found; plan bug candidates 2/3 avoided by design (WP-14 sets both bounds, no Paid+range)."
+        }
+      ]
+    },
+    "TKT-5": {
+      "key": "TKT-5",
+      "type": "Subtask",
+      "summary": "Wallpapers: Share, download, purchase gate and 404",
+      "description": "\n## Scenarios\n- WP-19 [P3], WP-20 [P1] [@smoke] [@download], WP-21 [P1] [@smoke], WP-23 [P3], WP-25 [P3]\n\n## Files\n- Tests: tests/wallpapers/wallpaper-detail.spec.ts, wallpapers-download.spec.ts, wallpapers-purchase.spec.ts\n- Page objects: downloadFlow, BuyModalPage, not-found check\n\n## Branch\n<KEY>-share-download-purchase (the key of this Subtask)\n\n## Done when\n- The raw commit exists on the branch; the npm run verify report is in the ticket comments; the PR is open for review.",
+      "status": "In Progress",
+      "labels": [
+        "impl-ready-for-review"
+      ],
+      "parent": "TKT-1",
+      "comments": [
+        {
+          "created": "2026-10-08T11:40:29.430Z",
+          "text": "\nRaw commit: 84a7e1b1 (branch TKT-5-share-download-purchase; no remote, so no PR URL: review with `git diff main...HEAD`)\nverify (3 runs each): WP-19 stable 3/3, WP-20 stable 3/3, WP-21 lowest price stable 3/3, WP-21 highest price stable 3/3, WP-23 stable 3/3, WP-25 stable 3/3 (WP-16..18 re-run too, stable).\nlint, tsc clean (1 existing waitForTimeout warning in helper.ts); format:check flags only .mcp.json and CLAUDE.md (not touched).\nplan-coverage: group scenarios WP-19, WP-20, WP-21, WP-23, WP-25 all implemented, no tag mismatch; WP-22 and WP-24 stay missing on purpose (bug candidates, no gate to file, not in this group).\nReused: CardGrid (+ firstPriced), WallpaperDetailPage (+ Share, premium price, open), FiltersBar.applySort, validatePriced, dismissCookieBanner. Added: pages/DownloadFlow.ts (list page `downloadFlow`), pages/BuyModalPage.ts (shared, `app.buyModal`), pages/NotFoundPage.ts (`app.wallpapersNotFoundPage`, heading-agnostic open returning the status). Generated by hand, not via playwright-test-generator.\nSelf-review (local diff, no PR): no findings. Note: WP-20 asserts the unlock gate is absent after the download, not during the countdown.\nNo bugs found."
+        }
+      ]
+    },
+    "TKT-6": {
+      "key": "TKT-6",
+      "type": "Bug",
+      "summary": "Wallpapers: Price filter with only From puts maxPrice=NaN in the URL",
+      "description": "\n## Summary\nOn /wallpapers, entering only \"From\" in the Price filter puts `maxPrice=NaN` in the URL.\n\n## Steps (guest, production, no login)\n1. Open https://www.zedge.net/wallpapers\n2. Click Price, type 11 in \"From\", press Enter\n3. Read the URL\n\n## Expected\nNo `maxPrice` param (or a valid number) in the URL.\n\n## Actual\n`https://www.zedge.net/wallpapers?minPrice=11&maxPrice=NaN`. The list still filters (prices from 11), but the URL carries the invalid value, so a shared or reloaded link has a broken param.\n\n## Notes\nFound while implementing TKT-3 (WP-12, \"Price: Low to High\" start). Plan bug candidate 2; same behavior as ringtones and notification sounds. Covered later by WP-14 (price range).",
+      "status": "To Do",
+      "labels": [
+        "repro-confirmed"
+      ],
+      "parent": null,
+      "comments": [
+        {
+          "created": "2026-10-08T11:12:40.982Z",
+          "text": "\nRepro outcome: reproduced\n\nSteps:\n1. Open /wallpapers\n2. Price > From = 11 > Enter\n3. URL becomes /wallpapers?minPrice=11&maxPrice=NaN\n\nReproduced headless on production as guest, twice (also in the TKT-3 probe). Run with a headless Playwright script, not the MCP: the MCP browser_run_code tool refused without a seeded test setup. No related ticket in triage.\n\nEvidence: tickets/evidence/TKT-6/nan.png"
+        }
+      ]
+    }
+  }
+}

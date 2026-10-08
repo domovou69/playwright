@@ -1,0 +1,91 @@
+{
+  "inventory": [
+    {"id": "F1", "title": "List page loads: H1, filter bar, valid cards and thumbnails", "priority": "high"},
+    {"id": "F2", "title": "Infinite scroll and Load more without duplicates", "priority": "medium"},
+    {"id": "F3", "title": "Card opens detail page; Back returns to list", "priority": "high"},
+    {"id": "F4", "title": "Header search with scope (All -> /find, Wallpapers -> ?keyword), View all", "priority": "high"},
+    {"id": "F5", "title": "Search edge cases: no results + suggestions, special chars, empty submit, Cancel", "priority": "medium"},
+    {"id": "F6", "title": "Sort by: options, URL key, chip, order invariants", "priority": "high"},
+    {"id": "F7", "title": "Price filter: Free/Paid and From/To range", "priority": "high"},
+    {"id": "F8", "title": "Color filter (multi-select)", "priority": "medium"},
+    {"id": "F9", "title": "Category filter (multi-select)", "priority": "medium"},
+    {"id": "F10", "title": "Tag combobox filter", "priority": "medium"},
+    {"id": "F11", "title": "Filter state: chips, chip removal, Reset All, combinations, deep link/Back", "priority": "high"},
+    {"id": "F12", "title": "Content-type switch (Wallpapers/Ringtones/Notification Sounds/Artists)", "priority": "low"},
+    {"id": "F13", "title": "Category navigation: header Categories menu, Explore block, /category pages", "priority": "medium"},
+    {"id": "F14", "title": "Detail page content: title, artist, date, downloads, Premium/price, keyword chips, Related", "priority": "high"},
+    {"id": "F15", "title": "Free download: Preparing countdown dialog and real image file", "priority": "high"},
+    {"id": "F16", "title": "Premium gates (Buy for modal, Unlock modal), close/Escape, no file leak", "priority": "high"},
+    {"id": "F17", "title": "Share dialog", "priority": "low"},
+    {"id": "F18", "title": "Error handling: 404 for unknown id/category, invalid query params", "priority": "medium"},
+    {"id": "F19", "title": "SEO/metadata: title, canonical, og, JSON-LD", "priority": "low"},
+    {"id": "F20", "title": "Narrow/phone layout: Filters drawer, no horizontal scroll", "priority": "low"},
+    {"id": "F21", "title": "Guest header and footer", "priority": "low"}
+  ],
+  "cases": {
+    "X": {
+      "scores": {"coverage": 4, "assertions": 4, "locators": 4, "page_objects": 3, "test_quality": 3, "bug_reports": 4},
+      "inventory_covered": ["F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F13", "F14", "F15", "F16", "F18", "F19", "F20", "F21"],
+      "findings": [
+        {"class": "oracle", "text": "06-detail.spec.ts:29 asserts that the first ?free=true card has no 'Premium' label; live, 11/24 free cards carry a Premium crown, so the result depends on live data."},
+        {"class": "oracle", "text": "08-premium-gate.spec.ts:39-53,89-95 treats price-10 premium showing Download as normal and walks past it, hiding ZED-3."},
+        {"class": "oracle", "text": "Weak checks: empty search only checks main is visible (04-search.spec.ts:93-99), malformed id only checks <500 (06-detail.spec.ts:86), multi-category only checks the list differs (02-filters.spec.ts:56)."},
+        {"class": "convention", "text": "No tags (@smoke/@regression) on any test."},
+        {"class": "convention", "text": "Fixed sleep page.waitForTimeout(1500) in 08-premium-gate.spec.ts:63."},
+        {"class": "convention", "text": "Run-time test.skip and if-loops in tests: 03-sorting.spec.ts:88, 04-search.spec.ts:108, 06-detail.spec.ts:67, 08-premium-gate.spec.ts:44."},
+        {"class": "flaky", "text": "BUG-002 test combines test.fail with a self-skip when data is ordered (03-sorting.spec.ts:81-88); it can skip silently instead of signalling a fix."},
+        {"class": "locator", "text": "Hydration is detected through React private __reactProps keys (helper.ts:58-62, header.component.ts:21-23)."},
+        {"class": "dup-pom", "text": "Card price parsing is copied in wallpaper-feed.page.ts:192 and helpers.ts:48 and :67; data pickers live in a test helper instead of a page object."},
+        {"class": "dup-pom", "text": "WallpaperFeedPage (211 lines) holds feed, filters, sort, chips and scroll with no components."},
+        {"class": "missing", "text": "No Share dialog, From/To price range, Load more, content-type switch; the Buy-for modal is never opened."}
+      ],
+      "bugs": [
+        {"claim": "BUG-001 /wallpapers?sort=<unknown> returns HTTP 500", "verdict": "new-confirmed"},
+        {"claim": "BUG-002 Newest first is not ordered by publish date", "verdict": "new-confirmed"},
+        {"claim": "BUG-003 '%' in search makes the client loop on URIError", "verdict": "new-confirmed"}
+      ],
+      "known_bugs_found": [],
+      "merge": "small-fixes"
+    },
+    "Y": {
+      "scores": {"coverage": 4, "assertions": 4, "locators": 3, "page_objects": 4, "test_quality": 4, "bug_reports": 2},
+      "inventory_covered": ["F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F13", "F14", "F15", "F16", "F17", "F18", "F21"],
+      "findings": [
+        {"class": "locator", "text": "Card invariants rely on class/style fragments: div[class*=\"card-footer\"], .bg-cover, div[class*=\"card-header\"] [style*=\"premium\"] (CardGrid.ts:61,98; CardLinkValidator.ts:23-28); img.object-cover (WallpaperDetailPage.ts:29)."},
+        {"class": "oracle", "text": "Filter and sort results are proven only by 'first 3 hrefs differ' (CardGrid.ts:50-54); nothing checks result content, and the check can fail when two sorts share their top items."},
+        {"class": "oracle", "text": "validatePremiumPrice asserts Buy and no Download, but price 10 is excluded on purpose (wallpapers-purchase.spec.ts:3), so ZED-3 cannot surface."},
+        {"class": "flaky", "text": "WallpapersListPage.open waits for the exact marketing H1 'download hd phone wallpapers for free' (WallpapersListPage.ts:35)."},
+        {"class": "missing", "text": "No Unlock/'Login & Watch Ad' gate, SEO, narrow layout, invalid-param or '%' search, newest-first order, chip removal or browser Back."},
+        {"class": "missing", "text": "TKT-6 has no @BUG regression test; observed defects (sort=BOGUS 500, ZED-3, dialog console error) were left as plan notes."},
+        {"class": "dup-pom", "text": "Price-badge parsing is duplicated in CardGrid.prices and CardLinkValidator; LOAD_TIMEOUT is defined in two files."},
+        {"class": "convention", "text": "Ticket files are named WPR-* but hold TKT-* keys; ticket statuses are stale."}
+      ],
+      "bugs": [
+        {"claim": "TKT-6 Price filter with only From puts maxPrice=NaN in the URL", "verdict": "new-confirmed"}
+      ],
+      "known_bugs_found": [],
+      "merge": "small-fixes"
+    },
+    "Z": {
+      "scores": {"coverage": 3, "assertions": 2, "locators": 2, "page_objects": 2, "test_quality": 2, "bug_reports": 3},
+      "inventory_covered": ["F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F13", "F14", "F15", "F16", "F20", "F21"],
+      "findings": [
+        {"class": "locator", "text": "Class fragments, positions and XPath: nav[class*='header_nav'], div[class*=\"Modal_modal\"].nth(1), div.heading-xl, span.body-lg, div[class*=\"CardsContainer\"], a[class*=\"A_link\"], (//main//h1/following-sibling::div/div)[2]/button[1], buyBtn .nth(1), button[arial-role=\"combobox\"] (depends on a markup typo)."},
+        {"class": "dup-pom", "text": "Four copy-pasted filterByX and three isXSelected methods in FiltersBar.ts; WallpapersListPage extends HeaderPage (296 lines) with pass-through wrappers; file and class names differ (BodyHeaderPage, ModalBuyPage)."},
+        {"class": "oracle", "text": "Search requires every query word ('messi', 'city tower car') to appear in some live card label (wallpapers-search.spec.ts:12-23)."},
+        {"class": "oracle", "text": "Checks that cannot fail: toHaveText('') on an input (HeaderPage.ts:150) and branching on an input's innerText (HeaderPage.ts:63-68)."},
+        {"class": "oracle", "text": "The plan claims Category is single-select, but live it is multi-select; the narrow test's /NATURE/ check cannot tell the two apart."},
+        {"class": "flaky", "text": "Download writes to a shared downloads/ folder cleared in beforeAll and polls with setTimeout (DownloadFlow.ts:15-28); parallel workers collide."},
+        {"class": "flaky", "text": "Bug tests pin specific production GUIDs and titles (wallpapers-purchase.spec.ts:112,133)."},
+        {"class": "convention", "text": "Branching helpers and loops in spec files (applyFilter switch, pickPaidCardSkippingTen, closePurchaseModal); console.log and commented code in page objects; mega-tests WP-02 (9 searches) and WP-35 (9 steps)."},
+        {"class": "missing", "text": "No 404 or invalid-param tests, no Share, no SEO, no newest or ascending order check, no file-type check on the download."}
+      ],
+      "bugs": [
+        {"claim": "WP-29 @BUG:ZED-3 price-10 premium items show Download vs Buy inconsistently", "verdict": "known"},
+        {"claim": "WP-33 @BUG:ZED-4 Buy modal logs missing Description/aria-describedby warning", "verdict": "known"}
+      ],
+      "known_bugs_found": ["ZED-3", "ZED-4"],
+      "merge": "rework"
+    }
+  }
+}

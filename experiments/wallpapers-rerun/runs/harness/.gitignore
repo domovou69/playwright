@@ -1,0 +1,18 @@
+
+# Claude Code (local secrets, never commit)
+.claude/settings.local.json
+
+# Playwright
+.env
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/downloads/
+/.playwright-mcp/
+
+# experiment run
+.playwright-mcp/
+downloads/
+tickets/

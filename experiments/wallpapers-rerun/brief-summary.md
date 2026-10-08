@@ -1,0 +1,1 @@
+All Subtasks of the wallpapers Story are done. Write RUN-SUMMARY.md in the project root: what is covered, what was skipped and why, bugs filed, how to run the tests. Do not change any test or page object.

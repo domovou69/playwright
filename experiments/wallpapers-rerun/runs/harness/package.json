@@ -1,0 +1,42 @@
+{
+  "name": "playwright-e2e",
+  "version": "1.0.0",
+  "description": "Example of simple actions with validations for wallpapers",
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:smoke": "playwright test --grep @smoke",
+    "test:download": "playwright test --grep @download",
+    "trace": "bash -c 'p=\"$0\"; [[ \"$p\" == *.zip ]] || p=\"test-results/$p/trace.zip\"; playwright show-trace \"$p\"'",
+    "verify": "node --env-file-if-exists=.env scripts/verify-changed.mjs",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "keywords": [],
+  "author": "Mikhail Yesipchuk",
+  "license": "ISC",
+  "engines": {
+    "node": ">=24",
+    "npm": ">=12"
+  },
+  "devDependencies": {
+    "@currents/mcp": "2.6.1",
+    "@currents/playwright": "^2.5.1",
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^24.19.0",
+    "eslint": "^10.11.0",
+    "eslint-plugin-playwright": "^2.12.0",
+    "globals": "^17.12.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.6.0",
+    "prettier": "^3.9.9",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.70.1"
+  },
+  "dependencies": {
+    "dotenv": "^18.0.4"
+  }
+}

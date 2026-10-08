@@ -1,0 +1,126 @@
+[
+  {
+    "sessionId": "2afd5486-99c1-4187-b3f9-f575c1fcd53e",
+    "started": "2026-10-07T19:53:31.076Z",
+    "task": null,
+    "ticket": null,
+    "budgetStops": 0,
+    "models": {
+      "claude-sonnet-5-5": {
+        "messages": 121,
+        "input": 242,
+        "cacheCreation5m": 0,
+        "cacheCreation1h": 341813,
+        "cacheRead": 15923445,
+        "output": 105156,
+        "thinking": 22037,
+        "webSearches": 0,
+        "usd": 5.603985
+      }
+    },
+    "effortPairs": {
+      "medium/medium": 121
+    },
+    "tokens": {
+      "messages": 121,
+      "input": 242,
+      "cacheCreation5m": 0,
+      "cacheCreation1h": 341813,
+      "cacheRead": 15923445,
+      "output": 105156,
+      "thinking": 22037,
+      "webSearches": 0
+    },
+    "apiUsd": 5.603985,
+    "unpricedModels": [],
+    "activeMin": 170.09355,
+    "wallMin": 939.8334833333333,
+    "human": {
+      "startMessage": false,
+      "followUps": 0,
+      "gates": 0,
+      "interventions": 0,
+      "housekeepingCommands": 0
+    },
+    "mcp": {
+      "playwright-test": {
+        "calls": 1,
+        "errors": 1,
+        "resultChars": 55,
+        "resultTokensEst": 14,
+        "images": 0,
+        "withoutResult": 0,
+        "tools": {
+          "browser_navigate": 1
+        }
+      }
+    },
+    "agents": {
+      "(main)": {
+        "models": {
+          "claude-sonnet-5-5": {
+            "messages": 121,
+            "input": 242,
+            "cacheCreation5m": 0,
+            "cacheCreation1h": 341813,
+            "cacheRead": 15923445,
+            "output": 105156,
+            "thinking": 22037,
+            "webSearches": 0
+          }
+        },
+        "messages": 121,
+        "input": 242,
+        "cacheCreation5m": 0,
+        "cacheCreation1h": 341813,
+        "cacheRead": 15923445,
+        "output": 105156,
+        "thinking": 22037,
+        "webSearches": 0,
+        "usd": 5.603985
+      }
+    },
+    "subagentFiles": 0,
+    "warnings": [
+      "Haiku side calls (titles, WebFetch summaries) are not in transcripts and are not counted"
+    ],
+    "badLines": 0
+  },
+  {
+    "sessionId": "7a678f20-3dd4-4ad3-b224-f6c49e016d0e",
+    "started": null,
+    "task": null,
+    "ticket": null,
+    "budgetStops": 0,
+    "models": {},
+    "effortPairs": {},
+    "tokens": {
+      "messages": 0,
+      "input": 0,
+      "cacheCreation5m": 0,
+      "cacheCreation1h": 0,
+      "cacheRead": 0,
+      "output": 0,
+      "thinking": 0,
+      "webSearches": 0
+    },
+    "apiUsd": 0,
+    "unpricedModels": [],
+    "activeMin": 0,
+    "wallMin": 0,
+    "human": {
+      "startMessage": false,
+      "followUps": 0,
+      "gates": 0,
+      "interventions": 0,
+      "housekeepingCommands": 0
+    },
+    "mcp": {},
+    "agents": {},
+    "subagentFiles": 0,
+    "warnings": [
+      "Haiku side calls (titles, WebFetch summaries) are not in transcripts and are not counted"
+    ],
+    "badLines": 0
+  }
+]

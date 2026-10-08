@@ -1,0 +1,9 @@
+built /Users/mikhailyesipchuk/projects/experiments/wp-original
+== original
+{"counts":{"tests":33,"specFiles":8},"tsc":{"errors":0},"lint":{"total":25,"universal":1,"projectConvention":24},"pom":{"files":17,"lines":1351,"largestFile":297,"locatorStrings":49,"duplicatedLocatorStrings":23,"extraDuplicateOccurrences":80},"stability":{"tests":33,"stable":33,"flaky":0,"failing":0,"wallSeconds":181},"measuredAt":"2026-10-08T11:44:47.947Z"}
+== bare
+{"counts":{"tests":68,"specFiles":8},"tsc":{"errors":0},"lint":{"total":81,"universal":9,"projectConvention":72},"pom":{"files":6,"lines":401,"largestFile":212,"locatorStrings":21,"duplicatedLocatorStrings":7,"extraDuplicateOccurrences":27},"stability":{"tests":68,"stable":63,"flaky":2,"failing":3,"wallSeconds":485},"measuredAt":"2026-10-08T11:52:57.125Z"}
+== harness
+{"counts":{"tests":39,"specFiles":8},"tsc":{"errors":0},"lint":{"total":0,"universal":0,"projectConvention":0},"pom":{"files":15,"lines":941,"largestFile":188,"locatorStrings":27,"duplicatedLocatorStrings":8,"extraDuplicateOccurrences":37},"stability":{"tests":39,"stable":39,"flaky":0,"failing":0,"wallSeconds":551},"measuredAt":"2026-10-08T12:02:12.280Z"}
+blind folders: X (35 files), Y (35 files), Z (25 files); mapping sealed.
+done: see experiments/wallpapers-rerun/eval/ (metrics.json, judge-report.md, judge-scores.json; mapping stays sealed)

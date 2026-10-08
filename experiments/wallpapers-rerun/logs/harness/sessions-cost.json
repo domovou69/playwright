@@ -1,0 +1,782 @@
+[
+  {
+    "sessionId": "258ce84b-dba4-4d30-a08c-109d6b61960d",
+    "started": "2026-10-08T11:17:01.707Z",
+    "task": "implement-ticket",
+    "ticket": "WPR-4",
+    "budgetStops": 0,
+    "models": {
+      "claude-sonnet-5-5": {
+        "messages": 32,
+        "input": 64,
+        "cacheCreation5m": 0,
+        "cacheCreation1h": 82629,
+        "cacheRead": 2423817,
+        "output": 17636,
+        "thinking": 3108,
+        "webSearches": 0,
+        "usd": 0.9917674000000001
+      }
+    },
+    "effortPairs": {
+      "medium/medium": 32
+    },
+    "tokens": {
+      "messages": 32,
+      "input": 64,
+      "cacheCreation5m": 0,
+      "cacheCreation1h": 82629,
+      "cacheRead": 2423817,
+      "output": 17636,
+      "thinking": 3108,
+      "webSearches": 0
+    },
+    "apiUsd": 0.9917674000000001,
+    "unpricedModels": [],
+    "activeMin": 17.978866666666665,
+    "wallMin": 17.978866666666665,
+    "human": {
+      "startMessage": true,
+      "followUps": 0,
+      "gates": 0,
+      "interventions": 0,
+      "housekeepingCommands": 0
+    },
+    "mcp": {},
+    "agents": {
+      "(main)": {
+        "models": {
+          "claude-sonnet-5-5": {
+            "messages": 32,
+            "input": 64,
+            "cacheCreation5m": 0,
+            "cacheCreation1h": 82629,
+            "cacheRead": 2423817,
+            "output": 17636,
+            "thinking": 3108,
+            "webSearches": 0
+          }
+        },
+        "messages": 32,
+        "input": 64,
+        "cacheCreation5m": 0,
+        "cacheCreation1h": 82629,
+        "cacheRead": 2423817,
+        "output": 17636,
+        "thinking": 3108,
+        "webSearches": 0,
+        "usd": 0.9917674000000001
+      }
+    },
+    "subagentFiles": 0,
+    "warnings": [
+      "Haiku side calls (titles, WebFetch summaries) are not in transcripts and are not counted"
+    ],
+    "badLines": 0
+  },
+  {
+    "sessionId": "334beda8-0b78-4aa6-b1f3-ba6535d5ae1f",
+    "started": "2026-10-08T11:35:02.123Z",
+    "task": "implement-ticket",
+    "ticket": "WPR-5",
+    "budgetStops": 0,
+    "models": {
+      "claude-sonnet-5-5": {
+        "messages": 22,
+        "input": 44,
+        "cacheCreation5m": 0,
+        "cacheCreation1h": 63876,
+        "cacheRead": 1336449,
+        "output": 15346,
+        "thinking": 3930,
+        "webSearches": 0,
+        "usd": 0.6763418
+      }
+    },
+    "effortPairs": {
+      "medium/medium": 22
+    },
+    "tokens": {
+      "messages": 22,
+      "input": 44,
+      "cacheCreation5m": 0,
+      "cacheCreation1h": 63876,
+      "cacheRead": 1336449,
+      "output": 15346,
+      "thinking": 3930,
+      "webSearches": 0
+    },
+    "apiUsd": 0.6763418,
+    "unpricedModels": [],
+    "activeMin": 5.580266666666667,
+    "wallMin": 5.580266666666667,
+    "human": {
+      "startMessage": true,
+      "followUps": 0,
+      "gates": 0,
+      "interventions": 0,
+      "housekeepingCommands": 0
+    },
+    "mcp": {},
+    "agents": {
+      "(main)": {
+        "models": {
+          "claude-sonnet-5-5": {
+            "messages": 22,
+            "input": 44,
+            "cacheCreation5m": 0,
+            "cacheCreation1h": 63876,
+            "cacheRead": 1336449,
+            "output": 15346,
+            "thinking": 3930,
+            "webSearches": 0
+          }
+        },
+        "messages": 22,
+        "input": 44,
+        "cacheCreation5m": 0,
+        "cacheCreation1h": 63876,
+        "cacheRead": 1336449,
+        "output": 15346,
+        "thinking": 3930,
+        "webSearches": 0,
+        "usd": 0.6763418
+      }
+    },
+    "subagentFiles": 0,
+    "warnings": [
+      "Haiku side calls (titles, WebFetch summaries) are not in transcripts and are not counted"
+    ],
+    "badLines": 0
+  },
+  {
+    "sessionId": "6b164e25-f9c4-49db-953e-cfde1b55760e",
+    "started": "2026-10-08T09:31:48.779Z",
+    "task": "scout-feature",
+    "ticket": null,
+    "budgetStops": 0,
+    "models": {
+      "claude-sonnet-5-5": {
+        "messages": 79,
+        "input": 158,
+        "cacheCreation5m": 0,
+        "cacheCreation1h": 188029,
+        "cacheRead": 9461716,
+        "output": 87381,
+        "thinking": 29030,
+        "webSearches": 0,
+        "usd": 3.5185852
+      }
+    },
+    "effortPairs": {
+      "high/high": 79
+    },
+    "tokens": {
+      "messages": 79,
+      "input": 158,
+      "cacheCreation5m": 0,
+      "cacheCreation1h": 188029,
+      "cacheRead": 9461716,
+      "output": 87381,
+      "thinking": 29030,
+      "webSearches": 0
+    },
+    "apiUsd": 3.5185852,
+    "unpricedModels": [],
+    "activeMin": 20.2539,
+    "wallMin": 20.2539,
+    "human": {
+      "startMessage": true,
+      "followUps": 0,
+      "gates": 0,
+      "interventions": 0,
+      "housekeepingCommands": 0
+    },
+    "mcp": {
+      "playwright-test": {
+        "calls": 59,
+        "errors": 11,
+        "resultChars": 96174,
+        "resultTokensEst": 24044,
+        "images": 0,
+        "withoutResult": 0,
+        "tools": {
+          "browser_navigate": 2,
+          "planner_setup_page": 5,
+          "browser_run_code_unsafe": 45,
+          "browser_evaluate": 4,
+          "browser_snapshot": 1,
+          "browser_console_messages": 1,
+          "browser_close": 1
+        }
+      }
+    },
+    "agents": {
+      "(main)": {
+        "models": {
+          "claude-sonnet-5-5": {
+            "messages": 79,
+            "input": 158,
+            "cacheCreation5m": 0,
+            "cacheCreation1h": 188029,
+            "cacheRead": 9461716,
+            "output": 87381,
+            "thinking": 29030,
+            "webSearches": 0
+          }
+        },
+        "messages": 79,
+        "input": 158,
+        "cacheCreation5m": 0,
+        "cacheCreation1h": 188029,
+        "cacheRead": 9461716,
+        "output": 87381,
+        "thinking": 29030,
+        "webSearches": 0,
+        "usd": 3.5185852
+      }
+    },
+    "subagentFiles": 0,
+    "warnings": [
+      "Haiku side calls (titles, WebFetch summaries) are not in transcripts and are not counted"
+    ],
+    "badLines": 0
+  },
+  {
+    "sessionId": "8b7fdabc-5d9d-4b09-b5c4-68c77f70f2ba",
+    "started": "2026-10-08T10:19:21.284Z",
+    "task": "implement-ticket",
+    "ticket": "WPR-5",
+    "budgetStops": 0,
+    "models": {
+      "claude-sonnet-5-5": {
+        "messages": 3,
+        "input": 6,
+        "cacheCreation5m": 0,
+        "cacheCreation1h": 16677,
+        "cacheRead": 95978,
+        "output": 1437,
+        "thinking": 206,
+        "webSearches": 0,
+        "usd": 0.1002856
+      }
+    },
+    "effortPairs": {
+      "medium/medium": 3
+    },
+    "tokens": {
+      "messages": 3,
+      "input": 6,
+      "cacheCreation5m": 0,
+      "cacheCreation1h": 16677,
+      "cacheRead": 95978,
+      "output": 1437,
+      "thinking": 206,
+      "webSearches": 0
+    },
+    "apiUsd": 0.1002856,
+    "unpricedModels": [],
+    "activeMin": 0.7587166666666667,
+    "wallMin": 0.7587166666666667,
+    "human": {
+      "startMessage": true,
+      "followUps": 0,
+      "gates": 0,
+      "interventions": 0,
+      "housekeepingCommands": 0
+    },
+    "mcp": {},
+    "agents": {
+      "(main)": {
+        "models": {
+          "claude-sonnet-5-5": {
+            "messages": 3,
+            "input": 6,
+            "cacheCreation5m": 0,
+            "cacheCreation1h": 16677,
+            "cacheRead": 95978,
+            "output": 1437,
+            "thinking": 206,
+            "webSearches": 0
+          }
+        },
+        "messages": 3,
+        "input": 6,
+        "cacheCreation5m": 0,
+        "cacheCreation1h": 16677,
+        "cacheRead": 95978,
+        "output": 1437,
+        "thinking": 206,
+        "webSearches": 0,
+        "usd": 0.1002856
+      }
+    },
+    "subagentFiles": 0,
+    "warnings": [
+      "Haiku side calls (titles, WebFetch summaries) are not in transcripts and are not counted"
+    ],
+    "badLines": 0
+  },
+  {
+    "sessionId": "93986a4d-95a5-4d5c-be23-d714cf093bb7",
+    "started": "2026-10-08T09:53:02.900Z",
+    "task": "implement-ticket",
+    "ticket": "WPR-1",
+    "budgetStops": 0,
+    "models": {
+      "claude-sonnet-5-5": {
+        "messages": 24,
+        "input": 48,
+        "cacheCreation5m": 0,
+        "cacheCreation1h": 98052,
+        "cacheRead": 1983925,
+        "output": 29963,
+        "thinking": 13209,
+        "webSearches": 0,
+        "usd": 1.088719
+      }
+    },
+    "effortPairs": {
+      "medium/medium": 24
+    },
+    "tokens": {
+      "messages": 24,
+      "input": 48,
+      "cacheCreation5m": 0,
+      "cacheCreation1h": 98052,
+      "cacheRead": 1983925,
+      "output": 29963,
+      "thinking": 13209,
+      "webSearches": 0
+    },
+    "apiUsd": 1.088719,
+    "unpricedModels": [],
+    "activeMin": 9.104133333333333,
+    "wallMin": 9.104133333333333,
+    "human": {
+      "startMessage": true,
+      "followUps": 0,
+      "gates": 0,
+      "interventions": 0,
+      "housekeepingCommands": 0
+    },
+    "mcp": {},
+    "agents": {
+      "(main)": {
+        "models": {
+          "claude-sonnet-5-5": {
+            "messages": 24,
+            "input": 48,
+            "cacheCreation5m": 0,
+            "cacheCreation1h": 98052,
+            "cacheRead": 1983925,
+            "output": 29963,
+            "thinking": 13209,
+            "webSearches": 0
+          }
+        },
+        "messages": 24,
+        "input": 48,
+        "cacheCreation5m": 0,
+        "cacheCreation1h": 98052,
+        "cacheRead": 1983925,
+        "output": 29963,
+        "thinking": 13209,
+        "webSearches": 0,
+        "usd": 1.088719
+      }
+    },
+    "subagentFiles": 0,
+    "warnings": [
+      "Haiku side calls (titles, WebFetch summaries) are not in transcripts and are not counted"
+    ],
+    "badLines": 0
+  },
+  {
+    "sessionId": "9f45b9e8-3430-4ede-b362-9f19083e2c7c",
+    "started": "2026-10-08T09:52:05.539Z",
+    "task": "create-story",
+    "ticket": null,
+    "budgetStops": 0,
+    "models": {
+      "claude-sonnet-5-5": {
+        "messages": 4,
+        "input": 8,
+        "cacheCreation5m": 0,
+        "cacheCreation1h": 47026,
+        "cacheRead": 155487,
+        "output": 6613,
+        "thinking": 3368,
+        "webSearches": 0,
+        "usd": 0.28534740000000003
+      }
+    },
+    "effortPairs": {
+      "medium/medium": 4
+    },
+    "tokens": {
+      "messages": 4,
+      "input": 8,
+      "cacheCreation5m": 0,
+      "cacheCreation1h": 47026,
+      "cacheRead": 155487,
+      "output": 6613,
+      "thinking": 3368,
+      "webSearches": 0
+    },
+    "apiUsd": 0.28534740000000003,
+    "unpricedModels": [],
+    "activeMin": 0.9327166666666666,
+    "wallMin": 0.9327166666666666,
+    "human": {
+      "startMessage": true,
+      "followUps": 0,
+      "gates": 0,
+      "interventions": 0,
+      "housekeepingCommands": 0
+    },
+    "mcp": {},
+    "agents": {
+      "(main)": {
+        "models": {
+          "claude-sonnet-5-5": {
+            "messages": 4,
+            "input": 8,
+            "cacheCreation5m": 0,
+            "cacheCreation1h": 47026,
+            "cacheRead": 155487,
+            "output": 6613,
+            "thinking": 3368,
+            "webSearches": 0
+          }
+        },
+        "messages": 4,
+        "input": 8,
+        "cacheCreation5m": 0,
+        "cacheCreation1h": 47026,
+        "cacheRead": 155487,
+        "output": 6613,
+        "thinking": 3368,
+        "webSearches": 0,
+        "usd": 0.28534740000000003
+      }
+    },
+    "subagentFiles": 0,
+    "warnings": [
+      "Haiku side calls (titles, WebFetch summaries) are not in transcripts and are not counted"
+    ],
+    "badLines": 0
+  },
+  {
+    "sessionId": "a3b95734-440a-42a1-823f-ea29751b667e",
+    "started": "2026-10-08T10:02:10.681Z",
+    "task": "implement-ticket",
+    "ticket": "WPR-3",
+    "budgetStops": 0,
+    "models": {
+      "claude-sonnet-5-5": {
+        "messages": 62,
+        "input": 124,
+        "cacheCreation5m": 0,
+        "cacheCreation1h": 122341,
+        "cacheRead": 6217528,
+        "output": 49701,
+        "thinking": 15501,
+        "webSearches": 0,
+        "usd": 2.2301276
+      }
+    },
+    "effortPairs": {
+      "medium/medium": 62
+    },
+    "tokens": {
+      "messages": 62,
+      "input": 124,
+      "cacheCreation5m": 0,
+      "cacheCreation1h": 122341,
+      "cacheRead": 6217528,
+      "output": 49701,
+      "thinking": 15501,
+      "webSearches": 0
+    },
+    "apiUsd": 2.2301276,
+    "unpricedModels": [],
+    "activeMin": 59.82926666666667,
+    "wallMin": 74.82598333333334,
+    "human": {
+      "startMessage": true,
+      "followUps": 0,
+      "gates": 0,
+      "interventions": 0,
+      "housekeepingCommands": 0
+    },
+    "mcp": {
+      "playwright-test": {
+        "calls": 1,
+        "errors": 1,
+        "resultChars": 55,
+        "resultTokensEst": 14,
+        "images": 0,
+        "withoutResult": 0,
+        "tools": {
+          "browser_run_code_unsafe": 1
+        }
+      }
+    },
+    "agents": {
+      "(main)": {
+        "models": {
+          "claude-sonnet-5-5": {
+            "messages": 62,
+            "input": 124,
+            "cacheCreation5m": 0,
+            "cacheCreation1h": 122341,
+            "cacheRead": 6217528,
+            "output": 49701,
+            "thinking": 15501,
+            "webSearches": 0
+          }
+        },
+        "messages": 62,
+        "input": 124,
+        "cacheCreation5m": 0,
+        "cacheCreation1h": 122341,
+        "cacheRead": 6217528,
+        "output": 49701,
+        "thinking": 15501,
+        "webSearches": 0,
+        "usd": 2.2301276
+      }
+    },
+    "subagentFiles": 0,
+    "warnings": [
+      "Haiku side calls (titles, WebFetch summaries) are not in transcripts and are not counted"
+    ],
+    "badLines": 0
+  },
+  {
+    "sessionId": "aa303622-b4ad-4d70-908c-73ba39a2e21b",
+    "started": "2026-10-08T11:40:38.372Z",
+    "task": null,
+    "ticket": null,
+    "budgetStops": 0,
+    "models": {
+      "claude-sonnet-5-5": {
+        "messages": 7,
+        "input": 14,
+        "cacheCreation5m": 0,
+        "cacheCreation1h": 30721,
+        "cacheRead": 266516,
+        "output": 4426,
+        "thinking": 442,
+        "webSearches": 0,
+        "usd": 0.2204752
+      }
+    },
+    "effortPairs": {
+      "medium/medium": 7
+    },
+    "tokens": {
+      "messages": 7,
+      "input": 14,
+      "cacheCreation5m": 0,
+      "cacheCreation1h": 30721,
+      "cacheRead": 266516,
+      "output": 4426,
+      "thinking": 442,
+      "webSearches": 0
+    },
+    "apiUsd": 0.2204752,
+    "unpricedModels": [],
+    "activeMin": 0.6193166666666666,
+    "wallMin": 0.6193166666666666,
+    "human": {
+      "startMessage": false,
+      "followUps": 0,
+      "gates": 0,
+      "interventions": 0,
+      "housekeepingCommands": 0
+    },
+    "mcp": {},
+    "agents": {
+      "(main)": {
+        "models": {
+          "claude-sonnet-5-5": {
+            "messages": 7,
+            "input": 14,
+            "cacheCreation5m": 0,
+            "cacheCreation1h": 30721,
+            "cacheRead": 266516,
+            "output": 4426,
+            "thinking": 442,
+            "webSearches": 0
+          }
+        },
+        "messages": 7,
+        "input": 14,
+        "cacheCreation5m": 0,
+        "cacheCreation1h": 30721,
+        "cacheRead": 266516,
+        "output": 4426,
+        "thinking": 442,
+        "webSearches": 0,
+        "usd": 0.2204752
+      }
+    },
+    "subagentFiles": 0,
+    "warnings": [
+      "Haiku side calls (titles, WebFetch summaries) are not in transcripts and are not counted"
+    ],
+    "badLines": 0
+  },
+  {
+    "sessionId": "cd7eb88c-ff4f-4866-9fc8-713a7a2573e2",
+    "started": "2026-10-08T10:18:31.246Z",
+    "task": "implement-ticket",
+    "ticket": "WPR-4",
+    "budgetStops": 0,
+    "models": {
+      "claude-sonnet-5-5": {
+        "messages": 3,
+        "input": 6,
+        "cacheCreation5m": 0,
+        "cacheCreation1h": 16878,
+        "cacheRead": 95849,
+        "output": 1260,
+        "thinking": 212,
+        "webSearches": 0,
+        "usd": 0.0992938
+      }
+    },
+    "effortPairs": {
+      "medium/medium": 3
+    },
+    "tokens": {
+      "messages": 3,
+      "input": 6,
+      "cacheCreation5m": 0,
+      "cacheCreation1h": 16878,
+      "cacheRead": 95849,
+      "output": 1260,
+      "thinking": 212,
+      "webSearches": 0
+    },
+    "apiUsd": 0.0992938,
+    "unpricedModels": [],
+    "activeMin": 0.5903166666666667,
+    "wallMin": 0.5903166666666667,
+    "human": {
+      "startMessage": true,
+      "followUps": 0,
+      "gates": 0,
+      "interventions": 0,
+      "housekeepingCommands": 0
+    },
+    "mcp": {},
+    "agents": {
+      "(main)": {
+        "models": {
+          "claude-sonnet-5-5": {
+            "messages": 3,
+            "input": 6,
+            "cacheCreation5m": 0,
+            "cacheCreation1h": 16878,
+            "cacheRead": 95849,
+            "output": 1260,
+            "thinking": 212,
+            "webSearches": 0
+          }
+        },
+        "messages": 3,
+        "input": 6,
+        "cacheCreation5m": 0,
+        "cacheCreation1h": 16878,
+        "cacheRead": 95849,
+        "output": 1260,
+        "thinking": 212,
+        "webSearches": 0,
+        "usd": 0.0992938
+      }
+    },
+    "subagentFiles": 0,
+    "warnings": [
+      "Haiku side calls (titles, WebFetch summaries) are not in transcripts and are not counted"
+    ],
+    "badLines": 0
+  },
+  {
+    "sessionId": "da69cc10-b622-4748-8f93-ab6583171ed0",
+    "started": "2026-10-08T10:20:18.816Z",
+    "task": null,
+    "ticket": null,
+    "budgetStops": 0,
+    "models": {
+      "claude-sonnet-5-5": {
+        "messages": 6,
+        "input": 12,
+        "cacheCreation5m": 0,
+        "cacheCreation1h": 25141,
+        "cacheRead": 216390,
+        "output": 3550,
+        "thinking": 241,
+        "webSearches": 0,
+        "usd": 0.179366
+      }
+    },
+    "effortPairs": {
+      "medium/medium": 6
+    },
+    "tokens": {
+      "messages": 6,
+      "input": 12,
+      "cacheCreation5m": 0,
+      "cacheCreation1h": 25141,
+      "cacheRead": 216390,
+      "output": 3550,
+      "thinking": 241,
+      "webSearches": 0
+    },
+    "apiUsd": 0.179366,
+    "unpricedModels": [],
+    "activeMin": 1.00675,
+    "wallMin": 1.00675,
+    "human": {
+      "startMessage": false,
+      "followUps": 0,
+      "gates": 0,
+      "interventions": 0,
+      "housekeepingCommands": 0
+    },
+    "mcp": {},
+    "agents": {
+      "(main)": {
+        "models": {
+          "claude-sonnet-5-5": {
+            "messages": 6,
+            "input": 12,
+            "cacheCreation5m": 0,
+            "cacheCreation1h": 25141,
+            "cacheRead": 216390,
+            "output": 3550,
+            "thinking": 241,
+            "webSearches": 0
+          }
+        },
+        "messages": 6,
+        "input": 12,
+        "cacheCreation5m": 0,
+        "cacheCreation1h": 25141,
+        "cacheRead": 216390,
+        "output": 3550,
+        "thinking": 241,
+        "webSearches": 0,
+        "usd": 0.179366
+      }
+    },
+    "subagentFiles": 0,
+    "warnings": [
+      "Haiku side calls (titles, WebFetch summaries) are not in transcripts and are not counted"
+    ],
+    "badLines": 0
+  }
+]

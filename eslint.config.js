@@ -10,7 +10,7 @@ const allowedTagValues = Object.values(tags).flat();
 
 export default defineConfig(
   {
-    ignores: ['node_modules', 'test-results', 'playwright-report', 'downloads', 'dist'],
+    ignores: ['node_modules', 'test-results', 'playwright-report', 'downloads', 'dist', 'experiments'],
   },
   {
     files: ['scripts/**/*.mjs'],

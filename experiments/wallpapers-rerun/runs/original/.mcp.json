@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "playwright-test": {
+      "command": "npx",
+      "args": ["playwright", "run-test-mcp-server", "--headless"]
+    },
+    "currents": {
+      "command": "node",
+      "args": ["--env-file-if-exists=.env", "node_modules/@currents/mcp/dist/index.mjs"]
+    }
+  }
+}

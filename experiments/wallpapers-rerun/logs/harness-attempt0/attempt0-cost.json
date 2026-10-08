@@ -1,0 +1,199 @@
+[
+  {
+    "sessionId": "0b628b0a-dd24-459f-b73f-b208bf20d00e",
+    "started": null,
+    "task": null,
+    "ticket": null,
+    "budgetStops": 0,
+    "models": {},
+    "effortPairs": {},
+    "tokens": {
+      "messages": 0,
+      "input": 0,
+      "cacheCreation5m": 0,
+      "cacheCreation1h": 0,
+      "cacheRead": 0,
+      "output": 0,
+      "thinking": 0,
+      "webSearches": 0
+    },
+    "apiUsd": 0,
+    "unpricedModels": [],
+    "activeMin": 0,
+    "wallMin": 0,
+    "human": {
+      "startMessage": false,
+      "followUps": 0,
+      "gates": 0,
+      "interventions": 0,
+      "housekeepingCommands": 0
+    },
+    "mcp": {},
+    "agents": {},
+    "subagentFiles": 0,
+    "warnings": [
+      "Haiku side calls (titles, WebFetch summaries) are not in transcripts and are not counted"
+    ],
+    "badLines": 0
+  },
+  {
+    "sessionId": "346b4cf8-a55f-49e7-a257-da14d0d1e4f5",
+    "started": "2026-10-07T19:53:31.321Z",
+    "task": "scout-feature",
+    "ticket": null,
+    "budgetStops": 0,
+    "models": {
+      "claude-sonnet-5-5": {
+        "messages": 262,
+        "input": 524,
+        "cacheCreation5m": 157707,
+        "cacheCreation1h": 244017,
+        "cacheRead": 30447576,
+        "output": 149640,
+        "thinking": 35749,
+        "webSearches": 0,
+        "usd": 8.957298699999999
+      }
+    },
+    "effortPairs": {
+      "high/high": 262
+    },
+    "tokens": {
+      "messages": 262,
+      "input": 524,
+      "cacheCreation5m": 157707,
+      "cacheCreation1h": 244017,
+      "cacheRead": 30447576,
+      "output": 149640,
+      "thinking": 35749,
+      "webSearches": 0
+    },
+    "apiUsd": 8.957298699999999,
+    "unpricedModels": [],
+    "activeMin": 66.09155,
+    "wallMin": 85.60333333333334,
+    "human": {
+      "startMessage": true,
+      "followUps": 0,
+      "gates": 0,
+      "interventions": 0,
+      "housekeepingCommands": 0
+    },
+    "mcp": {
+      "playwright-test": {
+        "calls": 235,
+        "errors": 21,
+        "resultChars": 258677,
+        "resultTokensEst": 64670,
+        "images": 14,
+        "withoutResult": 0,
+        "tools": {
+          "browser_run_code_unsafe": 52,
+          "browser_navigate": 24,
+          "browser_close": 2,
+          "planner_setup_page": 3,
+          "browser_snapshot": 8,
+          "browser_click": 57,
+          "browser_evaluate": 49,
+          "browser_take_screenshot": 14,
+          "browser_press_key": 7,
+          "browser_type": 11,
+          "browser_console_messages": 3,
+          "browser_wait_for": 3,
+          "browser_navigate_back": 2
+        }
+      }
+    },
+    "agents": {
+      "(main)": {
+        "models": {
+          "claude-sonnet-5-5": {
+            "messages": 92,
+            "input": 184,
+            "cacheCreation5m": 0,
+            "cacheCreation1h": 244017,
+            "cacheRead": 14324362,
+            "output": 104426,
+            "thinking": 28378,
+            "webSearches": 0
+          }
+        },
+        "messages": 92,
+        "input": 184,
+        "cacheCreation5m": 0,
+        "cacheCreation1h": 244017,
+        "cacheRead": 14324362,
+        "output": 104426,
+        "thinking": 28378,
+        "webSearches": 0,
+        "usd": 4.8855684
+      },
+      "playwright-test-planner: Draft wallpapers exploration": {
+        "models": {
+          "claude-sonnet-5-5": {
+            "messages": 170,
+            "input": 340,
+            "cacheCreation5m": 157707,
+            "cacheCreation1h": 0,
+            "cacheRead": 16123214,
+            "output": 45214,
+            "thinking": 7371,
+            "webSearches": 0
+          }
+        },
+        "messages": 170,
+        "input": 340,
+        "cacheCreation5m": 157707,
+        "cacheCreation1h": 0,
+        "cacheRead": 16123214,
+        "output": 45214,
+        "thinking": 7371,
+        "webSearches": 0,
+        "usd": 4.0717303000000005
+      }
+    },
+    "subagentFiles": 1,
+    "warnings": [
+      "170 subagent messages: their output_tokens are partial in the transcript, so output and API $ are a lower bound",
+      "Haiku side calls (titles, WebFetch summaries) are not in transcripts and are not counted"
+    ],
+    "badLines": 0
+  },
+  {
+    "sessionId": "7c3c24f3-648d-43c8-b80e-81a5eb8c3021",
+    "started": null,
+    "task": null,
+    "ticket": null,
+    "budgetStops": 0,
+    "models": {},
+    "effortPairs": {},
+    "tokens": {
+      "messages": 0,
+      "input": 0,
+      "cacheCreation5m": 0,
+      "cacheCreation1h": 0,
+      "cacheRead": 0,
+      "output": 0,
+      "thinking": 0,
+      "webSearches": 0
+    },
+    "apiUsd": 0,
+    "unpricedModels": [],
+    "activeMin": 0,
+    "wallMin": 0,
+    "human": {
+      "startMessage": false,
+      "followUps": 0,
+      "gates": 0,
+      "interventions": 0,
+      "housekeepingCommands": 0
+    },
+    "mcp": {},
+    "agents": {},
+    "subagentFiles": 0,
+    "warnings": [
+      "Haiku side calls (titles, WebFetch summaries) are not in transcripts and are not counted"
+    ],
+    "badLines": 0
+  }
+]

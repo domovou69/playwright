@@ -1,0 +1,6 @@
+[22:53:30] bare: session 1
+[12:31:48] bare: resuming after a manual stop
+[12:31:48] bare: continue 1
+   (claude exited with an error, see /Users/mikhailyesipchuk/projects/playwright/experiments/wallpapers-rerun/logs/bare/session-resume-2.err)
+[13:36:39] bare: continue 2
+[14:33:21] bare: done in 939 min wall since the original start; summary file: yes

@@ -39,14 +39,5 @@
   },
   "dependencies": {
     "dotenv": "^18.0.4"
-  },
-  "lint-staged": {
-    "*.{ts,mjs}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "*.{json,md}": [
-      "prettier --write"
-    ]
   }
 }
