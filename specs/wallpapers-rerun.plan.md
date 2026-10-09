@@ -16,7 +16,7 @@ plan: `specs/explorbot-experiment.plan.md`.
 - [x] Objective metrics collected
 - [x] Blinded expert review done
 - [x] Results saved (`experiments/wallpapers-rerun/runs/`, `eval/final.md`)
-- [ ] Report and `specs/summary.md` updated
+- [x] Report and `specs/summary.md` updated
 
 ## Question
 

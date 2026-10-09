@@ -51,7 +51,8 @@ Create `.env` (see [Environment](#environment)). Only the tests themselves need 
 | `specs/agentic-qa-loop.plan.md`                   | The loop: stages, decisions, status                                  |
 | `specs/agentic-qa-loop-v2.plan.md`                | Second iteration: a new feature area, with cost and tool metrics     |
 | `specs/retrospective.md`                          | Retrospective, Explorbot experiment, playbook for other projects     |
-| `specs/summary.md`                                | Short reader-facing summary of the approach and the recommendation   |
+| `specs/summary.md`                                | Main results and conclusions of the approach (v1-v3, harness test)   |
+| `experiments/wallpapers-rerun/`                   | Is the harness needed: plain Claude vs harness, scripts and results  |
 | `specs/review-followups.plan.md`                  | Current improvement backlog                                          |
 | `scripts/`                                        | Jira triage, Jira repro result, `verify`                             |
 | `.claude/agents/`, `.claude/skills/`, `.mcp.json` | Playwright agents, vendored best-practices skill, MCP servers        |

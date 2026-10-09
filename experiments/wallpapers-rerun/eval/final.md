@@ -24,16 +24,41 @@ Y = harness, Z = original was sealed until after scoring.
 | **Duplicated locator strings (extra uses)**                                                          | 23 (80)                    | 7 (27)                          | 8 (37)                                                  |
 | **Judge: coverage of 21 site features**                                                              | 17                         | 19                              | 18                                                      |
 | **Judge scores (1-5): coverage / assertions / locators / page objects / test quality / bug reports** | 3 / 2 / 2 / 2 / 2 / 3 = 14 | 4 / 4 / 4 / 3 / 3 / 4 = 22      | 4 / 4 / 3 / 4 / 4 / 2 = 21                              |
+| **Judge total, 0 to 100 (formula below)** | 33.3 | 66.7 | 62.5 |
 | **Judge verdict**                                                                                    | rework                     | merge after small fixes         | merge after small fixes                                 |
 | **Known bugs found (ZED-3, ZED-4)**                                                                  | 2 of 2                     | 0 of 2                          | 0 of 2                                                  |
 | **New bugs, confirmed live by the judge**                                                            | 0                          | 3                               | 1                                                       |
 | **False positives**                                                                                  | 0                          | 0                               | 0                                                       |
 
+### How the judge total is computed
+
+The blinded judge gives each of six criteria a whole score from 1 (unusable) to 5 (excellent): coverage of the live site,
+assertions, locators, page objects, test quality, bug reports. Each score is mapped to 0 to 100 and the six are averaged with
+equal weights:
+
+    criterion % = (score - 1) / 4 * 100
+    total = (sum of the six criterion %) / 6  =  (sum of scores - 6) / 24 * 100
+
+Examples: bare 4, 4, 4, 3, 3, 4 gives (22 - 6) / 24 = 66.7; harness 4, 4, 3, 4, 4, 2 gives (21 - 6) / 24 = 62.5; original
+3, 2, 2, 2, 2, 3 gives (14 - 6) / 24 = 33.3. A score of 1 on every criterion is 0 and a 5 on every criterion is 100. The weights
+are equal because the plan did not rank the criteria; the measured numbers (stability, lint, tsc, cost) are shown beside the
+total and are not mixed into it. The judge is one session per case set, so a difference of a few points is noise.
+
+### Bugs found by each case
+
+Every claimed bug, steps and the judge's live check are in `eval/bugs.md`, with a column for the owner's relevance verdict.
+
+| Case | Bugs found (all reproduced by the judge) |
+| ---- | ---------------------------------------- |
+| original | ZED-3 (price 10: Download vs Buy), ZED-4 (Buy modal console warning). Both were filed earlier by hand |
+| bare | BUG-001 unknown `sort` returns HTTP 500; BUG-002 "Newest first" not in date order; BUG-003 `%` in search loops a `URIError` |
+| harness | WPR-6 `maxPrice=NaN` in the URL when only "From" is set (and no test for it) |
+
 ## What it says
 
-- **Quality of the two new runs is close.** The judge's sums are 22 and 21 of 30, both "merge after small fixes". With one run per
+- **Quality of the two new runs is close.** The judge's totals are 66.7 and 62.5 of 100 (22 and 21 of 30 raw), both "merge after small fixes". With one run per
   arm that difference is noise.
-- **Both are clearly above the original** (14, "rework"). That mixes the effect of the improved pipeline with a newer model and is
+- **Both are clearly above the original** (33.3, "rework"). That mixes the effect of the improved pipeline with a newer model and is
   not a measure of the harness alone.
 - **The harness bought reliability and structure, not breadth.** All 39 harness tests were stable in three runs and it has no lint
   violations, with real components and tags. The plain run wrote 68 tests, covered a bit more of the site and found the most new
@@ -49,7 +74,7 @@ Y = harness, Z = original was sealed until after scoring.
 
 ## Answer to the question
 
-On this task the harness did not produce a dramatically better result by independent scoring (21 against 22). What it adds is
+On this task the harness did not produce a dramatically better result by independent scoring (62.5 against 66.7 of 100). What it adds is
 mechanical: stable tests, zero lint violations, components and tags, at about 1.7 times the cost. Plain Claude is cheaper and
 broader and finds more bugs here, with less reliable and less maintainable code. The value of the harness is therefore in
 long-term maintenance and consistency across areas (which this single run does not measure), not in a better first draft.
